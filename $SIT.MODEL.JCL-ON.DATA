@@ -1,0 +1,56 @@
+/* Whenever a job starts, the following ON-conditions are in effect: */
+/*                                                                   */
+// ON     $RC < 16 CONTINUE
+// ON     $RC >= 16 GOTO $EOJ
+// ON     $ABEND OR $CANCEL GOTO $EOJ
+/*                                                                   */
+/* Format:                                                           */
+/*                                                                   */
+// ON     condition <operator condition> action
+/*                                                                   */
+/* Where: condition specifies the condition under which the action   */
+/*                  specified is taken.  It remains in effect for all*/
+/*                  job steps following the ON statement until:      */
+/*                     overriden by another ON statement, or         */
+/*                     End-of-Procedure (if within one), or          */
+/*                     End-of-Job.                                   */
+/*                  It may be expressed in one of these forms:       */
+/*                     $RC   comparator  n                           */
+/*                     $CANCEL                                       */
+/*                     $ABEND                                        */
+/*                  Where: $RC     specifies the return code of each */
+/*                                 job step executed.                */
+/*                         comparator specifies the comparison to be */
+/*                                 done.  This can be one of the     */
+/*                                 following six possibilities:      */
+/*                                    =  or EQ  is "Equal to"        */
+/*                                    ¬= or NE  is "Not equal to"    */
+/*                                    >  or GT  is "Greater than"    */
+/*                                    <  or LT  is "Less than"       */
+/*                                    >= or GE  is "Greater or equal"*/
+/*                                    <= or LE  is "Less or equal"   */
+/*                         n       is a decimal integer from 0-4095. */
+/*                         $CANCEL specifies that the action is taken*/
+/*                                 if the CANCEL command is given for*/
+/*                                 the job.                          */
+/*                         $ABEND  specifies that the action is to be*/
+/*                                 taken if a job step terminates    */
+/*                                 abnormally.                       */
+/*        operator  specifies a logical operator which connects two  */
+/*                  conditions.  The valid specifications are:  OR,  */
+/*                  |, AND, and &.  The logical operators must be    */
+/*                  preceded and followed by a blank.                */
+/*        action    specifies the action to be taken if the specified*/
+/*                  condition is true at End-of-Step.  It may be     */
+/*                  expressed in one of the following forms:         */
+/*                     GOTO label                                    */
+/*                     CONTinue                                      */
+/*                  Where: GOTO label specifies that processing is to*/
+/*                                  continue at the specified label. */
+/*                         CONTinue specifies that processing should */
+/*                                  continue with the next statement */
+/*                                  after the job-step-in-question if*/
+/*                                  the specified condition is true. */
+/*                                  CONTINUE is only valid with the  */
+/*                                  $RC condition test.              */
+/*                                                                   */

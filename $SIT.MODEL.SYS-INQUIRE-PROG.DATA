@@ -1,0 +1,25 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS INQUIRE PROGRAM(8-character data-value)
+      *                                Examine PPT information
+                   < START | NEXT | END >
+                   < LANGUAGE(cvda) >
+                   < PROGTYPE(cvda) >
+                   < STATUS(cvda) >
+                   < LENGTH(fullword binary data-area) >
+                   < RESCOUNT(fullword binary data-area) >
+                   < USECOUNT(fullword binary data-area) >
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  PGMIDERR, END, ILLOGIC, NOTAUTH
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

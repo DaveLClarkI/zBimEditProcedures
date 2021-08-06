@@ -1,0 +1,76 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+// DLBL   filename,'file-id',<date>,<codes>
+/* Operands for VSAM only                                            */
+              <,CAT=filename><,DISP=disposition><,BUFSP=n>
+              <,BUFNI=n><,BUFND=n><,RECORDS=n><,RECSIZE=n>
+/*                                                                   */
+/* Where: filename     is from 1 to 7 alphameric characters, the     */
+/*                     first of which must be alphabetic, @, # or $. */
+/*                     This is the name a program knows a file by.   */
+/*        'file-id'    is the unique name associated with the file on*/
+/*                     the volume.  This can be from 1 to 44 chars,  */
+/*                     contained within quotes, and if fewer than 44 */
+/*                     characters are used, the field is left        */
+/*                     justified and padded with blanks.             */
+/*        date         may be either a 4-digit retention period or an*/
+/*                     8-character expiration date.  An expiration   */
+/*                     date is a Julian date in the format 19yy/ddd, */
+/*                     20yy/ddd or yy/ddd (assumes 19yy).            */
+/*        codes        indicates the type of file label, as follows: */
+/*                        SD   for sequential disk (default)         */
+/*                        DA   for direct access                     */
+/*                        VSAM for VSAM or Managed-SAM files.        */
+/*        CAT=filename specifies the filename of the DLBL statement  */
+/*                     for the catalog owning this VSE/VSAM file.    */
+/*        DISP=disposition permits specification of the data set's   */
+/*                     disposition.  Three positional keywords tell  */
+/*                     VSAM how the file is 1) opened, 2) closed on  */
+/*                     program request, and 3) closed during abnormal*/
+/*                     termination if the program did not request    */
+/*                     normal file close.  "disposition" may be      */
+/*                     specified as:                                 */
+/*                        opendisp                                   */
+/*                        (opendisp)                                 */
+/*                        (opendisp,closedisp)                       */
+/*                        (opendisp,closedisp,abenddisp)             */
+/*                        (opendisp,,abenddisp)                      */
+/*                        (,closedisp)                               */
+/*                        (,closedisp,abenddisp)                     */
+/*                        (,,abenddisp)                              */
+/*                     Where:  "opendisp"  is NEW or OLD;            */
+/*                             "closedisp" is DELETE, KEEP or DATE;  */
+/*                             "abenddisp" is DELETE or KEEP.        */
+/*                     See the VSE/VSAM Programmer's Reference for   */
+/*                     the meaning and defaults of these keywords.   */
+/*        BUFSP=n      overrides the default or DEFINEed buffer space*/
+/*                     for a VSE/VSAM file if the value of "n" (up to*/
+/*                     999999) is > than the DEFINEed BUFFERSPACE.   */
+/*        BUFNI=n      specifies the number of index buffers to use  */
+/*                     for a VSE/VSAM file.  Default is 1.           */
+/*        BUFND=n      specifies the number of data buffers to use   */
+/*                     for a VSE/VSAM file.  Default is 2.           */
+/*        RECORDS=n    This operand only valid for VSE/VSAM Managed- */
+/*                     SAM files and, if coded, "RECSIZE" must also  */
+/*                     be specified.  It permits specification of the*/
+/*                     number of physical records (blocks) for the   */
+/*                     primary and secondary data set allocation.    */
+/*                     Valid formats are:                            */
+/*                        RECORDS=n                                  */
+/*                        RECORDS=(n)                                */
+/*                        RECORDS=(n1,n2)                            */
+/*                     Where: "n"  is the primary allocation and 20% */
+/*                                 of "n" is the secondary allocation*/
+/*                            "n1" is the primary allocation         */
+/*                            "n2" is the secondary allocation       */
+/*                     Do not specify zero for primary allocation.   */
+/*        RECSIZE=n    This operand only valid for VSE/VSAM Managed- */
+/*                     SAM files and, if coded, "RECORDS" must also  */
+/*                     be specified.  It permits specification of the*/
+/*                     average physical record (block) length and    */
+/*                     must not be zero.                             */
+/*                                                                   */

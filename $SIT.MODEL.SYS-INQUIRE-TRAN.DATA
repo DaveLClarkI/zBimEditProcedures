@@ -1,0 +1,23 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS INQUIRE TRANSACTION(4-character data-value)
+      *                                Examine PCT information
+                   < START | NEXT | END >
+                   < REMOTESYSTEM(4-character data-value) >
+                   < PROGRAM(8-character data-value) >
+                   < STATUS(cvda) >
+                   < PRIORITY(fullword binary data-area) >
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  TRANSIDERR, END, ILLOGIC, NOTAUTH
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

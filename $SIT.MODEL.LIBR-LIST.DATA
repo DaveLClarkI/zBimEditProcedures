@@ -1,0 +1,26 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Display the contents of a member.              */
+ /*                                                                  */
+   List mn.mt <...> < Format=Hex > < Unit={SYSLST|SYSLOG} >
+ /*                                                                  */
+ /* Where: mn.mt      specifies one or more member names and member  */
+ /*                   types (both of which may be generic) to        */
+ /*                   display based on current ACCESS information    */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        Format     is a keyword (only capital letters required)   */
+ /*        Hex        Phases/dumps are always listed in combined,    */
+ /*                   left-right hexadecimal and character format    */
+ /*                   and all other types are listed in standard     */
+ /*                   character format by default unless this option */
+ /*                   is specified, in which case these are listed   */
+ /*                   in over-under character and 2-line hexadecimal */
+ /*                   format instead                                 */
+ /*        Unit       is a keyword (only capital letters required)   */
+ /*        SYSLST     output to SYSLST (default for SYSIPT mode)     */
+ /*        SYSLOG     output to SYSLOG (default for console mode)    */
+ /*                                                                  */

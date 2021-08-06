@@ -1,0 +1,33 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS SPOOLOPEN
+      *                                Open an ESCAPE program format report
+                     ESCAPE(name)
+                     REPORT(name)
+                     TOKEN(data-value)
+                   < TITLE(data-area) >
+                   < CLASS(data-value) >
+                   < COPIES(data-value) >
+                   < DESTINATION(name) >
+                   < FORMS(name) >
+                   < NODE(name) >
+                   < PRIORITY(data-value) >
+                   < RSL(data-value) >
+                   < USERDATA(data-area) >
+                   < PRINTFAIL >
+                   < LOGICAL | PHYSICAL >
+                   < SEP | NOSEP >
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  ILLOGIC, INVREQ, IOERR, NOSPACE, NOSPOOL, WRONGSTAT
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

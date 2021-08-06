@@ -1,0 +1,43 @@
+/* change STEPnn to the appropriate step number                      */
+/* enter your step description in columns 13-64                      */
+/* change all "pgmname" to the name of your program                  */
+/* change all DEVL to PROD if running in production                  */
+/* change XX to your report frequency code                           */
+/* change SS to your report system code                              */
+/* change NNNNNN to your report number                               */
+/*                                                                   */
+/. STEPnn - my step description (pgmname)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.DEVL,TEMP
+// DLBL   CARMSFL,'CLARKE.AUTOMATD.REPORT.MGMT.FILE',,VSAM,CAT=DEVLCAT
+// ASSGN  SYS016,PRINTER
+// EXEC   PGM=CARMSPGM,SIZE=CARMSPGM,PARM='XX SSNNNNNN'
+/*                                                                   */
+/* for single reports, do as above, otherwise, do as below           */
+/*                                                                   */
+// ASSGN  SYS011,01E
+// ASSGN  SYS012,02E
+// ASSGN  SYS013,03E
+// ASSGN  SYS014,04E
+// ASSGN  SYS015,05E
+// ASSGN  SYS016,06E
+// ASSGN  SYS017,07E
+// ASSGN  SYS018,08E
+// ASSGN  SYS019,09E
+// EXEC   PGM=CARMSPGM,SIZE=CARMSPGM,PARM='CARD'
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS011
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS012
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS013
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS014
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS015
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS016
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS017
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS018
+   CARMS  REPORT='XX SSNNNNNN'    OUTPUT ON SYS019
+/* EOD
+/*                                                                   */
+/* place the rest of your job step jcl here                          */
+/*                                                                   */
+// EXEC   PGM=pgmname,SIZE=pgmname
+/* EOD
+/*                                                                   */

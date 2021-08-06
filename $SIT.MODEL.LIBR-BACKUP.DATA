@@ -1,0 +1,56 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Backup one or more libraries, sublibraries, or */
+ /*                   members.                                       */
+ /*                                                                  */
+   Backup { Lib=l <...> | Sublib=l.s <...> | l.s.mn.mt <...> } -
+          Tape={SYSnnn|cuu}  < List={Yes|No} > -
+          < {TAPELabel|TLabel}=filelabel > < ID=name > -
+          < Restore={Online|Standalone} > < Include=Historyfile > -
+          < Header=l.s.mn.mt > < Custtable=l.s.mn.mt >
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies a library name to backup             */
+ /*                   (delimit multiple names with blanks or commas) */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies a sublibrary name to backup          */
+ /*                   (delimit multiple names with blanks or commas) */
+ /*        l.s.mn.mt  specifies a fully-qualified member name to     */
+ /*                   backup where the member name and type may be   */
+ /*                   generic to include more than one member        */
+ /*                   (delimit multiple names with blanks or commas) */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        Tape       is a keyword (only capital letters required)   */
+ /*        SYSnnn     specifies the programmer logical unit assigned */
+ /*                   to the backup tape device                      */
+ /*        cuu        the backup tape physical device address        */
+ /*        LISt       is a keyword (only capital letters required)   */
+ /*        Yes        lists backed up names (this is the default     */
+ /*                   when backing up libraries or sublibraries)     */
+ /*        No         does not list backed up names (this is the     */
+ /*                   default when backing up by member)             */
+ /*        TAPELabel                                                 */
+ /*        | TLabel   is a keyword (only capital letters required)   */
+ /*        filelabel  specifies the file label (TLBL) describing     */
+ /*                   a standard labeled backup tape                 */
+ /*        ID         is a keyword (only capital letters required)   */
+ /*        name       specifies the internal identifier for the      */
+ /*                   backup file (enclosed in quotes)               */
+ /*        Restore    is a keyword (only capital letters required)   */
+ /*        Online     backup is for online restore only (default)    */
+ /*        Standalone backup can be used for standalone restores     */
+ /*        Include    is a keyword (only capital letters required)   */
+ /*        Historyfile also backs up the system history file         */
+ /*        Header     is a keyword (only capital letters required)   */
+ /*        l.s.mn.mt  specifies a fully-qualified member name to be  */
+ /*                   backed up as the IPLable header on the tape    */
+ /*        Custtable  is a keyword (only capital letters required)   */
+ /*        l.s.mn.mt  specifies a fully-qualified member name to be  */
+ /*                   backed up as the customization table used for  */
+ /*                   standalone restores                            */
+ /*                                                                  */

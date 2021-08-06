@@ -1,0 +1,28 @@
+/* change MYJOB to your job name where shown (max 8 chars)           */
+/* change all occurances of MYID to your VM Userid (max 8 chars)     */
+/*                                                                   */
+* $$ JOB JNM=MYJOB,DISP=D,CLASS=R,USER=MYID
+* $$ LST LST=00E,DISP=D,CLASS=R,DEST=(,MYID)
+* $$ PUN PUN=05D,DISP=D,CLASS=R,DEST=(,MYID)
+* $$ EOJ
+/*                                                                   */
+/* If other parameters are added to the above lines, and continuation*/
+/*   is needed, 1) enter a non-blank character in column 72,         */
+/*              2) add a line after that one with '* $$' in column 1,*/
+/*          and 3) continue entering parameters with column 16.      */
+/*                                                                   */
+/* Other JOB parameters:                                             */
+/*   LDEST=(nodeid,userid)            for LST destination            */
+/*   NTFY=(nodeid,userid)             for notify messages            */
+/*   PDEST=(nodeid,userid)            for PUN destination            */
+/*   XDEST=(nodeid,userid)            for XMT destination            */
+/* Other LST/PUN parameters:                                         */
+/*   COPY=number-of-copies            for multiple copies            */
+/*   DEST=(nodeid,userid)             for LST/PUN destination        */
+/*   FCB=phasename                    for LST forms control buffer   */
+/*   FNO=formnumber                   for LST/PUN 4-char forms number*/
+/*   JSEP=n                           for number of job seperators   */
+/*   RBS=norbs                        for output pages segmentation  */
+/*   REMOTE=remid                     for remote destinations        */
+/*   TADDR=tapeaddr                   for output direct to tape      */
+/*                                                                   */

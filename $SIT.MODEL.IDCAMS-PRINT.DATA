@@ -1,0 +1,26 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+   PRINT  INFILE(dname                      -
+               < ENV(RECFM(format)          -
+                    <BLKSZ(nnnn)>           -
+                    <RECSZ(nnnn)>           -
+                    <STDLABEL|NOLABEL>      -
+                    <NREW|REW|UNLD>         -
+                    <PDEV(xxxxxx)>          -
+                                       ) >  -
+                                          ) -
+         {DUMP|HEX|CHARACTER}               -
+         <SKIP(n)|FROMKEY(key)>             -
+         <COUNT(n)|TOKEY(key)>
+ /*                                                                  */
+ /* Where: format is one of the following:                           */
+ /*                  FIXUNB or F   for Fixed, unblocked              */
+ /*                  FIXBLK or FB  for Fixed, blocked                */
+ /*                  VARUNB or V   for Variable, unblocked           */
+ /*                  VARBLK or VB  for Variable, blocked             */
+ /*                  UNDEF  or U   for Undefined                     */
+ /*                                                                  */

@@ -1,0 +1,14 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Read subsequent commands and data from SYSIPT  */
+ /*                                                                  */
+   Input SYSIPT
+ /*                                                                  */
+ /* Note: This is useful where you've started the VSE Librarian from */
+ /*       the console but have assigned SYSIPT to disk or tape for   */
+ /*       subsequent input processing.                               */
+ /*                                                                  */

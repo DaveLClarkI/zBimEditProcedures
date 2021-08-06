@@ -1,0 +1,15 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Test library integrity (this should only be    */
+ /*                   used on request of IBM personnel).             */
+ /*                                                                  */
+   Test { Lib=l <...> <Area={ALL|Space> <Repair={No|Yes}
+          | Sublib=l.s <...> | mn.mt <...>
+          | Trace={Space|IO|Buffer|LEVEL1|LEVEL2|ALL|OFF} } -
+        < { PARTition={ALL|xx} | TASK=yyyy } > -
+        < Unit={SYSLST|SYSLOG} >
+ /*                                                                  */

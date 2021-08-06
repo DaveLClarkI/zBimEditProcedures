@@ -1,0 +1,24 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS SPOOLWRITE
+      *                                Write to a BMS MAP report
+                     MAPNAME(name)
+                     MAPSET(name)
+                   { FROM(data-area) < FLENGTH(data-value) > | MAPONLY }
+                     REPORT(name)
+                     TOKEN(data-value)
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  CCERROR, IOERR, LENGERR, MAPERROR, NOSPACE, NOSPOOL,
+      *              NOTAUTH
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

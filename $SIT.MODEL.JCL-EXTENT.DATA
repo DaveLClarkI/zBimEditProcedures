@@ -1,0 +1,57 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+// EXTENT <SYSxxx>,<volser>,<type>,<sequence>,<track>,<count>,<split>
+/*                                                                   */
+/* Note: VSAM files do not require EXTENT statements.  If they are   */
+/*       specified, only the "SYSxxx" and "volser" operands are      */
+/*       meaningfull and multi-volume files must have multiple EXTENT*/
+/*       statements to reference each volume on which they reside.   */
+/*                                                                   */
+/* Where:  SYSxxx   is the logical unit number of the volume for     */
+/*                  which this extent is effective.  If omitted, the */
+/*                  logical unit of the preceding EXTENT, if any, is */
+/*                  used.  If omitted on the first, or only, EXTENT  */
+/*                  statement, the symbolic unit from the accessing  */
+/*                  program is assumed.  This operand is not required*/
+/*                  for VSAM files.                                  */
+/*         volser   is the volume serial number of the volume for    */
+/*                  which this extent is effective.  If omitted, the */
+/*                  volume serial number of the preceding EXTENT, if */
+/*                  any, is used.  If omitted on the first, or only, */
+/*                  EXTENT statement, then no serial number checking */
+/*                  is done and it is the user's responsibility to   */
+/*                  insure the proper volume is mounted.  However, if*/
+/*                  an EXTENT is coded for a VSE/VSAM file, then this*/
+/*                  operand is a required field.                     */
+/*         type     is one character indicating the type of extent:  */
+/*                     1  data area (no split cylinder)              */
+/*                     2  (for ISAM files only)                      */
+/*                     4  (for ISAM files only)                      */
+/*                     8  data area (split cylinder, SAM files only) */
+/*                  If omitted, type 1 is assumed (and is the only   */
+/*                  valid value for a VSE/VSAM file, if coded).      */
+/*         sequence is a decimal number from 0 to 255 indicating the */
+/*                  sequence number of this extent within a multi-   */
+/*                  extent file.  For SAM, VSE/VSAM, and DAM files,  */
+/*                  this operand is not required.  However, if coded,*/
+/*                  it must start from 0 for the first extent.       */
+/*         track    is one to five characters indicating the         */
+/*                  sequential number of the track, relative to zero,*/
+/*                  where the data extent is to begin.  This field is*/
+/*                  not required for SAM input files (the extents    */
+/*                  from the volume table of contents are used).     */
+/*         count    is one to five characters indocating the number  */
+/*                  of tracks allocated to the file.  This field may */
+/*                  be omitted, provided the "track" field is also   */
+/*                  omitted, for SAM input files.                    */
+/*         split    is a one or two digit decimal number, indicating */
+/*                  the upper track number for the split cylinder in */
+/*                  SAM files.  The minimum specification is 0, the  */
+/*                  maximum is device-dependent, and is 1 less than  */
+/*                  the number of tracks per cylinder for the device */
+/*                  in question.                                     */
+/*                                                                   */

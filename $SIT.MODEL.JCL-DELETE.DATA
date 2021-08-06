@@ -1,0 +1,18 @@
+/* change STEPnn to the appropriate step number                      */
+/* change DEVL to PROD if running in production                      */
+/* place your work file name between the quotes in the DLBL          */
+/*                                                                   */
+/*                                                                   */
+/. STEPnn - DELETE MANAGED-SAM WORK FILES (Z99001)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.DEVL,TEMP
+// DLBL   S99001,'my work file name',,VSAM,CAT=WORKCAT,                X
+               DISP=(OLD,DELETE,DELETE)
+// EXEC   PGM=Z99001,SIZE=z99001
+01
+/* EOD
+/*                                                                   */
+/* up to 16 work files may be deleted in the same job step:          */
+/* 1) duplicate the DLBL statement and increment the DLBL name by 1  */
+/* 2) set the control card to 2-digit number of the last DLBL used   */
+/*                                                                   */

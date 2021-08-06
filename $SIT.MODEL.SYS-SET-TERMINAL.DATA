@@ -1,0 +1,26 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS SET TERMINAL(4-character data-value)
+      *                                Modify TCT information
+                   < SERVSTATUS(cvda) >
+                   < ACQSTATUS(cvda) >
+                   < CREATESESS(cvda) >
+                   < ATISTATUS(cvda) >
+                   < TTISTATUS(cvda) >
+                   < PAGESTATUS(cvda) >
+                   < TERMPRIORITY(fullword binary data-area) >
+                   < PURGE < FORCE > >
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  ERROR, INVREQ, TERMIDERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

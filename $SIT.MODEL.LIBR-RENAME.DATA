@@ -1,0 +1,27 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Rename a sublibrary or member to another name. */
+ /*                   Note that for a sublibrary rename, any ACCESS  */
+ /*                   or CONNECT for the sublibrary is automaticaly  */
+ /*                   dropped on completion.                         */
+ /*                                                                  */
+   REName { Sublib=l.s | mn.mt }
+ /*                                                                  */
+ /* Where: Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies an old and new sublibrary, where the */
+ /*                   new library name must be the same as the old   */
+ /*                   library name and can therefore be an equals    */
+ /*                   sign (delimit new/old with blank or colon)     */
+ /*        mn.mt      specifies an old and new member (based on      */
+ /*                   current ACCESS setting) where member names     */
+ /*                   (and old member type) can be generic to        */
+ /*                   include more than one member and the new       */
+ /*                   member name or type can be an equals sign if   */
+ /*                   it is to be the same as the associated old     */
+ /*                   specification (delimit new/old with blank or   */
+ /*                   colon)                                         */
+ /*                                                                  */

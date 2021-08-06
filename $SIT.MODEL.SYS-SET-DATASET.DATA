@@ -1,0 +1,33 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS SET DATASET(7-character data-value)
+      *                                Modify FCT information
+      * the dataset must be CLOSED, DISABLED for any of the following options
+                   < EMPTYSTATUS(cvda) >
+                   < READ(cvda) >
+                   < UPDATE(cvda) >
+                   < BROWSE(cvda) >
+                   < ADD(cvda) >
+                   < DELETE(cvda) >                             VSAM only
+                   < STRINGS(fullword binary data-area) >
+                   < LSRPOOLID(fullword binary data-area) >
+      * the following options may NOT be specified with any of the above
+                   < ENABLED |
+                       DISABLED < WAIT | NOWAIT | FORCE > |
+                         OPEN < EMPTY > |
+                           CLOSED < EMPTY > < WAIT | NOWAIT | FORCE > >
+      *                                                         All
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  DSIDERR, INVREQ, IOERR, NOTAUTH
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

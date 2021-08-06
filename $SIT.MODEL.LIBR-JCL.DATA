@@ -1,0 +1,18 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+/. STEPnn - VSE LIBRARIAN BATCH SESSION (LIBR)
+// EXEC   PGM=LIBR,SIZE=256K < ,PARM=' < MSHP > <;cmd-line> <...> ' >
+   <commands>
+/* EOD
+ /*                                                                  */
+ /* Where: MSHP       is required when manipulating MSHP-controlled  */
+ /*                   sublibrary members.                            */
+ /*        cmd-line   allows one or more Librarian comands to be     */
+ /*                   strung together in the PARM operand.  This is  */
+ /*                   useful when SYSIPT is not assigned to SYSIN    */
+ /*                   and card data is coming from another source.   */
+ /*                                                                  */

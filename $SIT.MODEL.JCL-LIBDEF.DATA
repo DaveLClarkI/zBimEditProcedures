@@ -1,0 +1,57 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/* ... denotes the preceding identifier(s) may be coded repetitively.*/
+/*                                                                   */
+// LIBDEF {type|*}<,SEARCH=(lib.sublib,...)><,CATALOG=lib.sublib>
+                  <,{TEMP|PERM}>
+/*                                                                   */
+/* Where: type   defines the member type that this LIBDEF statement  */
+/*               applies to.  Specify one of the following types to  */
+/*               define a sublibrary chain to be used:               */
+/*                  PHASE  for loading or fetching program phases.   */
+/*                  OBJ    by the linkage editor when searching for  */
+/*                         object modules to be linked into a phase. */
+/*                  SOURCE when searching (e.g.  by language         */
+/*                         translators) for one of the predefined    */
+/*                         "SOURCE" types (A-Z, 0-9, #, $, @).       */
+/*                  PROC   by Job Control when searching for a       */
+/*                         procedure to be executed.                 */
+/*                  DUMP   by the system when a dump is needed and   */
+/*                         the option SYSDUMP is in effect, or a     */
+/*                         CANCEL command with the SYSDUMP operand is*/
+/*                         issued.  You must use the keyword CATALOG */
+/*                         if you specify DUMP as the "type" operand.*/
+/*        *      indicates that the LIBDEF statement applies to all  */
+/*               member types except DUMP and user types.  That is, a*/
+/*               common chain for all other types is established.  If*/
+/*               the CATALOG operand is specified, it will apply for */
+/*               members of the type PHASE only.                     */
+/*        SEARCH=lib.sublib is required if you specified OBJ, SOURCE */
+/*               or PROC in the "type" operand.  With type PHASE or **/
+/*               you must specify SEARCH or CATALOG or both.  The    */
+/*               specified sublibraries are searched in the sequence */
+/*               in which they are specified.  You may specify a list*/
+/*               of up to 15 sublibraries in one search chain.  The  */
+/*               sublibrary names in the list must be seperated by   */
+/*               commas.  If only one sublibrary is specified, it    */
+/*               need not be enclosed in parentheses.                */
+/*        CATALOG=lib.sublib is applicable for LIBDEF statements with*/
+/*               the type PHASE, DUMP or * only.  It specifies the   */
+/*               library/sublibrary into which the linkage editor or */
+/*               DUMP output is to be cataloged.                     */
+/*        TEMP   specifies temporary duration of the definition.     */
+/*               That is, the defined chain will be dropped:         */
+/*                  At End-of-Job, or                                */
+/*                  When overridden by a new LIBDEF...TEMP, or       */
+/*                  When overridden by a LIBDROP...TEMP statement.   */
+/*               If both TEMP and PERM are omitted, TEMP is assumed. */
+/*        PERM   specifies permanent duration of the definition.     */
+/*               That is, the defined chain remains in effect until: */
+/*                  The partition is deactivated, via UNBATCH, or    */
+/*                  A LIBDROP...PERM statement is issued, or         */
+/*                  A new LIBDEF overrides it wholly or in part.     */
+/*               If both PERM and TEMP are omitted, TEMP is assumed. */
+/*                                                                   */

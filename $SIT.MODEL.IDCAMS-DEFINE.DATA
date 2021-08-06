@@ -1,0 +1,49 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+   DEFINE CLUSTER(NAME(entryname.FILE)      -
+                  BUFSP(nnnnn)              -
+                 {INDEXED|NONINDEXED}       -
+                  SHR(2 3)                  -
+                  VOL(VSEnnn)             ) -
+             DATA(NAME(entryname.DATA)      -
+                  CYL(1 1)                  -
+                  FSPC(10 10)               -
+                 <KEYS(0 nn)>               -
+                  RECSZ(nnnn)               -
+                  CISZ(4096)              ) -
+          < INDEX(NAME(entryname.INDX)      -
+                  TRK(1 1)                  -
+                  NOIMBED                   -
+                  NOREPLICATE               -
+                  CISZ(1024)              ) - >
+          CATALOG(catname)
+ /*                                                                  */
+   DEFINE     AIX(NAME(entryname.AIX)       -
+                  RELATE(entryname.FILE)    -
+                 {UPGRADE|NOUPGRADE}        -
+                  BUFSP(nnnnn)              -
+                  SHR(2 3)                  -
+                  VOL(VSEnnn)             ) -
+             DATA(NAME(entryname.ALTD)      -
+                  CYL(1 1)                  -
+                  FSPC(10 10)               -
+                  KEYS(0 nn)                -
+                 {NONUNIQUEKEY|UNIQUEKEY}   -
+                  RECSZ(nnnn)               -
+                  CISZ(4096)              ) -
+            INDEX(NAME(entryname.ALTX)      -
+                  TRK(1 1)                  -
+                  NOIMBED                   -
+                  NOREPLICATE               -
+                  CISZ(1024)              ) -
+          CATALOG(catname)
+ /*                                                                  */
+   DEFINE    PATH(NAME(entryname.PATH)      -
+                  RELATE(entryname.AIX)     -
+                 {UPDATE|NOUPDATE}        ) -
+          CATALOG(catname)
+ /*                                                                  */

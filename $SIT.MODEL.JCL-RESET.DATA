@@ -1,0 +1,17 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+// RESET  {SYS|PROG|ALL|SYSxxx}
+/*                                                                   */
+/* Where: SYS    resets all system logical units and library defini- */
+/*               tions to their permanent assignments (if any).      */
+/*        PROG   resets all programmer logical units to their        */
+/*               permanent assignments (if any).                     */
+/*        ALL    resets all logical units and library definitions to */
+/*               their permanent assignments (if any).               */
+/*        SYSxxx resets the specified logical unit to its permanent  */
+/*               assignment (if any).                                */
+/*                                                                   */

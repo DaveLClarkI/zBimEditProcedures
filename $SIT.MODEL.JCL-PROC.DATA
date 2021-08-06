@@ -1,0 +1,21 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/* ... denotes the preceding identifier(s) may be coded repetitively.*/
+/*                                                                   */
+// PROC   <parmname=<value>><,...>
+/*                                                                   */
+/* Where: PROC         is the first statement in a procedure and is  */
+/*                     required if the procedure contains symbolic   */
+/*                     parameters to which a default value must be   */
+/*                     assigned.  The operands of a PROC statement   */
+/*                     may not contain the symbolic parameter itself,*/
+/*                     i.e.  it may not be prefixed with an "&".     */
+/*        parmname     repesents a symbolic parameter to which a     */
+/*                     value is to be assigned.                      */
+/*        value        specifies the value to assign to a symbolic   */
+/*                     parameter.  If "value" is omitted, the        */
+/*                     symbolic parameter is assigned a null value.  */
+/*                                                                   */

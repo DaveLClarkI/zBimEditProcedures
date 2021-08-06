@@ -1,0 +1,8 @@
+/* change all appropriate "X"s to a '0' or a '1' as needed           */
+/*                                                                   */
+// UPSI   XXXXXXXX
+/*                                                                   */
+/* where: X  does not change the value of that switch position       */
+/*        0  changes that switch position to the OFF state           */
+/*        1  changes that switch position to the ON  state           */
+/*                                                                   */

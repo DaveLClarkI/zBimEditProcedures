@@ -1,0 +1,53 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Search for a member name and type.             */
+ /*                                                                  */
+   Search mn.mt { Lib=* | Lib=l <...> | Sublib=l.s <...>
+                  | LBR={ACCess|CONNect}
+                  | LIBDef={PHASE|SOURCE|OBJECT|PROC|DUMP}
+                    <LIBUse={SEARCH|CATALOG}> <Partition=partid> } -
+                < OUTPUT={NORMAL|FULL} > < LOCKid=lockid > -
+                < Unit={SYSLST|SYSLOG} >
+ /*                                                                  */
+ /* Where: mn.mt      specifies the member for which to search       */
+ /*                   (may be generic)                               */
+ /*        Lib        is a keyword (only capital letters required)   */
+ /*        *          specifies to search all open libraries         */
+ /*        l          specifies one or more library names to search  */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies one or more library and sublibrary   */
+ /*                   names to search (delimit names with either     */
+ /*                   blanks or commas)                              */
+ /*        LBR        is a keyword (only capital letters required)   */
+ /*        ACCess     the current ACCESS chain is searched           */
+ /*        CONNect    the current CONNECT chain is searched          */
+ /*        LIBDef     is a keyword (only capital letters required)   */
+ /*        PHASE      the current LIBDEF PHASE chain is searched     */
+ /*        SOURCE     the current LIBDEF SOURCE chain is searched    */
+ /*        OBJECT     the current LIBDEF OBJECT chain is searched    */
+ /*        PROC       the current LIBDEF PROC chain is searched      */
+ /*        DUMP       the current LIBDEF DUMP chain is searched      */
+ /*        LIBUse     is a keyword (only capital letters required)   */
+ /*        SEARCH     only search the LIBDEF SEARCH chain (default)  */
+ /*        CATALOG    only search the LIBDEF CATALOG chain           */
+ /*                   (default for the LIBDEF DUMP chain)            */
+ /*        Partition  is a keyword (only capital letters required)   */
+ /*        partid     only the requested LIBDEF chain for a specific */
+ /*                   partition id is searched                       */
+ /*        LOCKid     is a keyword (only capital letters required)   */
+ /*        lockid     only members locked with this id are searched  */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        OUTPUT     is a keyword (only capital letters required)   */
+ /*        NORMAL     member name, type, and attributes are included */
+ /*                   in the output (default)                        */
+ /*        FULL       includes member lock information in the output */
+ /*        Unit       is a keyword (only capital letters required)   */
+ /*        SYSLST     output to SYSLST (default for SYSIPT mode)     */
+ /*        SYSLOG     output to SYSLOG (default for console mode)    */
+ /*                                                                  */

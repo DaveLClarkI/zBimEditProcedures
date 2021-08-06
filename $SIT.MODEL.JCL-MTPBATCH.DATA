@@ -1,0 +1,43 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > indicates the enclosed parameters are optional.               */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+/* Commands:  *      Comment                                         */
+/*            CICS   Command header card                             */
+/*            CLOS   Close file(s)               ('*' for generic)   */
+/*            ENAB   Set file(s) enabled         ('*' for generic)   */
+/*            INQY   Change file(s) to read-only ('*' for generic)   */
+/*            LINK   Link to a CICS program                          */
+/*            MESG   Send msg to a CICS terminal                     */
+/*            MSGL   Send multi-line msg to CICS                     */
+/*            NEWC   Newcopy programs            ('*' for generic)   */
+/*            OPEN   Open file(s)                ('*' for generic)   */
+/*            PHAS   Phase-in programs (CICS-TS) ('*' for generic)   */
+/*            SHUT   Initiate CICS shutdown                          */
+/*            STAR   Start a CICS transaction                        */
+/*            UPDT   Change file(s) to updatable ('*' for generic)   */
+/*            WAIT   Delay between MTPBATCH commands  (in minutes)   */
+/*                                                                   */
+/. STEP01 - CLOSE FILE TO CICS (MTPBATCH)
+// EXEC   PROC=CMTCNTL
+// EXEC   PGM=MTPBATCH,SIZE=256K
+<commands>
+/* EOD
+/*                                                                   */
+/* Formats:   CICS {nn|applid|ALL}                                   */
+/*            CLOS {ddname|@listnm}                                  */
+/*            ENAB {ddname|@listnm}                                  */
+/*            INQY {ddname|@listnm}                                  */
+/*            LINK progname ll x...x                                 */
+/*            MESG term x..x                                         */
+/*            MESG ddddddddd x..x                                    */
+/*            NEWC progname                                          */
+/*            OPEN {ddname|@listnm}                                  */
+/*            PHAS progname                                          */
+/*            SHUT <IMM>                                             */
+/*            STAR tran <termid> <ll x...x>                          */
+/*            UPDT {ddname|@listnm}                                  */
+/*            WAIT m                                                 */
+/*                                                                   */

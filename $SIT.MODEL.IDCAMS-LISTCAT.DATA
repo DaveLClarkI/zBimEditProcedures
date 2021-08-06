@@ -1,0 +1,21 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be coded repetitively*/
+ /*                                                                  */
+   LISTCAT CATALOG(catname)                 -
+       < <ALTERNATEINDEX>                   -
+         <CLUSTER>                          -
+         <DATA>                             -
+         <ENTRIES(                          -
+                 {entryname|volser} <...>   -
+                                         )> -
+         <INDEX>                            -
+         <NONVSAM>                          -
+         <PATH>                             -
+         <SPACE>                            -
+         <USERCATALOG>                    > -
+         <NAME|VOLUME|ALLOCATION|ALL>       -
+ /*                                                                  */

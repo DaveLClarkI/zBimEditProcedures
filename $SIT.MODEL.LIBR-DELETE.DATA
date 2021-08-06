@@ -1,0 +1,27 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Delete a library, sublibrary, or member.       */
+ /*                   Note that for a sublibrary delete, any ACCESS  */
+ /*                   or CONNECT for the sublibrary is automaticaly  */
+ /*                   dropped on completion.                         */
+ /*                                                                  */
+   DELete { Lib=l <...> | Sublib=l.s <...> | mn.mt <...> }
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies one or more libraries (delimit names */
+ /*                   with either blanks or commas)                  */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies one or more sublibraries where the   */
+ /*                   sublibrary name can be generic to include more */
+ /*                   than one sublibrary (delimit names with either */
+ /*                   blanks or commas)                              */
+ /*        mn.mt      specifies one or more members (based on        */
+ /*                   current ACCESS setting) where member names and */
+ /*                   types can be generic to include more than one  */
+ /*                   member (delimit names with either blanks or    */
+ /*                   commas)                                        */
+ /*                                                                  */

@@ -1,0 +1,40 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Define (create) a library or sublibrary.       */
+ /*                                                                  */
+   DEFine { Lib=l <...> | Sublib=l.s <...> } -
+          < Replace={No|Yes} > < REUse={Automatic|Immediate} > -
+          < RESETLock={No|Yes} > < EXTents={MAX16|MAX32} >
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies one or more libraries (delimit names */
+ /*                   with either blanks or commas)                  */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies one or more sublibraries (delimit    */
+ /*                   names with either blanks or commas)            */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        Replace    is a keyword (only capital letters required)   */
+ /*        No         prevents target replacement (default)          */
+ /*        Yes        allows target replacement                      */
+ /*        REUse      is a keyword (only capital letters required)   */
+ /*        Automatic  specifies that unused space is only added to   */
+ /*                   the free chain when the sublibrary is not in   */
+ /*                   use by any task (default)                      */
+ /*        Immediate  specifies that any unused space is immediately */
+ /*                   added to the free chain                        */
+ /*        RESETLock  is a keyword (only capital letters required)   */
+ /*        No         for REPLACE=YES, this prevents replacement of  */
+ /*                   a sublibrary with locked members (default)     */
+ /*        Yes        for REPLACE=YES, this allows replacement of a  */
+ /*                   sublibrary with locked members                 */
+ /*        EXTents    is a keyword (only capital letters required)   */
+ /*        MAX16      specifies that a VSE Library will allow up to  */
+ /*                   a maximum of 16 extents (default)              */
+ /*        MAX32      specifies that a VSAM-based VSE Library will   */
+ /*                   allow up to a maximum of 32 extents            */
+ /*                                                                  */

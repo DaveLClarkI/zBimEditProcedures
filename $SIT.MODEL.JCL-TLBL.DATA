@@ -1,0 +1,52 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+// TLBL   filename,'file-id',<date>,<volser>,<volseq>,<filseq>,<genrtn>
+                            ,<versn>
+/*                                                                   */
+/* Where: filename  is from one to seven alphameric characters, the  */
+/*                  first of which must be alphabetic, @, # or $.    */
+/*                  This is the name by which a program knows a file.*/
+/*        'file-id' is the unique name associated with the file on   */
+/*                  the volume.  This can be from one to seventeen   */
+/*                  characters, contained within quotes, and if fewer*/
+/*                  than 17 characters are used, the field is left   */
+/*                  justified and padded with blanks.                */
+/*        date      --- Output files: ---                            */
+/*                  may be either a 4-digit retention period or an   */
+/*                  8-character expiration date.  An expiration date */
+/*                  is a Julian date in the format 19yy/ddd, 20yy/ddd*/
+/*                  or yy/ddd (assumes 19yy).  If omitted, a 0-day   */
+/*                  retention period is assumed.  The current system */
+/*                  date is always used as the creation date for     */
+/*                  output files.                                    */
+/*        date      --- Input files: ---                             */
+/*                  may be an 8-character Julian creation date in the*/
+/*                  format 19yy/ddd, 20yy/ddd or yy/ddd (assumes     */
+/*                  19yy).  If specified, this date must match the   */
+/*                  creation date of the volume-in-question or the   */
+/*                  system will issue a message and wait for a reply.*/
+/*                  If omitted, no creation date checking is done.   */
+/*        volser    is the volume serial number given to the tape    */
+/*                  reel when it was initialized.  If omitted, no    */
+/*                  volume checking is done.                         */
+/*        volseq    is a one to four-digit decimal number specifying */
+/*                  the volume of a multi-volume file at which to    */
+/*                  start processing.  If omitted, 0001 is used.     */
+/*        fileseq   is a one to four-digit decimal number specifying */
+/*                  the file of a multi-file volume at which to start*/
+/*                  processing.  If omitted, 0001 is used.           */
+/*        genrtn    is a one to four-digit decimal number specifying */
+/*                  the generation number of the file to process.  If*/
+/*                  the operand is omitted on output, the system     */
+/*                  inserts blanks in the appropriate label field.   */
+/*                  If it is omitted on input, the generation number */
+/*                  on the file is not checked by the system.        */
+/*        versn     is a one or two-digit decimal number specifying  */
+/*                  the version number of the file to be processed.  */
+/*                  It is an extension of the generation number, and */
+/*                  the same rules govern its use.                   */
+/*                                                                   */

@@ -1,0 +1,25 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+// MTC    opcode,{cuu|SYSxxx}<,nn>
+/*                                                                   */
+/* Where: opcode specifies a tape operation to perform, as follows:  */
+/*                  BSF  to Backward Space File                      */
+/*                  BSR  to Backward Space Record (block)            */
+/*                  DSE  to Data Security Erase                      */
+/*                  ERG  to ERase Gap                                */
+/*                  FSF  to Forward Space File                       */
+/*                  FSR  to Forward Space Record (block)             */
+/*                  RUN  to Rewind and UNload                        */
+/*                  REW  to REWind                                   */
+/*                  WTM  to Write Tape Mark                          */
+/*        cuu    specifies the unit address of a tape device         */
+/*        SYSxxx specifies the logical unit number which is assigned */
+/*               to a tape device                                    */
+/*        nn     is a decimal number from 1 through 99 that indicates*/
+/*               the number of times the specified operation is to be*/
+/*               performed.  The default is 1.                       */
+/*                                                                   */

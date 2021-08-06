@@ -1,0 +1,29 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Punch member content in 80-column format.      */
+ /*                                                                  */
+   PUnch mn.mt <...> < Eof={Yes|No} > -
+                     < Format={Old|IEBUpdte|Noheader} >
+ /*                                                                  */
+ /* Where: mn.mt      specifies one or more member names and member  */
+ /*                   types (both of which may be generic) to punch  */
+ /*                   based on current ACCESS information            */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        Eof        is a keyword (only capital letters required)   */
+ /*        Yes        an end-of-file indicator is written after      */
+ /*                   completion of this command (default)           */
+ /*        No         no end-of-file indicator is written and this   */
+ /*                   allows you to accumulate the output of more    */
+ /*                   than one PUNCH command in a single file where  */
+ /*                   the last PUNCH command should use EOF=YES      */
+ /*        Format     is a keyword (only capital letters required)   */
+ /*                   and, by default, punched members are wrapped   */
+ /*                   with the statements required for recataloging  */
+ /*        Old        use MAINT statements for recataloging          */
+ /*        IEBUpdte   use MVS IEBUPDTE statements for recataloging   */
+ /*        Noheader   do not wrap punched members for recataloging   */
+ /*                                                                  */

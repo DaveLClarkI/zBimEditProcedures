@@ -1,0 +1,14 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+// DLBL   IJSYSUC,'catname',,VSAM,CAT=IJSYSCT
+ /*                                                                  */
+   BLDINDEX EXTERNALSORT                    -
+          INDATASET(entryname)              -
+          OUTDATASET(entryname)             -
+          WORKVOLUMES(VSE013 VSE014)        -
+          CATALOG(WORK.VSAM.USER.CATALOG)
+ /*                                                                  */

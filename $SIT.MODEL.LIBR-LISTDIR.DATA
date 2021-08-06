@@ -1,0 +1,54 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Display the contents of a directory.           */
+ /*                                                                  */
+  { LISTDir | LD } < SDL <PHASE={*.*|mn|mn.mt> <SORT={NAME|ADDRESS>
+                     | Lib=l <...> | Sublib=l.s <...> | mn.mt <...> -
+                       < DATE='from-date:to-date' >
+                       < LOCKid=lockid > >
+                   < Output={Normal|Full|SHort|STatus} >
+                   < Unit={SYSLST|SYSLOG} >
+ /*                                                                  */
+ /* Where: SDL        is a keyword indicating the in-memory System   */
+ /*                   Directory List is to be displayed              */
+ /*        PHASE      is a keyword for SDL output only               */
+ /*        *.*        displays all phases in the SDL (default)       */
+ /*        mn|mn.mt   selectively displays one or more SDL phases    */
+ /*        SORT       is a keyword for SDL output only               */
+ /*        NAME       SDL phases display in name order (default)     */
+ /*        ADDRESS    SVA phases display in memory address order     */
+ /*        Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies one or more library names to display */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies one or more library and sublibrary   */
+ /*                   names to display (delimit names with either    */
+ /*                   blanks or commas)                              */
+ /*        mn.mt      specifies one or more member names and member  */
+ /*                   types to display based on current ACCESS info  */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        DATE       a keyword for sub/library member output only   */
+ /*        from-date                                                 */
+ /*        to-date    displays information only for members created  */
+ /*                   or updated in the specified date range using   */
+ /*                   format: yyyy/mm/dd-hh.mi                       */
+ /*        LOCKid     a keyword for sub/library member output only   */
+ /*        lockid     displays information only for members locked   */
+ /*                   with the specified lock id                     */
+ /*        Output     is a keyword (only capital letters required)   */
+ /*        Normal     member name, type, and attributes are included */
+ /*                   in the output (default)                        */
+ /*        Full       includes member lock information in the output */
+ /*        SHort      only member name and member type are output    */
+ /*        STatus     just the allocation status for the SDL or      */
+ /*                   libraries or sublibraries is in the output     */
+ /*        Unit       is a keyword (only capital letters required)   */
+ /*        SYSLST     output to SYSLST (default for SYSIPT mode)     */
+ /*        SYSLOG     output to SYSLOG (default for console mode)    */
+ /*                                                                  */

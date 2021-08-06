@@ -1,0 +1,33 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Allow conditional execution of commands in     */
+ /*                   batch mode.                                    */
+ /*                                                                  */
+   ON $RC comparand number command
+ /*                                                                  */
+ /* Where: $RC        selects the return code resulting from the     */
+ /*                   last command executed.                         */
+ /*        comparand  specifies the comparison to make, as follows:  */
+ /*                      =  for "Equal"                              */
+ /*                      >  for "Greater Than"                       */
+ /*                      <  for "Less Than"                          */
+ /*        number     specifies the decimal integer to which $RC is  */
+ /*                   to be compared.                                */
+ /*        command    is the GOTO or CONTinue command to be executed */
+ /*                   as a result of the comparison performed.  Note */
+ /*                   that /& (EOJ) is not recognized when searching */
+ /*                   for a label statement.  The following are the  */
+ /*                   default conditions when Librarian begins:      */
+ /*                      ON $RC = 0 CONTINUE                         */
+ /*                      ON $RC > 0 CONTINUE                         */
+ /*                                                                  */
+ /* Note:  There can be up to 30 active ON commands in a single      */
+ /*        Librarian batch session.  Each ON command remains active  */
+ /*        until overridden by another ON command for the same or    */
+ /*        inclusive condition or until the end of the session.      */
+ /*        Active ON conditions are evaluated in LIFO order.         */
+ /*                                                                  */

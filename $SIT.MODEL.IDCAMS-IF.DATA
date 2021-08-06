@@ -1,0 +1,35 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+   IF {LASTCC|MAXCC} comparand number       -
+      THEN { command |                      -
+          DO                                -
+          commandset                        -
+          END }                             -
+    < ELSE { command |                      -
+          DO                                -
+          commandset                        -
+          END } >
+ /*                                                                  */
+ /* Where: LASTCC     selects the condition code resulting from only */
+ /*                   the immediately preceding command to compare.  */
+ /*        MAXCC      selects the maximum condition code that results*/
+ /*                   from any preceding command for comparison.     */
+ /*        comparand  specifies the comparison to make, as follows:  */
+ /*                      EQ or =  for "Equal"                        */
+ /*                      NE       for "Not Equal"                    */
+ /*                      GT or >  for "Greater Than"                 */
+ /*                      GE       for "Greater than or Equal"        */
+ /*                      LT of <  for "Less Than"                    */
+ /*                      LE       for "Less than or Equal"           */
+ /*        number     specifies the decimal integer to which LASTCC  */
+ /*                   or MAXCC is to be compared.  Numbers > than 16 */
+ /*                   are reduced to 16, but may be up to 10 digits. */
+ /*        command    specifies a single command to be executed as   */
+ /*                   the result of the comparison performed.        */
+ /*        commandset specifies a group of commands to be executed   */
+ /*                   as the result of the comparison performed.     */
+ /*                                                                  */

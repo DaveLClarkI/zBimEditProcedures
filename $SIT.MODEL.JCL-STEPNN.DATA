@@ -1,0 +1,17 @@
+/* change all occurrences of ## to the desired step number           */
+/* enter the step description in columns 13-64 (including pgm name)  */
+/* place the program name in the step description as shown           */
+/* other conditional job control is optional                         */
+/*                                                                   */
+/. STEP## - my step description (pgmname)
+// ON     $ABEND OR $CANCEL GOTO SKIP##
+// ON     $RC > 15 GOTO SKIP##
+   (...your job step statements go here...)
+// SETPARM LRC=$RC
+*  STEP## RC=&LRC
+// GOTO   nextstep
+/. SKIP##
+// SETPARM LRC=$RC
+*  STEP## RC=&LRC
+// GOTO   $EOJ
+/*                                                                   */

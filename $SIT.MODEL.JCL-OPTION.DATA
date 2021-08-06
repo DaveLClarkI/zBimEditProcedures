@@ -1,0 +1,71 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/* ... denotes the preceding identifier(s) may be coded repetitively.*/
+/*                                                                   */
+// OPTION option<,option>...
+/*                                                                   */
+/* Where: option specifies one or more job control options which     */
+/*               temporarily override the system defaults.  Options  */
+/*               specified remain in effect for the duration of the  */
+/*               job or until overriden by a contrary option.  The   */
+/*               options, in any order, are as follows:              */
+/*                  ACANCEL|NOACANCEL selects whether the job must be*/
+/*                            canceled (instead of awaiting operator */
+/*                            intervention) if an assignment (via    */
+/*                            ASSGN of LIBDEF) fails.                */
+/*                  ALIGN|NOALIGN selects whether the assembler is to*/
+/*                            align constants & data areas on proper */
+/*                            boundaries and check the alignment of  */
+/*                            addresses used in machine instructions.*/
+/*                  CATAL|LINK|NOLINK determines if an object module */
+/*                            is link-edited or not and, if CATAL is */
+/*                            specified, that the link-edited phase  */
+/*                            is to be cataloged in a library.  CATAL*/
+/*                            also sets the LINK option.             */
+/*                  DECK|NODECK selects whether a language translator*/
+/*                            is to produce an object deck on SYSPCH.*/
+/*                  DUMP|PARTDUMP|NODUMP selects whether a storage   */
+/*                            dump may be taken and, if so, the type */
+/*                            of dump to be taken.                   */
+/*                  EDECK|NOEDECK selects whether the assembler is to*/
+/*                            an edited macro deck on SYSPCH for     */
+/*                            cataloging in a library.               */
+/*                  ERRS|NOERRS selects whether a language translator*/
+/*                            will summarize all errors in the source*/
+/*                            program on SYSLST.                     */
+/*                  JCANCEL|NOJCANCEL selects whether the system     */
+/*                            should skip to End-of-Job (instead of  */
+/*                            waiting for operator intervention) if a*/
+/*                            job control error occurs.              */
+/*                  LIST|NOLIST selects whether a language translator*/
+/*                            will produce a source listing, external*/
+/*                            symbol dictionary, relocation list dic-*/
+/*                            tionary, and cross-reference on SYSLST.*/
+/*                  LISTX|NOLISTX selects whether the COBOL compiler */
+/*                            is is to produce a PROCEDURE DIVISION  */
+/*                            map on SYSLST.                         */
+/*                  LOG|NOLOG selects whether all control statements */
+/*                            and commands are listed on SYSLST.     */
+/*                  LOGSRC|NOLOGSRC selects whether all job control  */
+/*                            statements containing symbolic         */
+/*                            parameters are listed twice on SYSLST: */
+/*                            The first time as coded and again after*/
+/*                            variable substitution has taken place. */
+/*                  RLD|NORLD selects whether the assembler is to    */
+/*                            produce the relocation list dictionary */
+/*                            on SYSLST.  NOLIST suppresses RLD.     */
+/*                  SYM|NOSYM selects whether the COBOL compiler will*/
+/*                            produce a DATA DIVISION map on SYSLST. */
+/*                  SYSDUMP|NOSYSDUMP selects whether dumps are to be*/
+/*                            written to the dump library or SYSLST. */
+/*                  TERM|NOTERM selects whether a language translator*/
+/*                            will summarize all errors in the source*/
+/*                            program on SYSLOG.                     */
+/*                  SXREF|XREF|NOXREF determines if the assembler is */
+/*                            to produce symbol cross-reference lists*/
+/*                            on SYSLST and type of crossreference   */
+/*                            produced.                              */
+/*                                                                   */

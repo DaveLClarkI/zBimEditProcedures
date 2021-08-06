@@ -1,0 +1,51 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Move a library, sublibrary, or member to       */
+ /*                   another name.  To merge into an existing       */
+ /*                   sublibrary, instead, specify a CONNECT         */
+ /*                   statement first and use the 'mn.mt' format of  */
+ /*                   this statement.  Note that for a sublibrary    */
+ /*                   move, any ACCESS or CONNECT for the sublibrary */
+ /*                   is automaticaly dropped on completion.         */
+ /*                                                                  */
+   Move { Lib=l | Sublib=l.s | mn.mt } < Replace={No|Yes} > -
+          < DATE={NEW|OLD} > < List={No|Yes} > -
+          < TLOCK={NORMAL|RESET|COPY} >
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies a source and target library          */
+ /*                   (delimit source/target with blank or colon)    */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies a source and target sublibrary and   */
+ /*                   the target sublibrary name can be an equals    */
+ /*                   sign if it is to be the same as the source     */
+ /*                   sublibrary name (delimit source/target with    */
+ /*                   blank or colon)                                */
+ /*        mn.mt      specifies a source and target member (based on */
+ /*                   current CONNECT setting) where member names    */
+ /*                   (and source member type) can be generic to     */
+ /*                   include more than one member and the target    */
+ /*                   member name or type can be an equals sign if   */
+ /*                   it is to be the same as the associated source  */
+ /*                   specification (delimit source/target with      */
+ /*                   blank or colon)                                */
+ /*        Replace    is a keyword (only capital letters required)   */
+ /*        No         prevents target replacement (default)          */
+ /*        Yes        allows target replacement                      */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        DATE       is a keyword for creation date control         */
+ /*        New        targets get a new creation date (default)      */
+ /*        Old        targets keep their original creation date      */
+ /*        LISt       is a keyword (only capital letters required)   */
+ /*        No         does not list moved targets (default)          */
+ /*        Yes        lists moved targets                            */
+ /*        TLOCK      is a keyword for target locking status         */
+ /*        NORMAL     locked targets are not replaced (default)      */
+ /*        RESET      replace target and reset its lock status       */
+ /*        COPY       replace target and apply source lock status    */
+ /*                                                                  */

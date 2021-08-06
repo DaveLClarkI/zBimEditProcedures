@@ -1,0 +1,48 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS INQUIRE DATASET(7-character data-value)
+      *                                Examine FCT information
+                   < START | NEXT | END >
+                   < ACCESSMETHOD(cvda) >
+                   < TYPE(cvda) >
+                   < REMOTESYSTEM(4-character data-area) >
+                   < REMOTENAME(7-character data-area) >
+                   < RECORDFORMAT(cvda) >
+                   < BLOCKFORMAT(cvda) >
+                   < KEYLENGTH(fullword binary data-area) >
+                   < KEYPOSITION(fullword binary data-area) >
+                   < RECORDSIZE(fullword binary data-area) >
+                   < OPENSTATUS(cvda) >
+                   < ENABLESTATUS(cvda) >
+                   < RECOVSTATUS(cvda) >
+                   < EMPTYSTATUS(cvda) >
+                   < READ(cvda) >
+                   < UPDATE(cvda) >
+                   < BROWSE(cvda) >
+                   < ADD(cvda) >
+                   < DELETE(cvda) >
+      *                                                         VSAM only
+                   < OBJECT(cvda) >                                     .......'
+                   < BASENAME(44-character data-area) >                 .......'
+                   < STRINGS(fullword binary data-area) >               .......'
+                   < LSRPOOLID(fullword binary data-area) >             .......'
+      *                                                         DAM only
+                   < BLOCKSIZE(fullword binary data-area) >             .......'
+                   < BLOCKKEYLEN(fullword binary data-area) >           .......'
+                   < RELTYPE(cvda) >                                    .......'
+                   < EXCLUSIVE(cvda) >                                  .......'
+      *                                                         All
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  DSIDERR, END, ILLOGIC, NOTAUTH
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

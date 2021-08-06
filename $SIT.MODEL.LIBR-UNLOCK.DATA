@@ -1,0 +1,21 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Unlock libraries, sublibraries, or a member.   */
+ /*                                                                  */
+   UNLock { Lib=l <...> | Sublib=l.s <...> | mn.mt } LOCKid=lockid
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies one or more libraries to unlock      */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies one or more sublibraries to unlock   */
+ /*                   (delimit names with either blanks or commas)   */
+ /*        mn.mt      specifies a member to unlock based on current  */
+ /*                   ACCESS information                             */
+ /*        LOCKid     is a keyword (only capital letters required)   */
+ /*        lockid     specifies the lock id to unlock the member(s)  */
+ /*                                                                  */

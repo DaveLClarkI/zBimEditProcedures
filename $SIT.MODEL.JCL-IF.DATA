@@ -1,0 +1,31 @@
+/*                                                                   */
+// IF     condition <operator condition> THEN
+/*                                                                   */
+/* Where: condition specifies a condition to be checked.  It may be  */
+/*                  expressed in one of the following forms:         */
+/*                     $RC   comparator  n                           */
+/*                     $MRC  comparator  n                           */
+/*                     pname comparator value                        */
+/*                  Where: $RC   is the return code of the preceding */
+/*                               job step.                           */
+/*                         $MRC  is the maximum return code of all   */
+/*                               preceding steps within the job.     */
+/*                         pname is the name of a parameter to       */
+/*                               compare. Do not prefix with an "&". */
+/*                         comparator is the comparison to be done,  */
+/*                               as follows:                         */
+/*                                  =  or EQ  is "Equal to"          */
+/*                                  ¬= or NE  is "Not equal to"      */
+/*                                  >  or GT  is "Greater than"      */
+/*                                  <  or LT  is "Less than"         */
+/*                                  >= or GE  is "Greater or equal"  */
+/*                                  <= or LE  is "Less or equal"     */
+/*                         n     is a decimal integer from 0 to 4095.*/
+/*                         value is a character string (with or with-*/
+/*                               out quotes) of 0 to 50 chars or a   */
+/*                               symbolic parameter ("&" prefix).    */
+/*        operator  specifies a logical operator which connects two  */
+/*                  conditions.  The valid specifications are:  OR,  */
+/*                  |, AND, and &.  The logical operators must be    */
+/*                  preceded and followed by a blank.                */
+/*                                                                   */

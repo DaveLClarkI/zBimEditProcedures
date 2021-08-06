@@ -1,0 +1,71 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Restore one or more libraries, sublibraries,   */
+ /*                   or members.                                    */
+ /*                                                                  */
+   REStore { Lib=l <:l> <...> | Sublib=l.s <:l.s> <...>
+             | l.s.mn.mt <:l.s> <...> | * } -
+           < Date={New|Old} > < List={No|Yes} > < SCan={No|Yes} > -
+           < Replace={No|Yes} > < TLOCK={NORMAL|RESET|COPY} > -
+           < ID={*|name} > < {TAPELabel|TLabel}=filelabel > -
+           Tape={SYSnnn|cuu}
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies a source and an optional target      */
+ /*                   library (if present, delimit target with a     */
+ /*                   colon and multiple source/target pairs with    */
+ /*                   blanks or commas)                              */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies a source and an opitonal target sub- */
+ /*                   library where the target library or sublibrary */
+ /*                   name can be an equals sign if it is to be the  */
+ /*                   same as the source specification (if present,  */
+ /*                   delimit target with a colon and multiple       */
+ /*                   source/target pairs with blanks or commas)     */
+ /*        l.s.mn.mt  specifies a fully-qualified source member and  */
+ /*                   an optional target sublibrary (previous ACCESS */
+ /*                   statement required if target is omitted) where */
+ /*                   source member name and type may be generic to  */
+ /*                   include more than one member specification (if */
+ /*                   present, delimit target with a colon and       */
+ /*                   multiple source/target pairs with blanks or    */
+ /*                   commas)                                        */
+ /*        *          specifies that all libraries, sublibraries, or */
+ /*                   members in the backup file are to be restored  */
+ /*                   (a previous ACCESS statement is required if    */
+ /*                   the backup contains only members)              */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        Date       is a keyword (only capital letters required)   */
+ /*        New        targets get a new creation date (default)      */
+ /*        Old        targets keep their original creation date      */
+ /*        LISt       is a keyword (only capital letters required)   */
+ /*        No         does not list restored targets (default)       */
+ /*        Yes        lists restored targets                         */
+ /*        SCan       is a keyword (only capital letters required)   */
+ /*        No         does not report on tape contents (default)     */
+ /*        Yes        reports on tape contents (no restore is done)  */
+ /*        Replace    is a keyword (only capital letters required)   */
+ /*        No         prevents target replacement (default)          */
+ /*        Yes        allows target replacement                      */
+ /*        TLOCK      is a keyword for target locking status         */
+ /*        NORMAL     locked targets are not replaced (default)      */
+ /*        RESET      replace target and reset its lock status       */
+ /*        COPY       replace target and apply source lock status    */
+ /*        ID         is a keyword (only capital letters required)   */
+ /*        *          accept any internal backup identifier found    */
+ /*        name       specifies the internal backup identifier from  */
+ /*                   which to restore (enclosed in quotes)          */
+ /*        TAPELabel                                                 */
+ /*        | TLabel   is a keyword (only capital letters required)   */
+ /*        filelabel  specifies the file label (TLBL) describing     */
+ /*                   a standard labeled backup tape                 */
+ /*        Tape       is a keyword (only capital letters required)   */
+ /*        SYSnnn     specifies the programmer logical unit assigned */
+ /*                   to the backup tape device                      */
+ /*        cuu        the backup tape physical device address        */
+ /*                                                                  */

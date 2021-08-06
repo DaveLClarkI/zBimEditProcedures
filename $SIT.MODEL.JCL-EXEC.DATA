@@ -1,0 +1,78 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/* ... denotes the preceding identifier(s) may be coded repetitively.*/
+/*                                                                   */
+/* Operands for program execution                                    */
+// EXEC   PGM=progname,SIZE=size<,PARM='value'>
+/* Operands for procedure execution                                  */
+// EXEC   PROC=procname<,parmname<=<value>>>...
+/*                                                                   */
+/* Where: PGM=progname names the program to be loaded for execution. */
+/*                     The program name corresponds to the first, or */
+/*                     only, phase of the program in the library.    */
+/*        SIZE=size    specifies the amount of partition storage to  */
+/*                     reserve as program execution area (leaving the*/
+/*                     remainder for partition GETVIS).  "size" may  */
+/*                     be specified as:                              */
+/*                       nK|nM                                       */
+/*                       AUTO                                        */
+/*                       phasename            <=== recommended method*/
+/*                       (AUTO,{mK|mM})                              */
+/*                       (phasename,{mK|mM})  <=== recommended method*/
+/*                     Where: nK|nM     is (Kbytes or Mbytes) not >  */
+/*                                      the partition size minus 48K */
+/*                                      of default system GETVIS.    */
+/*                            AUTO      tells the system to calculate*/
+/*                                      the size based on the largest*/
+/*                                      phase having the same first  */
+/*                                      four chars as "progname".    */
+/*                            phasename tells the system to calculate*/
+/*                                      the size based on the length */
+/*                                      of "phasename".              */
+/*                            mK|mM     requests an increase of the  */
+/*                                      program area size by this    */
+/*                                      amount (Kbytes or Mbytes).   */
+/*        PARM='value' specifies data that is passed to the program  */
+/*                     at execution.  "value" may be up to 100 chars */
+/*                     long, enclosed in quotes.  The quotes are not */
+/*                     included in the length and are not passed to  */
+/*                     the program.  The PARM value may be accessed  */
+/*                     via machine registers as described in the     */
+/*                     VSE/AF System Management Guide.               */
+/*        PROC=procname names a procedure to retrieve for execution. */
+/*                     If the procedure name starts with $$, the     */
+/*                     system substitutes a partition-related        */
+/*                     character for the second $ as follows:        */
+/*                        0  for procedures in BG partition          */
+/*                        1  for procedures in F1 partition          */
+/*                        . . .                                      */
+/*                        9  for procedures in F9 partition          */
+/*                        A  for procedures in FA partition          */
+/*                        B  for procedures in FB partition          */
+/*        parmname     is a symbolic parameter that is passed to or  */
+/*                     created for a procedure execution.            */
+/*                     1) If specified without an equal sign,        */
+/*                     "parmname" is a symbolic parameter to pass    */
+/*                     from the current execution level to the called*/
+/*                     procedure.  Any modification is passed back to*/
+/*                     the higher procedure or JCL execution level.  */
+/*                     2) If specified with an equal sign (with or   */
+/*                     without a "value"), it is a symbolic parameter*/
+/*                     to create for the exclusive use of the called */
+/*                     procedure.  It is deleted at procedure end.   */
+/*                     These two forms appear as follows:            */
+/*                        parmname                                   */
+/*                        parmname=<value>                           */
+/*        value        is a value to assign to a symbolic parameter  */
+/*                     that is created for a lower-level procedure.  */
+/*                     "value" may be 1) omitted (to create a null   */
+/*                     symbolic parameter), 2) a literal (with or    */
+/*                     without quotes), or 3) a symbolic parameter.  */
+/*                     These three forms appear as follows:          */
+/*                        parmname=<''>                              */
+/*                        parmname=<'>value<'>                       */
+/*                        parmname=&symbol                           */
+/*                                                                   */

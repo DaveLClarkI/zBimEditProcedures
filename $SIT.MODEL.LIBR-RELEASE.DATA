@@ -1,0 +1,20 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Release free space.                            */
+ /*                                                                  */
+   RELease { Lib=l <...> | Sublib=l.s <...> } < SPace >
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies one or more library names (delimit   */
+ /*                   names with either blanks or commas)            */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies one or more library and sublibrary   */
+ /*                   names (delimit names with either blanks or     */
+ /*                   commas)                                        */
+ /*        SPace      informational parameter that is ignored but    */
+ /*                   serves as a reminder of what is being released */
+ /*                                                                  */

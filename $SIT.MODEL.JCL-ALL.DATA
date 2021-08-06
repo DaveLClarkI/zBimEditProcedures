@@ -1,0 +1,53 @@
+* $$ JOB JNM=MYJOB,DISP=D,CLASS=R,USER=07400000MYID
+* $$ LST LST=00E,DISP=D,CLASS=R,DEST=(,MYID)
+* $$ PUN PUN=05D,DISP=D,CLASS=R,DEST=(,MYID)
+// JOB    MYJOB      (MYID) MY JOB DESCRIPTION
+// LIBDEF {type|*}<,SEARCH=(lib.sublib,...)><,CATALOG=lib.sublib>
+                  <,{TEMP|PERM}>
+// DATE   mm/dd/yy      /* This date is only for the current job */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                        MAINTENANCE RECORD                         */
+/* ----------------------------------------------------------------- */
+/*   DATE                     DESCRIPTION                    PRGRMER */
+/* -------- ------------------------------------------------ ------- */
+/* MM-DD-YY ________________________________________________     ___ */
+/*          ________________________________________________     ___ */
+/* MM-DD-YY ________________________________________________     ___ */
+/*          ________________________________________________     ___ */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/. STEPnn - my step description (pgmname)
+/*                                                                   */
+// UPSI   XXXXXXXX
+// ON     $RC < 16 CONTINUE
+// ON     $RC >= 16 GOTO $EOJ
+// ON     $ABEND OR $CANCEL GOTO $EOJ
+/* - - - - - - - -    STATEMENTS FOR TAPE DEVICES    - - - - - - - - */
+// TLBL   filename,'file-id',<date>,<volser>,<volseq>,<filseq>,<genrtn>
+                            ,<versn>
+// ASSGN  SYSxxx,{cuu|(addr-lst)|UA|IGN|SYSyyy|TAPE|device-type}
+                 <,TEMP|,PERM><,VOL=volser><,SHR>
+                 <,mode|,ALT><,TEMP|,PERM><,VOL=volser>
+// PAUSE  my pause comment
+// MTC    opcode,{cuu|SYSxxx}<,nn>
+/* - - - - - - - -    STATEMENTS FOR DISK DEVICES    - - - - - - - - */
+// DLBL   filename,'file-id',<date>,<codes>
+              <,CAT=filename><,DISP=disposition><,BUFSP=n>
+              <,BUFNI=n><,BUFND=n><,RECORDS=n><,RECSIZE=n>
+// EXTENT <SYSxxx>,<volser>,<type>,<sequence>,<track>,<count>,<split>
+// ASSGN  SYSxxx,{cuu|(addr-lst)|UA|IGN|SYSyyy|DISK|device-type}
+                 <,TEMP|,PERM><,VOL=volser><,SHR>
+                 <,mode|,ALT><,TEMP|,PERM><,VOL=volser>
+/* - - - - - -    STATEMENTS FOR UNIT RECORD DEVICES   - - - - - - - */
+// ASSGN  SYSxxx,{cuu|(addr-lst)|UA|IGN|SYSyyy|device-class|device-type}
+                 <,TEMP|,PERM><,VOL=volser><,SHR>
+                 <,mode|,ALT><,TEMP|,PERM>
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+// EXEC   PGM=progname,SIZE=size<,PARM='value'>
+/* EOD
+// MTC    opcode,{cuu|SYSxxx}<,nn>
+// RESET  {SYS|PROG|ALL|SYSxxx}
+// IF     condition <operator condition> THEN
+// GOTO   label
+/. MYLABEL
+/& EOJ
+* $$ EOJ

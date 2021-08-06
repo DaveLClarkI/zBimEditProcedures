@@ -1,0 +1,16 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+   SET {LASTCC|MAXCC} = number
+ /*                                                                  */
+ /* Where: LASTCC     resets the condition code that resulted from   */
+ /*                   the immediately preceding command to "number". */
+ /*        MAXCC      resets the maximum condition code that resulted*/
+ /*                   from any preceding command to "number".        */
+ /*        number     specifies the decimal integer to which LASTCC  */
+ /*                   or MAXCC is to be set.  Numbers > than 16 are  */
+ /*                   reduced to 16, but may be up to 10 digits.     */
+ /*                                                                  */

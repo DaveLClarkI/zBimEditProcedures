@@ -1,0 +1,11 @@
+/*                                                                   */
+// PWR    {PRELEASE...|PHOLD...}
+/*                                                                   */
+/* Note:  The PWR job control statement makes it possible to pass the*/
+/*        commands PRELEASE or PHOLD to POWER at any point in the job*/
+/*        stream.  The operand of the PWR statement must be a POWER  */
+/*        command, and its syntax is checked by the POWER routine.   */
+/*        The second operand of the actual POWER command must not be */
+/*        a single character (the "class" operand) or "ALL".         */
+/*        Symbolic parameters cannot be used in this statement.      */
+/*                                                                   */

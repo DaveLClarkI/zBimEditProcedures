@@ -1,0 +1,57 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Update (alter) member content.                 */
+ /*                                                                  */
+ /*                   Note that UPDATE is cumbersome to use but, in  */
+ /*                   the absence of a full-screen editor, it        */
+ /*                   certainly *can* be used.                       */
+ /*                                                                  */
+   Update mn.mt < SAve=bn.bt > -
+                < SEquence={nnn|FS|NO} > < Column=start end >
+ /*                                                                  */
+ /* Where: mn.mt      specifies the member name and type to update   */
+ /*                   (based on a previous ACCESS command)           */
+ /*        SAve       is a keyword (only capital letters required)   */
+ /*        bn.bt      is the member name and type under which to     */
+ /*                   save the unmodified member as a backup copy    */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        SEquence   is a keyword (only capital letters required)   */
+ /*        nnn        specifies the increment used for resequencing  */
+ /*                   (range is 1 to 999 with a default of 10)       */
+ /*        FS         specifies fixed sequencing where the current   */
+ /*                   line numbers don't change but are validated    */
+ /*        NO         specifies that line order is not validated     */
+ /*                   (updates are assumed to be in ascending order) */
+ /*        Column     is a keyword (only capital letters required)   */
+ /*        start      is the starting column for the sequence field  */
+ /*                   (delimit start/end with blank or colon)        */
+ /*        end        is the ending column for the sequence field    */
+ /*                   (default is 73:78 for FS, otherwise 77:80)     */
+ /*                                                                  */
+ /* UPDATE SUBCOMMANDS:                                              */
+ /*                                                                  */
+ /*   )ADD seqno                                                     */
+ /*           subsequent lines (until the next subcommand) are used  */
+ /*           to add lines to the member after the 'seqno' line and  */
+ /*           may be zero (0) to add lines to the beginning of the   */
+ /*           member, which is not possible if SEQ=NO was specified. */
+ /*                                                                  */
+ /*   )REP seqno <, {thru|*} >                                       */
+ /*           subsequent lines (until the next subcommand) are used  */
+ /*           to replace lines in the member starting at the 'seqno' */
+ /*           line and, if specified, through the 'thru' line or     */
+ /*           through the end of the member ('*').                   */
+ /*                                                                  */
+ /*   )DEL seqno <, {thru|*} >                                       */
+ /*           the line(s) with the specified sequence number(s)      */
+ /*           is/are deleted from the member.                        */
+ /*                                                                  */
+ /*   )END                                                           */
+ /*           ends the UPDATE session -- at which point the member   */
+ /*           is automatically resequence unless SEQ=NO.             */
+ /*                                                                  */

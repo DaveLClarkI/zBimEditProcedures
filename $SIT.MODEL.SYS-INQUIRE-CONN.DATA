@@ -1,0 +1,25 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS INQUIRE CONNECTION(4-character data-value)
+      *                                Examine remote system information
+                   < START | NEXT | END >
+                   < NETNAME(8-character data-area) >
+                   < ACCESSMETHOD(cvda) >
+                   < PROTOCOL(cvda) >
+                   < ACQSTATUS(cvda) >
+                   < SERVSTATUS(cvda) >
+                   < PENDSTATUS(cvda) >
+                   < NOHANDLE | RESP(data-area) RESP2(data-area) >
+           END-EXEC
+      *
+      * Conditions:  END, ILLOGIC, SYSIDERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

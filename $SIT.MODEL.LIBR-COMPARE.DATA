@@ -1,0 +1,43 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Compare library, sublibrary, or member         */
+ /*                   directory information or member content.       */
+ /*                                                                  */
+   COMpare { Lib=l | Sublib=l.s | mn.mt } -
+             < Data={Directory|Member} > < Punch={No|Yes} >
+ /*                                                                  */
+ /* Where: Lib        is a keyword (only capital letters required)   */
+ /*        l          specifies a source and target library          */
+ /*                   (delimit source/target with blank or colon)    */
+ /*        Sublib     is a keyword (only capital letters required)   */
+ /*        l.s        specifies a source and target sublibrary and   */
+ /*                   the target sublibrary name can be an equals    */
+ /*                   sign if it is to be the same as the source     */
+ /*                   sublibrary name (delimit source/target with    */
+ /*                   blank or colon)                                */
+ /*        mn.mt      specifies a source and target member (based on */
+ /*                   current CONNECT setting) where member names    */
+ /*                   (and source member type) can be generic to     */
+ /*                   include more than one member and the target    */
+ /*                   member name or type can be an equals sign if   */
+ /*                   it is to be the same as the associated source  */
+ /*                   specification (delimit source/target with      */
+ /*                   blank or colon)                                */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        Data       is a keyword (only capital letters required)   */
+ /*        Directory  compares directory information only (default)  */
+ /*        Member     compares member content stopping at the first  */
+ /*                   mismatch (where phases linked in different     */
+ /*                   partitions can have different starting         */
+ /*                   addresses and, if so, will give a mismatch)    */
+ /*        Punch      is a keyword (only capital letters required)   */
+ /*        No         nothing is punched for mismatches (default)    */
+ /*        Yes        for DATA=DIRECTORY, this option will punch a   */
+ /*                   COPY statement for each source member that     */
+ /*                   does not have a matching target member         */
+ /*                                                                  */

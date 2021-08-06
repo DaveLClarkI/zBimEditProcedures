@@ -1,0 +1,23 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS INQUIRE SYSTEM
+      *                                Examine SIT information
+                   < RELEASE(4-character data-area) >
+                   < OPSYS(1-character data-area) >
+                   < OPREL(halfword binary data-area) >
+                   < MAXTASKS(fullword binary data-area) >
+                   < AMAXTASKS(fullword binary data-area) >
+                   < AKP(fullword binary data-area) >
+                   < CUSHION(fullword binary data-area) >
+                   < TIME(fullword binary data-area) >
+                   < RUNAWAY(fullword binary data-area) >
+                   < STALL(fullword binary data-area) >
+           END-EXEC
+      *
+      * Conditions:  None
+      *

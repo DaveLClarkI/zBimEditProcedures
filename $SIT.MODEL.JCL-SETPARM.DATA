@@ -1,0 +1,10 @@
+/* change MYVARBL to your variable name as shown (max 7 chars)       */
+/* change MYVALUE to your value as shown (max 50 chars)              */
+/*                                                                   */
+// SETPARM MYVARBL='MYVALUE'
+/*                                                                   */
+/* optionally, you may substitute the quoted value above with:       */
+/*   $RC   - the return code of the last job step executed           */
+/*   $MRC  - the maximum return code from any job step executed      */
+/* in both cases, the value assigned is a string of 4 characters     */
+/*                                                                   */

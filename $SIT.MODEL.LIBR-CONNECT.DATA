@@ -1,0 +1,22 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Specify a source and target sublibrary for     */
+ /*                   COPY, MOVE, and COMPARE commands to use.       */
+ /*                                                                  */
+   CONnect < ? | Sublib=l.s <:> l.s >
+ /*                                                                  */
+ /* Where: ?          displays the current connected sublibraries.   */
+ /*        Sublib     is a keyword (only capital letters required).  */
+ /*        l.s        specifies the library name and sublibrary name */
+ /*                   to be connected.  The first is the source and  */
+ /*                   the second is the target.  If the target       */
+ /*                   library or sublibrary names are the same as    */
+ /*                   the source name then an equal sign signifies.  */
+ /*                   For example:                                   */
+ /*                      CON S=LIB1.SUBLIBA : =.SUBLIBB              */
+ /*                      CON S=LIB1.SUBLIBA : LIB2.=                 */
+ /*                                                                  */

@@ -1,0 +1,80 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+// ASSGN  SYSxxx,{cuu|(addr-lst)|UA|IGN|SYSyyy|device-class|device-type}
+/* Optional operands for Disk only                                   */
+                 <,TEMP|,PERM><,VOL=volser><,SHR>
+/* Optional operands for Tape only                                   */
+                 <,mode|,ALT><,TEMP|,PERM><,VOL=volser>
+/*                                                                   */
+/* Note:  If you use two or more of the optnl operands shown, they   */
+/*        must be entered in the sequence shown here.                */
+/*                                                                   */
+/* Where: SYSxxx       represents the logial unit name as follows:   */
+/*                        SYSIPT                                     */
+/*                        SYSPCH                                     */
+/*                        SYSLST                                     */
+/*                        SYSnnn                                     */
+/*        cuu|X'cuu'   indicates the physical unit address to which  */
+/*                     the specified logical unit is to be assigned. */
+/*        (addr-lst)   specifies a list of up to six cuu-type device */
+/*                     address separated by commas and enclosed in   */
+/*                     parentheses.  The system searches only the    */
+/*                     addresses specified for a free unit and, when */
+/*                     found, is assigned to SYSxxx.                 */
+/*        UA           indicates the logical unit will be unassigned.*/
+/*        IGN          for certain DOS/VS COBOL (sequential files)   */
+/*                     and ASSEMBLER programs, the IGN option unas-  */
+/*                     signs the logical unit and ignores any sub-   */
+/*                     sequent logical IOCS command (OPEN, GET, etc.)*/
+/*                     for that unit.  This allows you to prevent a  */
+/*                     program from processing a file without        */
+/*                     changing and relinking the program.           */
+/*        SYSyyy       requests SYSxxx to be assigned to the same    */
+/*                     device to which SYSyyy is currently assigned. */
+/*        device-class causes a search for the first unassigned unit */
+/*                     within the specified device-class and assigns */
+/*                     it to SYSxxx.  Valid device classes:          */
+/*                        READER                                     */
+/*                        PRINTER                                    */
+/*                        PUNCH                                      */
+/*                        TAPE                                       */
+/*                        DISK                                       */
+/*        device-type  causes a search for the first free unit of    */
+/*                     the specified device type (e.g. 3420T9) and   */
+/*                     assigns it to SYSxxx.                         */
+/*        mode         sets the recording density for magnetic tapes.*/
+/*                     If the tape on the specified unit is at load  */
+/*                     point, the new mode setting takes effect at   */
+/*                     once.  Otherwise, it takes effect the next    */
+/*                     time load point is reached.                   */
+/*        ALT          indicates an assignment for an alternate tape */
+/*                     unit that is used when the capacity of the    */
+/*                     original assignment is reached.  The type of  */
+/*                     assignment and device used for the alternate  */
+/*                     must be the same as the original.  The system */
+/*                     does not adjust the tape mode of the alternate*/
+/*                     unit, so it is advisable to first assign the  */
+/*                     units with equal tape modes and then to       */
+/*                     reassign them with the ALT operand:           */
+/*                        // ASSGN  SYS001,683,D0                    */
+/*                        // ASSGN  SYS002,682,D0                    */
+/*                        // ASSGN  SYS001,SYS001                    */
+/*                        // ASSGN  SYS001,SYS002,ALT                */
+/*        TEMP|PERM    indicates whether the assignment is to be     */
+/*                     TEMPorary (for the duration of the job) or    */
+/*                     PERManent (until explicitly UnAssigned).      */
+/*        VOL=volser   specifies the volume serial number of the disk*/
+/*                     or tape device required and causes a search   */
+/*                     for the specified volume.  If the requested   */
+/*                     volume is found, the assignment takes place.  */
+/*                     Otherwise, a system MOUNT message is issued   */
+/*                     for the first free device in the sequence.    */
+/*        SHR          means that the unit can be assigned to a disk */
+/*                     device that is already assigned.  This option */
+/*                     only meaningfull in combination with "address-*/
+/*                     list", "device-class", and "device-type".     */
+/*                                                                   */

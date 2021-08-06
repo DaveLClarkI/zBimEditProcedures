@@ -1,0 +1,36 @@
+/* uppercase identifiers and punctuation must be coded as shown.     */
+/* lowercase identifiers indicate that user text needs to be coded.  */
+/* < > are used to indicate that the enclosed identifiers are optnl. */
+/*  |  is used to separate mutually exclusive alternatives.          */
+/* { } encloses a set of alternatives, one of which must be coded.   */
+/*                                                                   */
+   CLOSE  SYSxxx,{cuu<,mode>|UA|IGN|ALT|SYSyyy|device-class|device-type}
+/*                                                                   */
+/* Where: SYSxxx       represents the logial unit name as follows:   */
+/*                        SYSIPT                                     */
+/*                        SYSPCH                                     */
+/*                        SYSLST                                     */
+/*                        SYSnnn                                     */
+/*        cuu|X'cuu'   indicates the physical unit address to which  */
+/*                     the closed logical unit is to be reassigned.  */
+/*                     In the case of a system logical unit, the new */
+/*                     unit is opened upon reassignment.             */
+/*        mode         sets the recording density for magnetic tapes.*/
+/*        UA           requests the subsequently closed logical unit */
+/*                     be permanently unassigned until a new ASSGN.  */
+/*        IGN          requests the subsequently closed logical unit */
+/*                     be permanently ignored until a new ASSGN.     */
+/*        ALT          requests the subsequently closed logical unit */
+/*                     be permanently reassigned to the current      */
+/*                     alternate unit and reopened for use.          */
+/*        SYSyyy       requests the subsequently closed logical unit */
+/*                     be reassigned to the device that SYSyyy is    */
+/*                     currently assigned to.  If SYSxxx is a system */
+/*                     logical unit, it is opened on reassignment.   */
+/*        device-class requests the subsequently closed logical unit */
+/*                     be reassigned to the first free unit within   */
+/*                     the specified device class (e.g.  READER).    */
+/*        device-type  requests the subsequently closed logical unit */
+/*                     be reassigned to the first free unit of the   */
+/*                     specified device type (e.g.  PRT1).           */
+/*                                                                   */

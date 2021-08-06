@@ -1,0 +1,20 @@
+/*                                                                   */
+// GOTO   label
+/*                                                                   */
+/* Where: label specifies the operand of the "/."  statement at which*/
+/*              execution of the current job is to continue.  Specify*/
+/*              $EOJ, for label, to skip to End-of-Job.  The job     */
+/*              stream cannot be searched backwards, and the target  */
+/*              label statement must be on the same level as the GOTO*/
+/*              statement, i.e.  both outside any procedures or both */
+/*              inside the same procedure.  Job control doesn't check*/
+/*              for duplicate labels, i.e.  if two or more labels are*/
+/*              coded with the same operand, execution will continue */
+/*              with the first one found after the GOTO statement.   */
+/*              All JCL statements between the GOTO and the target   */
+/*              label are ignored, except for the following:         */
+/*                 statements entered from SYSLOG                    */
+/*                 /+ (End-of-Procedure) statements                  */
+/*                 // JOB and /& (End-of-Job) statements             */
+/*                 * $$  VSE/POWER statements                        */
+/*                                                                   */

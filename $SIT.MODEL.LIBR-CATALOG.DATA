@@ -1,0 +1,33 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user text needs to be coded. */
+ /* < > are used to indicate that the enclosed identifiers are optnl.*/
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /*                                                                  */
+ /*                   Catalog (create) a member.                     */
+ /*                                                                  */
+   CAtalog mn.mt < Replace={No|Yes} > < Data={No|Yes} > -
+                 < Eod={/+|xx} >
+ /*                                                                  */
+ /* Where: mn.mt      specifies the target member name and type in   */
+ /*                   which to store the subsequent member data      */
+ /*                   (based on current ACCESS setting)              */
+ /*        Replace    is a keyword (only capital letters required)   */
+ /*        No         prevents target replacement (default)          */
+ /*        Yes        allows target replacement                      */
+ /*        Data       is a keyword (only capital letters required)   */
+ /*        No         applies to procedure members and indicates     */
+ /*                   the resulting procedure does NOT contain any   */
+ /*                   SYSIPT data or /* EOD indicators (default)     */
+ /*        Yes        applies to procedure members and indicates the */
+ /*                   resulting procedure member contains SYSIPT     */
+ /*                   data and a /* end-of-data indicator            */
+ /*        -          may be used to continue a statement over       */
+ /*                   multiple lines                                 */
+ /*        Eod        is a keyword (only capital letters required)   */
+ /*        /+         end-of-data indicator for the member (default) */
+ /*        xx         a custom end-of-data indicator of your choice  */
+ /*                   that marks the end of your member data (this   */
+ /*                   is required if your member already contains a  */
+ /*                   /+ end-of-data indicator in column 1)          */
+ /*                                                                  */
