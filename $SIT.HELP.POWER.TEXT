@@ -1,0 +1,23 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+
+-------------------------------------------------------------------------------
+| MENU     | ALL   | Gives a list off all commands available for all topics.  |
+-------------------------------------------------------------------------------
+|                  Commands Used to Access POWER Job Entries                  |
+|-----------------------------------------------------------------------------|
+| ALTERP   | AP    | Alter POWER job entry attributes.                        |
+| DQ       |       | (See LIBRARYP).                                          |
+| FALTERP  | FALTP | Display / alter POWER job entry attributes.              |
+| GETP     |       | Alter session text - insert text of POWER job entry.     |
+| HOLD     |       | Put a POWER job entry on hold.                           |
+| INQUIREP | INQP  | Display list of currently executing POWER job output.    |
+| LIBRARYP | DQ    | Display list of POWER job entries.                       |
+| LISTP    | LP    | Display text of POWER job entry.                         |
+| MODIFYP  | MODP  | (See ALTERP).                                            |
+| PRINT    |       | Print a member.                                          |
+| PURGEP   | PP    | Delete POWER job entry.                                  |
+| RELEASE  | REL   | Take a POWER job entry off hold.                         |
+| RELIST   |       | (See PRINT).                                             |
+| SCANP    |       | Search multiple POWER entries for a specified pattern.   |
+-------------------------------------------------------------------------------

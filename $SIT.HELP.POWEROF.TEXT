@@ -1,0 +1,32 @@
+
+Use POWEROF to arithmetically raise a specified global variable to the power of
+a specified exponent value.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| OPER1    |  is the name of a previously declared global numeric variable.   |
+|-----------------------------------------------------------------------------|
+| OPER2    |  is a numeric integer.                                           |
+-------------------------------------------------------------------------------
+
+The value of the OPER1 global variable will be raised to the power of the OPER2
+value.  The result will be stored in the OPER1 global variable.
+
+For more discussion and  examples  of  variables,  refer to the BIM-EDIT System
+Reference Manual Chapter 2, Writing Procedures.
+
+When Valid
+----------
+
+POWEROF can only be  used  in  a procedure,  batch utility,  or the application
+interface.
+
+Use in a Procedure
+------------------
+
+POWEROF always returns OK.
+
+Example
+-------
+

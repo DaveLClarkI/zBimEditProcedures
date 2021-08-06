@@ -1,0 +1,19 @@
+
+                                 ------------
+                                 |   zo(n)  |
+                                 |   zoo    |
+                                 ------------
+
+This Line Command Area (LCA) command  is  a  "front-end" for the WIN version of
+the CHECKOUT (p.k.a.,  "TEST") command and is only valid from a LIBRARY display
+session (which,  as it happens,  is  also  the  type  of session created by the
+LOCMEM command).
+
+This LCA command uses the  member  information for the current line (i.e.,  the
+line this LCA  command  is  entered  on)  as  input  to that command.   It also
+prevents you having to do so much typing, and reduces the possibility of errors
+in such typing, in order to specify the primary parameter for that command.
+
+See the HELP output for the  CHECKOUT command for information pertaining to the
+function and parameters of that command.
+

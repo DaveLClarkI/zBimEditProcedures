@@ -1,0 +1,38 @@
+
+Use SPELLWRD to invoke the CLARKE Spelling Word Matcher which displays up to 36
+words,  from the CLARKE Spelling  Checker's USER and MASTER dictionaries,  that
+most closely match the user specified word.
+
+SPELLWRD may also be entered as SPELLW or SPELW.
+
+-------------------------------------------------------------------------------
+|                              Required Operand                               |
+|-----------------------------------------------------------------------------|
+| WORD     | is the spelling word to match against.   Up to 36 characters can |
+|          | be specified.                                                    |
+-------------------------------------------------------------------------------
+
+Words  are  selected  using  the   Extended  Search  Pattern  feature  with  a,
+potentially,  different pattern being  used  for  each dictionary search.   The
+pattern is created by  taking  one  character  less  than the largest number of
+matching leading characters in  the  current dictionary,  substituting the next
+three characters with the '*' pattern character,  then all remaining characters
+and another '*' pattern character.   The resulting pattern should allow for the
+most common types  of  spelling  errors,  e.g.   the misspelled word "editting"
+yields a pattern of "edi*ng*" which will match the correct spelling of the word
+(i.e.  "editing").
+
+SPELLWRD executes either as a "stand-alone"  command or in conjunction with the
+SPELLCHK command  (the  CLARKE  Spelling  Checker).   If  used  with the CLARKE
+Spelling Checker (using the PF2 key),  then the displayed matching words may be
+selected from,  via cursor positioning, for automatic changing of the indicated
+word in the original edit session.   However,  this may cause truncation at the
+right zone boundary if the selected word is longer than the original word.   In
+an effort to prevent this, excess blanks are first removed between the original
+word and the right zone boundary before doing the replacement.
+
+When Valid
+----------
+
+SPELLWRD can only be used as an on-line command (not in a procedure).
+

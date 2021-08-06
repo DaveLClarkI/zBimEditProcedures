@@ -1,0 +1,28 @@
+
+Use TABS to alter (or inquire as to) the tab columns of the session and, in the
+case of an EDIT session,  the  tab  columns  of the member being edited.   This
+command selectively combines the  use  of  the  "SESS  TCOL=" and "ALTER TCOL="
+commands if alteration is requested.
+
+-------------------------------------------------------------------------------
+|                              Optional Operand                               |
+|-----------------------------------------------------------------------------|
+| TABS     | is a list of columns  used  for tabbing.   Up to 12 tab settings |
+|          | may be specified.   They are  entered  in the format "cc-cc-cc". |
+|          | Each setting consists of one  to  three digits which specify the |
+|          | column where the text will  be placed.   Tabbing range is from 1 |
+|          | to  253.   Tab  columns  must  be  entered  in  ascending order. |
+|          | Alternatively, you may specify "OFF" to turn off the tab columns |
+|          | setting.   If this operand  is  omitted,  the current setting is |
+|          | shown after taking a default  (according  to member TYPE) if the |
+|          | currently editted member has no tab columns already set.   For a |
+|          | more extensive discussion  of tabbing,  see Chapter 6,  Advanced |
+|          | Techniques, in the BIM-EDIT User Reference Manual.               |
+-------------------------------------------------------------------------------
+
+Example
+-------
+
+Set tabs for a COBOL program:
+
+   => tabs 8-12-16-20-32-40

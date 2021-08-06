@@ -1,0 +1,25 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+
+-------------------------------------------------------------------------------
+| MENU     | ALL   | Gives a list off all commands available for all topics.  |
+-------------------------------------------------------------------------------
+|             Commands Used to Access VSE/ESA Sublibrary Members              |
+|-----------------------------------------------------------------------------|
+| ATTACHD  | ATTD  | Set VSE/ESA sublibrary default for access.               |
+| CATAL    | CAT   | Copy a member to a VSE/ESA sublibrary.                   |
+| COPYD    |       | Create a copy of a VSE/ESA sublibrary member.            |
+| DEFINED  | DEFD  | Create new VSE/ESA sublibrary member.                    |
+| DISPLAYD | DID   | Display text of VSE/ESA sublibrary member.               |
+| EDITD    | EDD   | Create edit session of VSE/ESA sublibrary member.        |
+| GETD     |       | Alter session text - insert text of VSE sublibrary member|
+| INQUIRED | INQD  | Display attributes of a VSE/ESA sublibrary member        |
+| LIBDS    |       | Display output of VSE/ESA LIBR SEARCH command.           |
+| LIBSDL   |       | Display output of VSE/ESA LIBR LISTDIR SDL command.      |
+| LIBRARYD | LIBD  | Display list of VSE/ESA sublibrary members.              |
+| LISTD    | LID   | Display text of VSE/ESA sublibrary member.               |
+| PURGED   | PURD  | Delete VSE/ESA sublibrary member.                        |
+| RENAMED  | REND  | Alter the name of a VSE/ESA sublibrary member.           |
+| SCAND    |       | Search multiple VSE members for a specified pattern.     |
+| SUBMIT   | SUB   | Submit a member for batch processing.                    |
+-------------------------------------------------------------------------------

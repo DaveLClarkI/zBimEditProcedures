@@ -1,0 +1,64 @@
+
+Use SPELLFMT to  reform  the  currently  edited  CLARKE Spelling Checker MASTER
+Dictionary back  into  the  format  expected  by  the  CLARKE  Spelling Checker
+(SPELLCHK) after updating it.
+
+SPELLFMT has no operands.
+
+The BIM-EDIT System  Administrator  may  use  the  following procedures (in the
+order shown) to add  additional  words  to  the  CLARKE Spelling Checker MASTER
+dictionary.   It  is  recommended  that  items  only  be  added  to  the MASTER
+dictionary that are  accepted  words  and not slang,  jargon,  abbreviations or
+words for informal use.   Any good  dictionary  is  your best guide to accepted
+words and in determining preferred, as opposed to common, spellings.
+
+SPELLSEP separates the currently edited MASTER dictionary into a format similar
+         to a CLARKE Spelling  Checker USER dictionary.   The MASTER dictionary
+         is normally FORMATted into 26  "paragraphs" using columns 2-252 as the
+         ZONE.   This is  done  for  search  efficiency  (via  indexing and the
+         EXAMINE  command)  due  to  the  large  number  of  words  it normally
+         contains.  By contrast, a USER dictionary is normally much smaller and
+         is,  therefore,  kept in  a  single-word-per-line format.   The search
+         algorithm for this dictionary gets its  efficiency from the use of the
+         FIND command which, as opposed to the LOCATE command, keeps its search
+         to a single column.
+
+SPELLSRT sorts,  checks for duplication,  counts the words,  and alphabetically
+         labels the "paragraphs"  of  the  currently  edited MASTER dictionary.
+         New  words  can  be  first  added  (normally  from  one  or  more USER
+         dictionaries) and then processed  with  this  procedure to insure they
+         are in the correct sequence.   The labels correspond to the letters of
+         the alphabet and,  although they  have  the  word count on them,  they
+         mainly provide the  stopping  points  for  the  FORMAT  command in the
+         SPELLFMT procedure below.
+
+SPELLFMT reforms the currently edited  MASTER  dictionary  back into the normal
+         format expected by the  CLARKE Spelling Checker.   Alphabetical labels
+         are updated with  the  number  of  lines  in  the  "paragraph" and the
+         alphabetical index is built on  the  "total"  label  at the end of the
+         MASTER dictionary.
+
+A large document can be "boiled-down"  to  extract the unique words it contains
+for the ultimate purpose  of  adding  a  large  number  of  words to the CLARKE
+Spelling Checker MASTER  dictionary.   The  resulting  EDIT  session  is in the
+format of a pseudo  CLARKE  Spelling  Checker  MASTER  dictionary and should be
+properly SPELLCHKed to add  any  new  words  to  a CLARKE Spelling Checker USER
+dictionary which may,  in turn,  be manually  added to the real CLARKE Spelling
+Checker MASTER dictionary as described above.
+
+The method of "boiling-down" the document  is with the following procedures and
+in the order specified.
+
+SPELLSQU "squeezes" out  all  non-alphabetic  characters  and deletes duplicate
+         lines (after sorting)  from  the currently edited document.   WARNING:
+         this should be a COPY of your document and NOT the original unless you
+         are VERY careful not  to  SAVE  the  document after this procedure has
+         been used.
+
+After executing SPELLSQU,  execute SPELLSEP  and  then SPELLSRT (both described
+above) to finish  the  process.   Note  that  if SPELLSEP terminates abnormally
+because of too many lines in  the session,  you may either increase the session
+limit or reexecute SPELLSQU  with  the  "RETRY"  option (to eliminate duplicate
+words newly separated out by SPELLSEP); however,  in either case, SPELLSEP must
+be reexecuted until it is successful before going on to SPELLSRT.
+
