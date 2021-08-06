@@ -1,0 +1,64 @@
+
+Use ARCHIVE to send a  member  and  any  associated  audit trail (as a separate
+file) down to the BimEditArchive folder on the network.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM      | is the  member  to  be  archived.   If  MEM  is  specified as an |
+|          | asterisk (*), the "last referenced member" is archived.          |
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| NAME     | is an  optional  8-character  member  name  to  be  used  as the |
+|          | archived member's  name  instead  of  the  member's actual name. |
+|          | This is useful where the  name  of  the member to be archived is |
+|          | more than eight characters  or  contains characters that are not |
+|          | allowed in file names on the network.                            |
+|-----------------------------------------------------------------------------|
+| TYPE     | is an  optional  8-character  member  type  to  be  used  as the |
+|          | archived member's  type  instead  of  the  member's actual type. |
+|          | This is useful where the  type  of  the member to be archived is |
+|          | not valid as a file extension on the network.                    |
+|-----------------------------------------------------------------------------|
+| TITLE    | is an optional  40-character  member  title  to  be  used as the |
+|          | archived member's title  instead  of  the member's actual title. |
+|          | This is only useful if  you  want  to  override the title of the |
+|          | member to be archived, but this title is not carried down to the |
+|          | network anyway.                                                  |
+|-----------------------------------------------------------------------------|
+| REF      | is an optional reference member whose name,  type, and title are |
+|          | to be used  for  the  archived member's name,  type,  and title. |
+|          | This is useful where the  member  to  be archived is an obsolete |
+|          | version of  a  production  member and,  therefore,  the member's |
+|          | name, type, and title was changed at obsolescence time.          |
+|          |                                                                  |
+|          | If this parameter is specified it overrides the NAME,  TYPE, and |
+|          | TITLE parameters.   Thus, it is simpler to omit those parameters |
+|          | when specifying this one.                                        |
+-------------------------------------------------------------------------------
+
+ARCHIVE renames the specified  source  member into the DOWNLOAD library,  saves
+any associated audit trail to a separate member, and then submits a job to send
+those members down to  the  network  into the BimEditArchive folder.   The file
+names created on the network will include  the last update date and time of the
+source member both to avoid duplicate  file  names  as well as to indicate when
+the archived source  member  was  last  updated  before being archived.   After
+downloading,  the members in the DOWNLOAD library  are purged by the batch job.
+This means that if the FTP step  in  the batch job fails,  the job can be rerun
+without having lost the members in the DOWNLOAD library.
+
+When Valid
+----------
+
+ARCHIVE can be used online or in the batch utility.
+
+Use in a Procedure
+------------------
+
+Return Codes:
+  OK   Successful.
+  ER   The ARCHIVE procedure has detected an error.
+

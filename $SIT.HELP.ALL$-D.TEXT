@@ -1,0 +1,93 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+For example, to display information about the command ALTER, enter:
+
+   => help alter
+
+The subject is one of the following:
+
+.   A BIM-EDIT command.
+.   A BIM-EDIT LCA command prefixed with "L-".
+.   A group of predefined variables, e.g., MMP.
+.   The value "LCA", which will list LCA commands.
+.   The value "VARS", "VBL" or "SYS-VBLS", which will list classes of
+    predefined system variables.
+.   The value "UDP", for help on the User Developed Procedures contained in
+    library $SYS.UDP.
+.   The value "EDIT-nnx", where "nnx" is the BIM-EDIT release, to display
+    information pertinent to the enhancements, and problem fixes for that
+    release.
+.   The value ARRAYS which describes array processing.
+.   The value SUBSTR which describes substring processing.
+
+Tables of commands follow:
+
+)/INCL $SYS.HELP.ALTERLIB ID=DATA
+
+)/INCL $SYS.HELP.ALTERMEM ID=DATA
+
+)/INCL $SYS.HELP.ALTERTXT ID=DATA
+
+)/INCL $SYS.HELP.CTL-SESS ID=DATA
+
+)/INCL $SIT.HELP.STARTSES ID=DATA
+
+)/INCL $SYS.HELP.ENDSESS ID=DATA
+
+)/INCL $SIT.HELP.FINDTXT ID=DATA
+
+)/INCL $SIT.HELP.ICCFLIBS ID=DATA
+
+)/INCL $SIT.HELP.VSE-LIBS ID=DATA
+
+)/INCL $SIT.HELP.POWER ID=DATA
+
+)/INCL $SIT.HELP.LCA$-D ID=DATA
+
+)/INCL $SYS.HELP.LOG-ON ID=DATA
+
+)/INCL $SYS.HELP.MEM-CTL ID=DATA
+
+)/INCL $SYS.HELP.MISCCMDS ID=DATA
+
+)/INCL $SYS.HELP.OPER-ADM ID=DATA
+
+)/INCL $SYS.HELP.POSDSPLY ID=DATA
+
+)/INCL $SYS.HELP.PROC-CTL ID=DATA
+
+)/INCL $SYS.HELP.PRT-PUN ID=DATA
+
+)/INCL $SYS.HELP.REXXMENU ID=DATA
+
+)/INCL $SYS.HELP.SECURITY ID=DATA
+
+)/INCL $SYS.HELP.SET-VBLS ID=DATA
+
+)/INCL $SYS.HELP.SETTINGS ID=DATA
+
+)/INCL $SYS.HELP.SPEC-CHR ID=DATA
+
+)/INCL $SYS.HELP.$STACK ID=DATA
+
+)/INCL $SYS.HELP.SYS-VBLS ID=DATA
+
+)/INCL $SYS.HELP.TRANTEXT ID=DATA
+
+)/INCL $SYS.HELP.USERMAIL ID=DATA
+
+)/INCL $SYS.HELP.USERS ID=DATA
+
+)/INCL $SYS.HELP.VARIABLE ID=DATA
+
+)/INCL $SYS.HELP.VSE-SYS ID=DATA
+
+)/INCL $SYS.HELP.API ID=DATA
+
+)/INCL $SYS.HELP.API-LU62 ID=DATA
+
+)/INCL $SYS.HELP.BATCH ID=DATA
+
+)/INCL $SYS.HELP.ARRAYS
+
+)/INCL $SYS.HELP.SUBSTR
