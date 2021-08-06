@@ -1,0 +1,27 @@
+
+Use FTP to transfer a BIM-EDIT member to a network destination as a text file.
+
+-------------------------------------------------------------------------------
+|                         Required Operands                                   |
+|-----------------------------------------------------------------------------|
+| MEM      | is the member to transfer.   If  MEM is not specified,  a prompt |
+|          | screen displays with the "last referenced member" filled in.     |
+|          |                                                                  |
+|          | MEM can be specified as  '/'  to indicate that the current EDIT, |
+|          | LIST, or DISPLAY session contains the member to transfer.        |
+|-----------------------------------------------------------------------------|
+| PATH     | is the network destination  path  where to store the transferred |
+|          | member.  If PATH is not specified, a prompt screen displays with |
+|          | the default path filled in.                                      |
+-------------------------------------------------------------------------------
+
+If both parameters are supplied and are valid, then the FTP command immediately
+submits a batch job to  perform the transfer without prompting.   Otherwise,  a
+prompt screen displays to  allow  for  corrections to the information supplied.
+Omitted information is provided with defaults.
+
+When Valid
+----------
+
+The user must have LIST access level for the BIM-EDIT member specified.
+

@@ -1,0 +1,43 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+
+To display detailed information about an LCA command, enter HELP followed by L-
+and the command.  For example,
+
+  HELP L-A
+
+-------------------------------------------------------------------------------
+|                                LCA Commands                    | Equiv. Cmd |
+|-----------------------------------------------------------------------------|
+| A        | Insert blank text lines after this text line.       | LADD       |
+| B        | Insert text lines from $STACK before this text line | GET        |
+| C,CC     | Copy these text lines to $STACK.                    | STACK      |
+| D,DD     | Delete these text lines.                            | DELETE     |
+| E,EE     | Edit this member.                                   | EDIT       |
+| G        | Merge text lines from $STACK with these text lines. | MERGE      |
+| H,HH     | Put these POWER job entries on hold.                | HOLD       |
+| I        | Insert text lines from $STACK after this text line. | GET        |
+| J,JJ     | Merge text lines from $STACK with these text lines. | MERGE      |
+| K,KK     | Append these text lines to $STACK.                  | STACK ,AP  |
+| L,LL     | Display text of this member, message, etc.          | LIST, etc. |
+| M,MM     | Move - copy these text lines to $STACK and delete.  | STACK;DEL  |
+| N,NN     | Append these text lines to $STACK and delete.       | STACK;DEL  |
+| P,PP     | Delete these members, messages, etc.                | PURGE, etc.|
+| Q,QQ     | Display/alter these members, libraries.             | FALTER, etc|
+| R,RR     | Take these POWER job entries off hold.              | RELEASE    |
+| S,SS     | Process this member - submit, compile or execute.   | PROCESS    |
+| T,TT     | Display text of this member, etc.                   | DISPLAY    |
+| U,UU     | Translate these text lines to upper case.           | UPPERCAS   |
+| W,WW     | Translate these text lines to lower case.           | LOWERCAS   |
+| X,XX     | Display list of currently executing POWER output.   | INQUIREP   |
+| Y        | Attach to this library.                             | ATTACH     |
+| Zx       | Site defined LCA commands. (See HELP L-Z)           |            |
+| ",""     | Duplicate text line or lines.                       | DUP        |
+| /        | Position session line to top of screen.             | POSITION   |
+| \        | Position session line to bottom of screen.          | POSITION   |
+| <,<<     | Shift these text lines left.                        | SHIFT      |
+| >,>>     | Shift these text lines right.                       | SHIFT      |
+| +,++     | Center these text lines.                            | CENTER     |
+| (,((     | Left justify these text lines.                      | JUSTIFYL   |
+| ),))     | Right justify these text lines.                     | JUSTIFYR   |
+-------------------------------------------------------------------------------

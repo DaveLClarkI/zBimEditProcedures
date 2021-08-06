@@ -1,0 +1,16 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+
+-------------------------------------------------------------------------------
+| MENU     | ALL   | Gives a list off all commands available for all topics.  |
+-------------------------------------------------------------------------------
+|             Commands Used to Access VSE/ICCF Library Members                |
+|-----------------------------------------------------------------------------|
+| DISPLAYI | DII   | Display text of an ICCF member.                          |
+| GETI     |       | Alter session text - insert ICCF member.                 |
+| LIBRARYI | LIBI  | Display list of members in ICCF library.                 |
+| LISTI    | LII   | Display text of an ICCF member.                          |
+| LOADI    |       | Create member from ICCF library member.                  |
+| LOADIL   |       | Create members from ICCF library members.                |
+| SCANI    |       | Search multiple ICCF members for a specified pattern.    |
+-------------------------------------------------------------------------------

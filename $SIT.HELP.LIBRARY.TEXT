@@ -1,0 +1,243 @@
+
+Use LIBRARY to display a  list  of  members  in a library.   All members in the
+library  can  be  listed,   or  only  those  members  starting  with  specified
+characters.   When LIBRARY is invoked online, it creates a DISP session for the
+results.
+
+LIBRARY may also be entered as LIB.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM      | is the library and the  initial  characters of the members to be |
+|          | listed.   If no library is specified (i.e., MEM does not contain |
+|          | a period) members in the  currently attached library are listed. |
+|          | If the library is  specified  but  the member is not (i.e.,  MEM |
+|          | ends in a  period),  all  members  in  the specified library are |
+|          | listed.   If MEM is not  specified,  all  members in the current |
+|          | library are listed.   MEM can contain * and ?  characters, which |
+|          | will match as  described  below  in  the Extended Search Pattern |
+|          | rules.   If the library name part of MEM has * or ?  characters, |
+|          | you can list members in more than one library.                   |
+|-----------------------------------------------------------------------------|
+| FMT      | is the format of the display.  The following are provided:       |
+|          |                                                                  |
+|          | NAME  only the NAME is  shown.   This  format  is handy when you |
+|          |       need to create a list of members for use in a procedure.   |
+|          |                                                                  |
+|          | NAME1 same as NAME.                                              |
+|          |                                                                  |
+|          | NAME2-NAME14 only names  are  shown,  the  count per screen line |
+|          |       determined by the number after 'NAME'.  Four (NAME4) names |
+|          |       will fit on an 80  column wide screen view,  seven (NAME7) |
+|          |       will fit on a 132 column view.                             |
+|          |                                                                  |
+|          | DET   the fields NAME, TYPE,  ATTR, # text lines, # audit lines, |
+|          |       date created,  date updated,  audit status,  stamp status, |
+|          |       update user,  and title are shown on a single line.   This |
+|          |       format  also  displays a line of totals  for both text and |
+|          |       audit lines.                                               |
+|          |                                                                  |
+|          | FULL  all of the fields  specified  in  the DET format above are |
+|          |       shown.   In addition,  the create user is shown.   FULL is |
+|          |       is most useful with a 132 character screen or when writing |
+|          |       the output to a printer.   Totals are provided as with the |
+|          |       DET format.                                                |
+|          |                                                                  |
+|          | CHECK a display designed  for  checkout  / checkin management is |
+|          |       created.   The  fields  NAME,  checkout  status,  checkout |
+|          |       library, checkout date,  audit status,  stamp status, date |
+|          |       created, and date updated are shown.                       |
+|          |                                                                  |
+|          | STATS a display showing only NAME, BYTES,  LINES,  CI's,  TITLE, |
+|          |       and last update date and user.                             |
+|          |                                                                  |
+|          | If FMT is not  specified,  the default format shows NAME,  TYPE, |
+|          | and TITLE on a single line.                                      |
+|-----------------------------------------------------------------------------|
+| TYPE     | If TYPE is  specified,  only  members  which match the specified |
+|          | TYPE  are  displayed.   If  the  value  of  TYPE  begins  with a |
+|          | backslash  character  (\),  matching  will  use  Extended Search |
+|          | Pattern rules,  as described below.   See the DEFINE command for |
+|          | information about TYPE.                                          |
+|-----------------------------------------------------------------------------|
+| ATTR     | If ATTR is  specified,  only  members  which match the specified |
+|          | ATTR  are  displayed.   If  the  value  of  ATTR  begins  with a |
+|          | backslash  character  (\),  matching  will  use  Extended Search |
+|          | Pattern rules,  as described below.   See the DEFINE command for |
+|          | information about ATTR.                                          |
+|-----------------------------------------------------------------------------|
+| CKUSER   | If CKUSER is specified,  only members that have been checked out |
+|          | to the CKUSER user are displayed.   If CKUSER is specified as an |
+|          | asterisk  (*),  all  members  that  have  been  checked  out are |
+|          | displayed.   If the  value  of  CKUSER  begins  with a backslash |
+|          | character (\),  matching will use Extended Search Pattern rules, |
+|          | as described below.                                              |
+|-----------------------------------------------------------------------------|
+| TITLE    | If TITLE is specified,  only  members  that contain its value in |
+|          | their TITLEs are displayed.  If the value of TITLE begins with a |
+|          | backslash  character  (\),  matching  will  use  Extended Search |
+|          | Pattern rules, as described below.                               |
+-------------------------------------------------------------------------------
+
+Normally members from  the  currently  attached  library are listed.   However,
+members from another library can  be  listed  by  providing the library name as
+part of MEM.   For example, to display all members from library TM20 that start
+with the three characters "BIC", enter:
+
+   => library tm20.bic
+
+To display all TM20 members, enter:
+
+   => library tm20.
+
+The following LCA commands used in  conjunction with the LIBRARY display can be
+quite useful:
+
+               E     EDIT                    Q     FALTER
+               L     LIST                    S     PROCESS
+               P     PURGE                   T     DISPLAY
+
+See Chapter 5,  LCA Commands,  in the  BIM-EDIT  User Reference Manual for more
+information.
+
+All LIBRARY display formats except  NAME  have control information to the right
+of column 135 for use by  LCA  commands.   If  you use LIBRARY display lines in
+another context (i.e.,  as input to  a  procedure)  you  may need to remove the
+control information using the BLANK or KEEP commands.
+
+If your terminal is running  under  control  of  SNA,  you may interrupt a long
+LIBRARY command by pressing the ATTN key.
+
+Several operands of  the  LIBRARY  command  can  be  treated as Extended Search
+Patterns, in which certain characters have special meanings:
+
+  ?  matches any single character
+  *  matches any sequence of zero or more characters
+  @  matches zero or more instances of the character that follows the @
+  !  matches the beginning of the operand
+  <  matches the beginning of the operand or any non-alphanumeric character
+  >  matches the end of the operand or any non-alphanumeric character
+  |  separates two patterns, EITHER of which may match for a successful search
+  +  separates two patterns, BOTH of which must match for a successful search
+  ~  (NOT) reverses line-by-line success/failure of the pattern following it
+  \  suppresses the special meaning of the character that follows the \
+
+See Chapter 6,  Advanced Techniques,  in the BIM-EDIT User Reference Manual for
+more information about Extended Search Patterns.
+
+When Valid
+----------
+
+The user must have EXEC access level for the MEM library.
+
+Use in a Procedure
+------------------
+
+Return Codes:
+  OK   Successful.
+  NF   Library not found.
+  SC   Inadequate access level.
+
+If LIBRARY is invoked in batch  utility,  the display destination is controlled
+by predefined variable SIBOUTPT.
+
+Examples
+--------
+
+                                 Default Format
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|DISP  -> lib bir                               SESS= 1( 1) LINE=     0(   439) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* -- TOP OF DISPLAY --                                                     |
+|*===* LIBRARY=ED51A                                                            |
+|*===* ------------------------------------------------------------------       |
+|*===*      MEMBER        TYPE                  TITLE                           |
+|*===* ---------------- -------- ----------------------------------------       |
+|*===* BIRAPEX          ASM      ROOT MODULE                                    |
+|*===* BIRAPFL          ASM      FLUSH APPL INTF OUTPUT BUFFER                  |
+|*===* BIRAPPL          ASM      APPLICATION DIALOGUE CONTROL                   |
+|*===* BIRAPRD          ASM      RECEIVE LINE FROM APPLICATION                  |
+---------------------------------------------------------------------------------
+
+                                   NAME Format
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|DISP  -> lib bir*-d,name                       SESS= 1( 1) LINE=     0(   127) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* -- TOP OF DISPLAY --                                                     |
+|*===*          BIRDLAY$-D                                                      |
+|*===*          BIRDPEJ$-D                                                      |
+|*===*          BIRDPLU$-D                                                      |
+|*===*          BIRDPML$-D                                                      |
+|*===*          BIRDPPS$-D                                                      |
+|*===*          BIRDPVT$-D                                                      |
+---------------------------------------------------------------------------------
+
+                                   DET Format
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|DISP  -> lib ed51?.bicbkpg,det,type=\asm*      SESS= 1( 1) LINE=     0(    19) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* -- TOP OF DISPLAY --                                                     |
+|*===* LIBRARY=ED51A                                                            |
+|*===* ----------------------------------------------------------------------   |
+|*===*      MEMBER        TYPE     ATTR   --- LINES --- ------- DATE --------   |
+|*===*                                     TEXT  AUDIT    CREATE     UPDATE     |
+|*===* ---------------- -------- -------- ------ ------ ---------- ----------   |
+|*===* BICBKPG          ASM      NLRLH        36    233 08/09/1989 04/24/1995   |
+|*===*                                    ------ ------                         |
+|*===*                                        36    233                         |
+|*===*                                                                          |
+|*===* LIBRARY=ED51L                                                            |
+|*===* ----------------------------------------------------------------------   |
+|*===*      MEMBER        TYPE     ATTR   --- LINES --- ------- DATE --------   |
+|*===*                                     TEXT  AUDIT    CREATE     UPDATE     |
+|*===* ---------------- -------- -------- ------ ------ ---------- ----------   |
+|*===* BICBKPG          ASMLIST  04/24/95     88      0 02/13/1990 04/24/1995   |
+|*===*                                    ------ ------                         |
+|*===*                                        88      0                         |
+|*===*                                    ------ ------                         |
+|*===*                                       124    233                         |
+|      -- END OF DISPLAY --                                                     |
+---------------------------------------------------------------------------------
+
+                                  CHECK Format
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|DISP  -> lib ed51a.,check,ckuser=mwd           SESS= 1( 1) LINE=     0(     7) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* -- TOP OF DISPLAY --                                                     |
+|*===* LIBRARY=ED51A                                                            |
+|*===* ------------------------------------------------------------------------ |
+|*===*      MEMBER      --------------- CHECKOUT ---------------    LAST    AUD |
+|*===*                  ST    USER       LIBRARY         DATE      UPDATE   ST  |
+|*===* ---------------- --- -------- ---------------- ---------- ---------- --- |
+|*===* BIZSYRF          MS  MWD      BIM              12/21/1995 08/09/1989 ON  |
+|*===* BIZUSRF          MS  MWD      BIM              12/21/1995 08/09/1989 ON  |
+---------------------------------------------------------------------------------
+
+Legend: CHECKOUT ST indicates CHECKOUT status.   It can be MS=master, SL=slave,
+        ON=CHECK is ON, OF=CHECK is OFF.   AU ST indicates AUDIT status.  ST ST
+        indicates STAMP status.
+
+                                  STATS Format
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|DISP  -> lib bir,stats                         SESS= 1( 1) LINE=     0(   903) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* -- TOP OF DISPLAY --                                                     |
+|*===* LIBRARY=ED00A                                                            |
+|*===*      MEMBER        TYPE    TEXT   TEXT   AUDIT  TEXT AUDIT AUD  UPDATE   |
+|*===*                            BYTES  LINES  LINES   CI    CI  ST    USER    |
+|*===* ---------------- -------- ------ ------ ------ ----- ----- --- --------  |
+|*===* BIRABFR$-M       ASM        4564    125    320     2     3 ON  LSL       |
+|*===* BIRADVF$-D       ASM        2026     62      0     1     0 ON  PG        |
+|*===* BIRADVF$-M       ASM        2736     80      0     1     0 ON  PG        |
+|*===* BIRAPEX          ASM        6334    195    310     2     3 ON  PG        |
+|*===* BIRAPFL          ASM        1047     39      0     1     0 ON  GJB       |
+|*===* BIRAPPL          ASM        4234    119      0     2     0 ON  GJB       |
+|*===* BIRAPRD          ASM        2289     76      0     1     0 ON  GJB       |
+|*===* BIRAPWR          ASM        1426     51      0     1     0 ON  PG        |
+---------------------------------------------------------------------------------

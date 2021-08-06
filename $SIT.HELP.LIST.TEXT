@@ -1,0 +1,59 @@
+
+Use LIST to create a  LIST  session  of an existing member,  $LOG,  $MAIL,  or
+$STACK.
+
+LIST may also be entered as LI.
+
+Also, see the LISTI command.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM      | is an existing member, $LOG, $MAIL, or $STACK.   $LOG is the log |
+|          | area, $MAIL the mail log, and $STACK is the stack area.   If MEM |
+|          | is not specified,  the "last referenced member" is used.         |
+-------------------------------------------------------------------------------
+
+LIST can also be invoked by entering the L command in the LCA area of a LIBRARY
+display.
+
+LIST sessions do not allow updates to take place.
+
+If the member is currently  being  edited,  LIST  will  display the text of the
+member ignoring any changes made in edit session.
+
+LIST sets "last referenced member".
+
+When Valid
+----------
+
+The user must have LIST access level for the MEM library.
+
+Use in a Procedure
+------------------
+
+Return Codes:
+  OK   Successful.
+  NF   Member not found.
+  SC   Inadequate access level.
+
+LIST sets the TXM variables to the attributes of MEM.
+
+Examples
+--------
+
+List member RM3521:
+
+   => list rm3521
+
+List the log:
+
+   => list $log
+
+List the mail log:
+
+   => li $mail
+
+List the stack area:
+
+   => list $stack

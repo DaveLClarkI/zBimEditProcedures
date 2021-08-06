@@ -1,0 +1,21 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+
+-------------------------------------------------------------------------------
+| MENU     | ALL   | Gives a list off all commands available for all topics.  |
+-------------------------------------------------------------------------------
+|                Commands Used to Search for Data within Text                 |
+|-----------------------------------------------------------------------------|
+| FIND     | F     | Search session downward to pattern at a column.          |
+| FINDUP   | FU    | Like FIND, except search upward.                         |
+| LOCATE   | L     | Search session downward to specified pattern.            |
+| LOCATEU  | LU    | Like LOCATE, except search upward.                       |
+| NFIND    | NF    | Search down to line WITHOUT specified pattern at column. |
+| NFINDUP  | NFU   | Like NFIND, except search upward.                        |
+| QUALIFY  | QUAL  | Display all lines of a session having specified pattern. |
+| SCAN     |       | Search multiple members for a specified pattern.         |
+| SCAND    |       | Search multiple VSE members for a specified pattern.     |
+| SCANI    |       | Search multiple ICCF members for a specified pattern.    |
+| SCANP    |       | Search multiple POWER entries for a specified pattern.   |
+| SEARCH   | SRCH  | Like LOCATE, except always searches from top of session. |
+-------------------------------------------------------------------------------

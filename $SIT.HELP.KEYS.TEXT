@@ -1,0 +1,84 @@
+
+Use KEYS to display and alter  your  function (PF) key settings for the session
+type from which you enter the KEYS command.
+
+KEYS may also be entered as KEY.
+
+KEYS has no operands.
+
+Upon termination,  KEYS automatically  creates,  in  the  logged on user's $USR
+library, a procedure member, according to the session in which the KEYS command
+was originally executed, that contains the updated PF key settings.  The member
+names are as follows:
+
+          Session Description         SSDTYPE Value     Member Name Used
+      ---------------------------     -------------     ----------------
+      no session                                        SETKEYS
+      DISP session                         DI           SETKEYS-DI
+      EDIT session                         ED           SETKEYS-ED
+      EDITD session                        EE           SETKEYS-EE
+      LISTD session                        LD           SETKEYS-LD
+      LIST session of $LOG                 LG           SETKEYS-LG
+      LIST session of member               LI           SETKEYS-LI
+      MAIL session of message              LI           SETKEYS-LI
+      LISTP session                        LP           SETKEYS-LP
+      LIST session of $MAIL                ML           SETKEYS-ML
+      LIST session of $STACK               ST           SETKEYS-ST
+
+The user may optionally create  their  own  customized  PF keys by creating the
+appropriate procedure member in their $USR library.   However,  as noted above,
+this member may be replaced as a result of the use of the KEYS command.
+
+These members are referenced  by  the  SETKEYS command and,  therefore,  by all
+commands that create, switch, or terminate sessions.   See the HELP display for
+the SETKEYS command for more information.
+
+When Valid
+----------
+
+KEYS can only be used as an online command or in an online procedure.
+
+Use in a Procedure
+------------------
+
+KEYS always returns OK.
+
+KEYS is implemented as the system procedure BIPKEYS.
+
+Example
+-------
+
+Modify function keys
+
+   => keys
+
+                           Screen display after KEYS
+--------------------------------------------------------------------------------
+|KEYS     QUERY / ALTER PF KEYS                        (enhanced by Dave Clark)|
+|------------------------------------------------------------------------------|
+|                                                                              |
+|PFkeys:                                                                       |
+|  1 O  HELP `                           13 A                                  |
+|  2 I  SESS M                           14 I  SESS U                          |
+|  3 A  END                              15 A  QUIT                            |
+|  4 O  LOC `                            16 O  LOCU `                          |
+|  5 I  REFRESH                          17 I  SCR ALT                         |
+|  6 I  BOTTOM                           18 I  TOP                             |
+|  7 A  BACKWARD                         19 A  VIEW -60                        |
+|  8 A  FORWARD                          20 A  VIEW +60                        |
+|  9 B  ?                                21 B  =                               |
+| 10 B  ROT +                            22 B  ROT -                           |
+| 11 I  SWAP                             23 O  <                               |
+| 12 I  RESET                            24 I  KEYS                            |
+|Others:                                                                       |
+| CLEAR                                   Legend: Process...                   |
+| ENTER NEXT                                A = key cmds After command-line    |
+| PA1                                       B = key cmds Before command-line   |
+| PA2                                       I = command-line (Ignore key cmds  |
+| PA3                                           if command-line is not blank)  |
+|                                           O = Only key cmds (ignore cmd-line)|
+|Press ENTER to process changes and exit.                                      |
+--------------------------------------------------------------------------------
+
+The settings displayed on this screen may be changed by overtyping them.  Hit
+ENTER to set the new values.

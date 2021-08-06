@@ -1,0 +1,27 @@
+
+Use LIBLIST to create or view  cross-library  member lists stored in the COMMON
+BIM-EDIT library.
+
+Note:  The  accuracy  of  the  LOCMEM  command  output  is  dependant  upon the
+freshness of the information last produced by this command.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| START    | allows you to specify  which  cross-library member list to view, |
+|          | as follows:                                                      |
+|          |                                                                  |
+|          |      (default) -- full cross-library member list                 |
+|          |      COBOL     -- list of COBOL-type members only                |
+|          |      CREATE    -- creates the above two lists                    |
+|          |      ICCF      -- ICCF member list                               |
+|          |      OBSOLETE  -- OBSOLETE library and member list               |
+|          |                                                                  |
+|          | If omitted, the full member list is shown.                       |
+-------------------------------------------------------------------------------
+
+When Valid
+----------
+
+LIBLIST CREATE requires adminstrator-level authority to use.
+

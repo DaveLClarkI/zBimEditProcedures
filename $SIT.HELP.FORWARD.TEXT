@@ -1,0 +1,50 @@
+
+Use FORWARD to position the current session  down (toward the bottom) by one or
+more logical screens or lines.
+
+FORWARD may also be entered as FOR or FO.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| FCT      | specifies the number  of  logical  screens  to  move the session |
+|          | position by.  This operand may also be specified as follows:     |
+|          |                                                                  |
+|          |     CURSOR  - attempts to  scroll  the  current text line,  as   |
+|          |               designated by the cursor position, to the top of   |
+|          |               the current logical screen or,  if the cursor is   |
+|          |               not on a valid text line,  attempts to scroll by   |
+|          |               one full logical screen;                           |
+|          |                  Note:  The  most  expedient  use  of  this      |
+|          |                  operand is with a function key that is set      |
+|          |                  to 'FORWARD CURSOR'.                            |
+|          |     DATA    - attempts to scroll by one  line less than a full   |
+|          |               logical screen -- such  that the last text line,   |
+|          |               of the logical  screen,  becomes  the first text   |
+|          |               line in the logical screen;                        |
+|          |     HALF    - attempts to scroll  by approximately one-half of   |
+|          |               the number of text lines in the logical screen.    |
+|          |                                                                  |
+|          | If FCT is not specified, your session will be positioned forward |
+|          | by one full logical screen.                                      |
+-------------------------------------------------------------------------------
+
+A logical screen is the  number  of  lines  of  text  shown in the current text
+display area -- it varies according  to  terminal type and whether SCREEN SPLIT
+is ON.
+
+Use in a Procedure
+------------------
+
+FORWARD always returns OK.
+
+Examples
+--------
+
+Position forward 1 screen:
+
+   => forward
+
+Position forward 4 screens:
+
+   => fo 4
