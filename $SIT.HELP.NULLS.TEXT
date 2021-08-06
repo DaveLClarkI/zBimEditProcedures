@@ -1,0 +1,28 @@
+
+Use NULLS to alter (or inquire  as  to) the trailing blanks replacement setting
+of the session  and,  in  the  case  of  an  EDIT session,  the trailing blanks
+replacement setting  of  the  member  being  edited.   This command selectively
+combines the use of the "SESS NULLS=" and "ALTER NULLS=" commands if alteration
+is requested.
+
+-------------------------------------------------------------------------------
+|                              Optional Operand                               |
+|-----------------------------------------------------------------------------|
+| NULLS    | specifies whether trailing blanks on  a  line are to be replaced |
+|          | with nulls when  displaying  the  session.   "ON" specifies that |
+|          | trailing blanks will be replaced, "OFF" specifies that they will |
+|          | not,  and "TOG"  reverses  the  current setting.   When trailing |
+|          | blanks are replaced with nulls, the 3270 insert key can be used. |
+|          | However, if text is entered to the right of null character(s) on |
+|          | a line,  the text ends up  shifted  left since the nulls are not |
+|          | transmitted  to  BIM-EDIT.   If  this  operand  is omitted,  the |
+|          | current setting is shown without any alterations.                |
+-------------------------------------------------------------------------------
+
+Example
+-------
+
+Allow overtyping on blank lines  without  having  to use the space-bar to reach
+the desired column:
+
+   => nulls off

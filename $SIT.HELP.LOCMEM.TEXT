@@ -1,0 +1,73 @@
+
+Use LOCMEM to locate one or more  members  -- no matter the library they may be
+located in.   When LOCMEM is invoked online,  it creates a DISP session for the
+results (which,  regardless of which library they were found in,  are sorted on
+member name for ease of visually locating the desired member).
+
+Note:  This search uses the saved output of  the LIBLIST command as of the last
+time that that command was run.
+
+Also, see the LOCMEMI command.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM      | is the member name to  search  for.   Up to 16 characters can be |
+|          | specified.   MEM may specify  a  partial  name  value which will |
+|          | match on any portion of the member's actual name.   If the value |
+|          | of MEM begins with the  backslash  character (\),  then up to 72 |
+|          | characters can be  specified  and  the  search will use Extended |
+|          | Search Pattern the rules (as described below).                   |
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| OPT      | allows you  to  search  on  more  than  just  the member's name. |
+|          | Specify 'ALL' to search on various other member attributes, such |
+|          | as: TYPE, ATTR,  TITLE, USER, etc.   Omit this operand to search |
+|          | only on the member NAME.                                         |
+|-----------------------------------------------------------------------------|
+| TYPE     | If TYPE is  specified,  only  members  which match the specified |
+|          | member type are returned.                                        |
+|-----------------------------------------------------------------------------|
+| ATTR     | If ATTR is  specified,  only  members  which match the specified |
+|          | attribute are returned.                                          |
+-------------------------------------------------------------------------------
+
+The following  LCA  commands,  used  in  conjunction  with  the  LOCMEM results
+display, can be quite useful:
+
+               E     EDIT                    Q     FALTER
+               L     LIST                    S     PROCESS
+               P     PURGE
+
+See Chapter 5,  LCA Commands,  in the  BIM-EDIT  User Reference Manual for more
+information.
+
+The LOCMEM line display format has  control  information to the right of column
+135 for use by  LCA  commands.   If  you  use  LOCMEM  display lines in another
+context (i.e., as input to a procedure, for example) you may need to remove the
+control information using the BLANK or KEEP commands.
+
+Extended Search Rules
+---------------------
+
+If the value of MEM  begins  with  a  backslash (\),  BIM-EDIT treats MEM as an
+Extended Search Pattern, with certain characters having special meanings:
+
+  ?  matches any single character
+  *  matches any sequence of zero or more characters
+  @  matches zero or more instances of the character that follows the @
+  !  matches the beginning of the zone
+  <  matches the beginning of the zone or any non-alphanumeric character
+  >  matches the end of the zone or any non-alphanumeric character
+  |  separates two patterns, EITHER of which may match for a successful search
+  +  separates two patterns, BOTH of which must match for a successful search
+  ~  (NOT) reverses line-by-line success/failure of the pattern following it
+  %  marks the position on the line where the match is considered to occur
+  \  suppresses the special meaning of the character that follows the \
+
+See Chapter 6,  Advanced Techniques,  in the BIM-EDIT User Reference Manual for
+more information about Extended Search Patterns.
+

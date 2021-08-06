@@ -1,0 +1,53 @@
+
+Use SETKEYS to set the BIM-EDIT PF  keys to those appropriate for the currently
+active session.
+
+SETKEYS has no operands.
+
+SETKEYS executes the contents of one  of the following members according to the
+currently active session type.  Note that all commands which create, switch, or
+terminate sessions also execute the  SETKEYS  command to correctly reset the PF
+key values.
+
+          Session Description         SSDTYPE Value     Member Name Used
+      ---------------------------     -------------     ----------------
+      no session                                        SETKEYS
+      DISP session                         DI           SETKEYS-DI
+      EDIT session                         ED           SETKEYS-ED
+      EDITD session                        EE           SETKEYS-EE
+      LISTD session                        LD           SETKEYS-LD
+      LIST session of $LOG                 LG           SETKEYS-LG
+      LIST session of member               LI           SETKEYS-LI
+      MAIL session of message              LI           SETKEYS-LI
+      LISTP session                        LP           SETKEYS-LP
+      LIST session of $MAIL                ML           SETKEYS-ML
+      LIST session of $STACK               ST           SETKEYS-ST
+
+Note:  The above members are  automatically  created,  in  the logged on user's
+$USR library,  by the KEYS command according  to  the session in which the KEYS
+command is executed.   See  the  HELP  display  for  the  KEYS command for more
+information.
+
+The user may optionally create  their  own  customized  PF keys by creating the
+appropriate procedure member in their $USR library.   However,  as noted above,
+this member may be replaced as a result of the use of the KEYS command.
+
+If a particular member does not  exist  in the $USR library,  for the logged on
+user,  then the "no session" member is  used.   If the "no session" member does
+not exist in the $USR  library,  for  the  logged  on user,  then a default "no
+session" member from the $SIT.CTRL library is used.
+
+You may change the function  of  an  individual  PF  key  using the SET or KEYS
+commands.
+
+Use in a Procedure
+------------------
+
+SETKEYS always returns OK.  SETKEYS is implemented by system procedure BIPSTKY.
+
+Example
+-------
+
+Set session-specific PF keys for the current user:
+
+   => SETKEYS

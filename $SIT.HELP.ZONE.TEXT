@@ -1,0 +1,28 @@
+
+Use ZONE to alter  (or  inquire  as  to)  the  edit/search  column range of the
+session and,  in the case of an  EDIT session,  the edit/search column range of
+the member being edited.   This  command  selectively  combines  the use of the
+"SESS ZONE=" and "ALTER ZONE=" commands if alteration is requested.
+
+-------------------------------------------------------------------------------
+|                              Optional Operand                               |
+|-----------------------------------------------------------------------------|
+| ZONE     | is a column range used by  the edit and search commands (such as |
+|          | CHANGE, CENTER, EXAMINE,  FORMAT,  LOCATE, QUALIFY, etc.) if not |
+|          | specified explicitly on  the command.   For example,  the CHANGE |
+|          | command will change occurrences of  one string to another within |
+|          | the current ZONE only.  Enter ZONE in the format "xxx-yyy" where |
+|          | xxx and yyy are numbers  between  1  and 253 separated by a dash |
+|          | (-).   For example,  to set the  zone  to  columns 1 through 72, |
+|          | specify  ZONE  as  "1-72".   ZONE=5  is  the  same  as ZONE=5-5, |
+|          | ZONE=5-* is the same as  ZONE=5-253  and  ZONE=-5 is the same as |
+|          | ZONE=1-5.   If this operand is  omitted,  the current setting is |
+|          | shown without any alterations.                                   |
+-------------------------------------------------------------------------------
+
+Examples
+--------
+
+Set the zone for a COBOL program:
+
+   => zone 7-72

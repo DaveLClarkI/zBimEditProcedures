@@ -1,0 +1,39 @@
+
+Use the UPDATES command to locate  and  list one or more members updated within
+the last two weeks -- no matter the library in which they may be located.  When
+UPDATES is invoked online, it creates a DISPLAY session for the results (which,
+regardless of which library they were found in, are sorted by descending update
+date for ease of visually locating the desired member).
+
+UPDATES may also be entered as UPDATE or UPD.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| USER     | allows you to search by a specified user id.   Omit this operand |
+|          | to search by the currently logged on user id.                    |
+|-----------------------------------------------------------------------------|
+| DATE     | is the Gregorian date to  use as the search cut-off date.   Omit |
+|          | this operand to use a two week search cut-off date.   The format |
+|          | is MM/DD/YYYY or MM/DD/YY.                                       |
+|-----------------------------------------------------------------------------|
+| TYPE     | is the member type to use as a filter for the search.  Omit this |
+|          | operand or specify an  asterisk  to  include all member types in |
+|          | the search.                                                      |
+-------------------------------------------------------------------------------
+
+The following  LCA  commands,  used  in  conjunction  with  the UPDATES results
+display, can be quite useful:
+
+               E     EDIT                    Q     FALTER
+               L     LIST                    S     PROCESS
+               P     PURGE
+
+See Chapter 5,  LCA Commands,  in the  BIM-EDIT  User Reference Manual for more
+information.
+
+The UPDATES line display format has  control information to the right of column
+135 for use by  LCA  commands.   If  you  use  UPDATES display lines in another
+context (i.e., as input to a procedure, for example) you may need to remove the
+control information using the BLANK or KEEP commands.
+

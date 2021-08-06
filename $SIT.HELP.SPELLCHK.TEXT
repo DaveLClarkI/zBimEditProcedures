@@ -1,0 +1,149 @@
+
+Use SPELLCHK to invoke the CLARKE Spelling Checker which checks the spelling of
+all words in the text of the  currently edited member starting from the current
+line.   This procedure version of the  CLARKE  Spelling Checker can check words
+faster (about 500 to 900 words per minute depending on processor load) than the
+average person can read them.  It cannot, however, check your usage or grammar.
+
+SPELLCHK may also be entered as SPELL.
+
+SPELLCHK has no operands for user specification.
+
+This command executes as a  "pseudo-conversational"  task in that it terminates
+each time an unknown word is encountered  and resumes when you press one of the
+PF keys  shown  in  the  termination  message.   The  PF  keys  are temporarily
+overridden,  at each termination,  with  the  parameters needed to successfully
+resume the CLARKE Spelling Checker --  after  you have decided what to do about
+the word indicated.
+
+Hence,  it is highly inadvisable to  attempt  to  execute any other commands in
+between iterations of the  CLARKE  Spelling  Checker.   The main reason is that
+commands which change or create sessions  also change the PF keys,  causing you
+to be unable to  resume  the  CLARKE  Spelling Checker correctly.   At the very
+least,  ANY command (even pressing the  ENTER  key) would clear the termination
+message from the screen,  possibly causing you  either to be confused as to the
+state of the CLARKE Spelling  Checker  (e.g.   trying to manually enter another
+SPELLCHK command) or to not remember which PF key you need to use to resume the
+CLARKE Spelling Checker with the appropriate option.
+
+The termination message mentioned looks like this:
+
+(SPELLCHK) ** PF1=CHANGED PF2=WORDS PF3=QUIT PF4=SKIP PF5=IGNORE PF6=ACCEPT **
+
+and gives the options that  may  be  taken  to determine the disposition of the
+word indicated by  the  position  of  the  CURSOR.   (Note:  The  normal PF key
+settings are restored either when  SPELLCHK  completes normally or when the PF3
+key is pressed to terminate SPELLCHK  prematurely.) A full description of these
+options are as follows:
+
+-------------------------------------------------------------------------------
+|                            Spelling Checker Options
+|-----------------------------------------------------------------------------|
+| PF1      | indicates that you changed the spelling of the indicated word or |
+|          | the wording of the  current  line  and  now  wish to recheck the |
+|          | entire line for spelling errors.                                 |
+|-----------------------------------------------------------------------------|
+| PF2      | invokes the CLARKE Spelling Word Matcher to display a list of up |
+|          | to 36 words,  from the  USER and MASTER dictionaries,  that most |
+|          | closely match the indicated word.   Words are selected using the |
+|          | Extended Search Pattern feature with a,  potentially,  different |
+|          | pattern being used  for  each  dictionary  search.   See HELP on |
+|          | "SPELLWRD" for information about how the pattern is created.     |
+|          |                                                                  |
+|          | You may optionally select  (via  CURSOR positioning) a word from |
+|          | this  list  for  automatic  replacement  of  the  original word. |
+|          | However, this may cause truncation at the right zone boundary if |
+|          | the selected word  is  longer  than  the  original word.   In an |
+|          | effort to prevent this,  excess blanks are first removed between |
+|          | the original word and the  right  zone boundary before doing the |
+|          | replacement.                                                     |
+|-----------------------------------------------------------------------------|
+| PF3      | terminates the CLARKE Spelling Checker prematurely.  This is the |
+|          | preferred method of ending  the  CLARKE Spelling Checker (before |
+|          | reaching the end  of  the  member)  as  it  allows  for a proper |
+|          | cleanup,  e.g.   restoring your session's characteristics and PF |
+|          | keys to their original settings.                                 |
+|-----------------------------------------------------------------------------|
+| PF4      | skips (ignores) the indicated  word  for this single occurrence. |
+|          | If the word  appears  again,  you  will  be  asked to decide its |
+|          | disposition again.                                               |
+|-----------------------------------------------------------------------------|
+| PF5      | ignores the indicated word, and all future occurrences of it, by |
+|          | accepting it into the  IGNORE dictionary.   A new (empty) IGNORE |
+|          | dictionary is created each  time  a  new CLARKE Spelling Checker |
+|          | session is started.                                              |
+|-----------------------------------------------------------------------------|
+| PF6      | accepts  the  indicated  word  into  the  USER  dictionary  as a |
+|          | correctly spelled word.   Note that  the USER dictionary is only |
+|          | searched after  a  word  cannot  be  found  in  first the IGNORE |
+|          | dictionary  and  then   the  MASTER  dictionary.    Hence,   for |
+|          | performance reasons,  a user  who  has  a  large USER dictionary |
+|          | should ask  their  System  Administrator  to  update  the MASTER |
+|          | dictionary as outlined below.                                    |
+-------------------------------------------------------------------------------
+
+When Valid
+----------
+
+SPELLCHK can only be used as an on-line command (not in a procedure).
+
+Maintenance
+-----------
+
+The BIM-EDIT System  Administrator  may  use  the  following procedures (in the
+order shown) to add  additional  words  to  the  CLARKE Spelling Checker MASTER
+dictionary.   It  is  recommended  that  items  only  be  added  to  the MASTER
+dictionary that are  accepted  words  and not slang,  jargon,  abbreviations or
+words for informal use.   Any good  dictionary  is  your best guide to accepted
+words and in determining preferred, as opposed to common, spellings.
+
+SPELLSEP separates the currently edited MASTER dictionary into a format similar
+         to a CLARKE Spelling  Checker USER dictionary.   The MASTER dictionary
+         is normally FORMATted into 26  "paragraphs" using columns 2-252 as the
+         ZONE.  This is done for search efficiency (via indexing and the LOCATE
+         command) due to the large  number  of words it normally contains.   By
+         contrast,   a  USER  dictionary  is  normally  much  smaller  and  is,
+         therefore,   kept  in  a  single-word-per-line  format.    The  search
+         algorithm for this dictionary gets its  efficiency from the use of the
+         FIND command which, as opposed to the LOCATE command, keeps its search
+         to a single column.
+
+SPELLSRT sorts,  checks for duplication,  counts the words,  and alphabetically
+         labels the "paragraphs"  of  the  currently  edited MASTER dictionary.
+         New  words  can  be  first  added  (normally  from  one  or  more USER
+         dictionaries) and then processed  with  this  procedure to insure they
+         are in the correct sequence.   The labels correspond to the letters of
+         the alphabet and,  although they  have  the  word count on them,  they
+         mainly provide the  stopping  points  for  the  FORMAT  command in the
+         SPELLFMT procedure below.
+
+SPELLFMT reforms the currently edited  MASTER  dictionary  back into the normal
+         format expected by the  CLARKE Spelling Checker.   Alphabetical labels
+         are updated with  the  number  of  lines  in  the  "paragraph" and the
+         alphabetical index is built on  the  "total"  label  at the end of the
+         MASTER dictionary.
+
+A large document can be "boiled-down"  to  extract the unique words it contains
+for the ultimate purpose  of  adding  a  large  number  of  words to the CLARKE
+Spelling Checker MASTER  dictionary.   The  resulting  EDIT  session  is in the
+format of a pseudo  CLARKE  Spelling  Checker  MASTER  dictionary and should be
+properly SPELLCHKed to add  any  new  words  to  a CLARKE Spelling Checker USER
+dictionary which may,  in turn,  be manually  added to the real CLARKE Spelling
+Checker MASTER dictionary as described above.
+
+The method of "boiling-down" the document  is with the following procedures and
+in the order specified.
+
+SPELLSQU "squeezes" out  all  non-alphabetic  characters  and deletes duplicate
+         lines (after sorting)  from  the currently edited document.   WARNING:
+         this should be a COPY of your document and NOT the original unless you
+         are VERY careful not  to  SAVE  the  document after this procedure has
+         been used.
+
+After executing SPELLSQU,  execute SPELLSEP  and  then SPELLSRT (both described
+above) to finish  the  process.   Note  that  if SPELLSEP terminates abnormally
+because of too many lines in  the session,  you may either increase the session
+limit or reexecute SPELLSQU  with  the  "RETRY"  option (to eliminate duplicate
+words newly separated out by SPELLSEP); however,  in either case, SPELLSEP must
+be reexecuted until it is successful before going on to SPELLSRT.
+

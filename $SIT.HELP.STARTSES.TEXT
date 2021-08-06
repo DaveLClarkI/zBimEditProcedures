@@ -1,0 +1,55 @@
+To display information about a  particular subject,  enter HELP followed by the
+subject or enter HELP and  move  the  cursor  down to the desired subject line.
+
+-------------------------------------------------------------------------------
+| MENU     | ALL   | Gives a list off all commands available for all topics.  |
+)SET PPDVBL,1
+-------------------------------------------------------------------------------
+|                      Commands Used to Start a Session                       |
+|-----------------------------------------------------------------------------|
+| AUDITSM  | AUDSM | Summarize member's audit trail.                          |
+| CORE     |       | Display contents of computer memory.                     |
+| DA       |       | Display operating system's processing status.            |
+| DISPLAY  | DI    | Display text of member, $LOG, $MAIL, or $STACK.          |
+| DISPLAYC | DC    | Display System Console Messages.                         |
+| DISPLAYC | DC    | Display System Console Messages.                         |
+| DISPLAYD | DID   | Display text of VSE/ESA sublibrary member.               |
+| DISPLAYF | DISPF | Display following lines.                                 |
+| DISPLAYI | DII   | Display text of an ICCF member.                          |
+| DISPLAYS | DS    | Display a list of all active sessions.                   |
+| DQ       |       | (See LIBRARYP).                                          |
+| EDIT     | ED    | Create edit session of an existing member.               |
+| EDITD    | EDD   | Create edit session of VSE/ESA sublibrary member.        |
+| HELP     |       | Display information about a command.                     |
+| INQUIRED | INQD  | Display attributes of a VSE/ESA sublibrary member        |
+| INQUIREP | INQP  | Display list of currently executing &SPOL job output.    |
+| KEYS     | KEY   | Display / alter function key settings - formatted screen.|
+| LIBDS    |       | Display output of VSE/ESA LIBR SEARCH command.           |
+| LIBRARY  | LIB   | Display list of members in a library.                    |
+| LIBRARYD | LIBD  | Display list of VSE/ESA sublibrary members.              |
+| LIBRARYG | LIBG  | Display list of members on a logical backup tape.        |
+| LIBRARYI | LIBI  | Display list of members in ICCF library.                 |
+| LIBRARYL | LIBL  | Display list of libraries you can access.                |
+| LIBRARYN | LIBN  | Display list of temporary passwords.                     |
+| LIBRARYP | DQ    | Display list of &SPOL job entries.                       |
+| LIBRARYQ | LIBQ  | Display list of your mail messages.                      |
+| LIBRARYR | LIBR  | Display list of BIM-EDIT routines.                       |
+| LIBRARYS | LIBS  | Display list of library/user security records.           |
+| LIBRARYT | LIBT  | Display list of active tasks.                            |
+| LIBRARYU | LIBU  | Display list of users.                                   |
+| LIBRARYX | LIBX  | Display list of mail proxies.                            |
+| LIBSDL   |       | Display output of VSE/ESA LIBR LISTDIR SDL command.      |
+| LIST     | LI    | Display text of member, $LOG, $MAIL, or $STACK.          |
+| LISTD    | LID   | Display text of VSE/ESA sublibrary member.               |
+| LISTI    | LII   | Display text of an ICCF member.                          |
+| LISTP    | LP    | Display text of &SPOL job entry.                         |
+| MESSAGE  | MSG   | Display the text of a message from the VSE IESMSGS file. |
+| OPEN     |       | Display text of mail message.                            |
+| QUALIFY  | QUAL  | Display all lines of a session having specified pattern. |
+| SCAN     |       | Search multiple members for a specified pattern.         |
+| SCAND    |       | Search multiple VSE members for a specified pattern.     |
+| SCANI    |       | Search multiple ICCF members for a specified pattern.    |
+| SCANP    |       | Search multiple POWER entries for a specified pattern.   |
+| SHOW     |       | Display BIM-EDIT general or PF key information.          |
+| VTOC     |       | Display the VTOC for a specified VOLID.                  |
+-------------------------------------------------------------------------------

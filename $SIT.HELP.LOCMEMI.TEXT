@@ -1,0 +1,55 @@
+
+Use LOCMEMI to locate one or  more  ICCF  members -- no matter the library they
+may be located in.   When LOCMEM is  invoked online,  it creates a DISP session
+for the results (which,  regardless of  which  library they were found in,  are
+sorted on member name for ease of visually locating the desired member).
+
+Also, see the LOCMEM command.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM      | is the member name to  search  for.   Up  to 8 characters can be |
+|          | specified.   MEM may specify  a  partial  name  value which will |
+|          | match on any portion of the member's actual name.   If the value |
+|          | of MEM begins with the backslash character (\),  the search will |
+|          | use Extended Search Pattern rules, as described below.           |
+-------------------------------------------------------------------------------
+
+The following  LCA  commands,  used  in  conjunction  with  the LOCMEMI results
+display, can be quite useful:                                                  ========================================================
+                                                                                 CREATE   UPDATE                 TITLE
+               L     LIST
+
+See Chapter 5,  LCA Commands,  in the  BIM-EDIT  User Reference Manual for more
+information.
+
+The LOCMEMI line display format has  control information to the right of column
+135 for use by  LCA  commands.   If  you  use  LOCMEMI display lines in another
+context (i.e., as input to a procedure, for example) you may need to remove the
+control information using the BLANK or KEEP commands.
+
+
+
+
+Extended Search Rules
+---------------------
+
+If the value of MEM  begins  with  a  backslash (\),  BIM-EDIT treats MEM as an
+Extended Search Pattern, with certain characters having special meanings:
+
+  ?  matches any single character
+  *  matches any sequence of zero or more characters
+  @  matches zero or more instances of the character that follows the @
+  !  matches the beginning of the zone
+  <  matches the beginning of the zone or any non-alphanumeric character
+  >  matches the end of the zone or any non-alphanumeric character
+  |  separates two patterns, EITHER of which may match for a successful search
+  +  separates two patterns, BOTH of which must match for a successful search
+  ~  (NOT) reverses line-by-line success/failure of the pattern following it
+  %  marks the position on the line where the match is considered to occur
+  \  suppresses the special meaning of the character that follows the \
+
+See Chapter 6,  Advanced Techniques,  in the BIM-EDIT User Reference Manual for
+more information about Extended Search Patterns.
+

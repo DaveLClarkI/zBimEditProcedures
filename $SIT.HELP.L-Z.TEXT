@@ -1,0 +1,58 @@
+
+                                 ------------
+                                 |   Zx(n)  |
+                                 |   Zxx    |
+                                 ------------
+
+LCA commands that begin with 'Z' are reserved as 'Site Defined LCA Commands'.
+
+Site defined LCA  Commands  must  be  2  characters  in length,  with the first
+character being a 'Z'.   The second character can be anything except: 'Z', '*',
+'=', a comma, a blank, or a number (0-9).
+
+Site LCA Commands can be specified to act upon a single line, (Zx), a number of
+consecutive lines (Zx3),  or a range of  lines by specifying (Zxx) on the first
+and last lines of the range. (x is the 2nd character of the LCA command.)
+
+-------------------------------------------------------------------------------
+|                   Site-defined LCA Commands                    | Equiv. Cmd |
+|-----------------------------------------------------------------------------|
+| Z#       | Use this member as input to the DFHCNV command.     | DFHCNV     |
+| ZA,ZAA   | Use this member to execute ALT AUD=OFF command.     | ALTER      |
+| ZB,ZBB   | Use this member as input to the OBS/UNOBS command.  | OBS/UNOBS  |
+| ZC,ZCC   | Use this member as input to the FCOPY command.      | FCOPY      |
+| ZD,ZDD   | Use this RETUNE member to update VSAM.DEFINES lib.  | GENBIMUT   |
+| ZF,ZFF   | Use this member as input to the FTP command.        | FTP        |
+| ZI,ZII   | Use this member as input to the CHECKIN command.    | CHKECKIN   |
+| ZO,ZOO   | Use this member as input to the CHECKOUT command.   | CHECKOUT   |
+| ZR,ZRR   | Use this member as input to the FRENAME command.    | FRENAME    |
+| ZS,ZSS   | Use this VSE member as input to PROCESSD command.   | PROCESSD   |
+| ZU,ZUU   | Use this member as input to the UNPURGE command.    | UNPURGE    |
+| ZV,ZVV   | Use this line to View any copybook referenced.      |            |
+| ZW,ZWW   | Use this line for What, Who, When modified command. |            |
+| ZX,ZXX   | Use this member as input to the PUNCH command.      | PUNCH      |
+| ZY,ZYY   | Use this library to execute a library purge.        | PURGEL     |
+-------------------------------------------------------------------------------
+
+Site LCA Commands are defined  to  BIM-EDIT  by defining the member LCACMNDS in
+library $SIT.CTRL.  Each line in member LCACMNDS defines an LCA command.  The 2
+character command is placed in columns 1-2, and the name of the procedure to be
+executed is placed in columns 10-25.   The  procedure itself must be defined in
+library $SIT.PROC.   If Site LCA  Commands  are  added or changed,  they can be
+activated by issuing the NEWCOPY COMMANDS command.
+
+Site LCA commands are free to start new sessions,  submit jobs,  or perform any
+other functions allowed in BIM-EDIT procedures,  except that they cannot modify
+the current session in which  the  LCA command is being issued.   Only BIM-EDIT
+system LCA commands can modify the current session.
+
+When the Site LCA Command procedure is executed, the following system variables
+may be of use:
+
+XTRSLINE  -  contains the session line on with the LCA command was specified.
+PARMLIST  -  if the LCA command was entered on a LIB type display, this
+             variable will contain the fields needed to perform an EDIT
+             command pertanent to the type of data being displayed.
+SSDTYPE   -  type of session in which the LCA command was issued.
+SSDOBJ    -  session object from line 2 of the current LCA session.
+

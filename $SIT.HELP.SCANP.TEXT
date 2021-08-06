@@ -1,0 +1,87 @@
+
+Use SCANP to search  multiple  POWER  queue  entries  for a specified string of
+characters.   SCANP will  display  all  occurrences  of  the  string within the
+entries.   When SCANP is invoked  online,  it  creates  a  DISP session for the
+results.   If SCANP encounters a  password  protected  entry it will be skipped
+unless the user has ADM level access.
+
+-------------------------------------------------------------------------------
+|                         Required Operands                                   |
+|-----------------------------------------------------------------------------|
+| SELECT   | is a single string of the  same  five parms accepted by the LIBP |
+|          | command.   If more than one  of those parms are specified,  then |
+|          | they must be enclosed  in  quotes  to form a single string.   To |
+|          | search the current POWER  queue entries session,  specify just a |
+|          | forward slash ('/') for this parm.                               |
+|-----------------------------------------------------------------------------|
+| STR      | is the  string  to  search  for.   Up  to  72  characters may be |
+|          | specified.   If the  value  of  STR  begins  with  the backslash |
+|          | character (\),  the  search  will  use  Extended  Search Pattern |
+|          | rules,  as described below.   If STR is not specified, the value |
+|          | for STR,  ZONE,  and CASE will be inherited from previous search |
+|          | commands, also as described below.                               |
+-------------------------------------------------------------------------------
+
+If your terminal is running  under  control  of  SNA,  you may interrupt a long
+SCANP command by pressing the ATTN key.
+
+If the value of STR  begins  with  a  backslash (\),  BIM-EDIT treats STR as an
+Extended Search Pattern, with certain characters having special meanings:
+
+  ?  matches any single character
+  *  matches any sequence of zero or more characters
+  @  matches zero or more instances of the character that follows the @
+  !  matches the beginning of the zone
+  <  matches the beginning of the zone or any non-alphanumeric character
+  >  matches the end of the zone or any non-alphanumeric character
+  |  separates two patterns, EITHER of which may match for a successful search
+  +  separates two patterns, BOTH of which must match for a successful search
+  ~  (NOT) reverses line-by-line success/failure of the pattern following it
+  %  marks the position on the line where the match is considered to occur
+  \  suppresses the special meaning of the character that follows the \
+
+See Chapter 6,  Advanced Techniques,  in the BIM-EDIT User Reference Manual for
+more information about Extended Search Patterns.
+
+The following LCA commands used  in  conjunction  with the SCANP display can be
+quite useful:
+
+               H    HOLD                     R    RELEASE
+               L    LISTP                    Q    FALTERP
+               P    PURGEP
+
+See Chapter 5,  LCA Commands,  in the  BIM-EDIT  User Reference Manual for more
+information.
+
+The SCANP display member name  lines  have  control information to the right of
+column 135 for use by LCA commands.   If you use SCANP display lines in another
+context, you may need to remove the control information using the BLANK or KEEP
+commands.
+
+If STR is not specified on the command, BIM-EDIT uses as default operand values
+those from  previous  search  commands.   Using  this  feature,  you can easily
+request searches which are similar  or  identical to the last one.   To achieve
+this,  BIM-EDIT stores a  previous  value  for  the STR,  COL,  CASE,  and ZONE
+operands of the search commands (EXAMINE, FIND, FINDUP, LOCATE, LOCATEU, NFIND,
+NFINDUP,  QUALIFY,  or SCAN).   These  previous  values  will  be  inherited by
+operands omitted from a search command which does not specify STR.   Whenever a
+search command specifies STR, the previous values are set to those specified on
+that command or "not specified".
+
+When Valid
+----------
+
+The user must have LIST access level for the POWER queues searched.
+
+Use in a Procedure
+------------------
+
+Return Codes:
+  OK   Successful.
+  AT   Command interrupted by ATTN key.
+  NF   POWER entries not found.
+  SC   Inadequate access level.
+
+If SCANP is invoked in batch utility,  the display destination is controlled by
+predefined variable SIBOUTPT.
+

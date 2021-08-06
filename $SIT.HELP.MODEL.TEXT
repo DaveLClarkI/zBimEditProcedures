@@ -1,0 +1,55 @@
+
+Use MODEL to  insert  a  predefined  function  format immediately following the
+current line in the current session.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| CLASS    | is the model class,  which categorizes the group of formats to   |
+|          | select from.  Currently supported CLASSes are:                   |
+|          |                                                                  |
+|          | ASI      - ASI's ATTACHE utility command formats                 |
+|          | CICS     - CICS/DOS/VS "EXEC CICS" statement formats             |
+|          | DLI      - CICS/DOS/VS "EXEC DLI" statement formats              |
+|          | GOAL     - GOAL Systems' utility programs and parameter formats  |
+|          | IDCAMS   - VSE/VSAM IDCAMS command formats                       |
+|          | JCL      - VSE/SP Job Control Statement formats                  |
+|          | SYS      - CICS/DOS/VS "EXEC CICS" system programmer formats     |
+|          |                                                                  |
+|-----------------------------------------------------------------------------|
+| NAME     | is the name of the particular format to insert.                  |
+|-----------------------------------------------------------------------------|
+| QUAL1    | qualifies which of multiple formats of the same NAME to insert.  |
+|-----------------------------------------------------------------------------|
+| QUAL2    | further qualifies which of multiple formats of the same NAME.    |
+-------------------------------------------------------------------------------
+
+If one or more omitted parameters are required to CLASSify or fully qualify the
+NAME of the model  format  to  insert,  then  full-screen  displays are used to
+present the valid options for on-screen selection.
+
+The MODEL command is easily extensible by your System Administrator.  New CLASS
+values may be added to the $SIT.PROC.MODEL procedure and a new procedure, named
+$SIT.PROC.MODEL-&CLASS (where &CLASS represents  the new CLASS value),  written
+to handle the MAPF displays  for the NAME,  QUAL1,  and QUAL2 values associated
+with the new CLASS value.   Finally,  the  actual  model formats are created as
+individual members in the  $SIT.MODEL  library  with  member  names of up to 16
+characters in the format &CLASS-&NAME-&QUAL1-&QUAL2.  The absence of QUAL2 (and
+QUAL1) in the member name is allowed  and  truncation of the member name at the
+16 character limit does not affect the function of the MODEL command as long as
+member name uniqueness can be maintained.
+
+Examples
+--------
+
+Get the format for the "EXEC CICS SEND MAP" command:
+
+   => model cics send map
+
+Get the format for the VSE "// DLBL" statement:
+
+   => model jcl dlbl
+
+Obtain full-screen panels for selection purposes:
+
+   => model

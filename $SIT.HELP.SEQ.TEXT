@@ -1,0 +1,27 @@
+
+Use SEQ to alter (or inquire as  to) the sequence number columns of the session
+and,  in the case of an EDIT session, the sequence number columns of the member
+being edited.  This command selectively combines the use of the "SESS SEQ=" and
+"ALTER SEQ=" commands if alteration is requested.
+
+-------------------------------------------------------------------------------
+|                              Optional Operand                               |
+|-----------------------------------------------------------------------------|
+| SEQ      | is a  column  range  where  the  RESEQ  command  places sequence |
+|          | numbers.  Enter it in the format "xxx-yyy" where xxx and yyy are |
+|          | numbers between 1 and 253 separated by a dash (-).  For example, |
+|          | to place sequence numbers in columns 73 through 80,  specify SEQ |
+|          | as "73-80".   The SEQ  range  cannot  be  wider  than 8 columns. |
+|          | Alternatively,  you may specify "OFF"  to blank-out the sequence |
+|          | number columns and  turn  off  the sequence number setting.   If |
+|          | this operand is  omitted,  the  current  setting  is shown after |
+|          | taking a default  (according  to  member  TYPE) if the currently |
+|          | editted member has no sequence columns already set.              |
+-------------------------------------------------------------------------------
+
+Example
+-------
+
+Set sequence columns for a COBOL program:
+
+   => seq 1-6
