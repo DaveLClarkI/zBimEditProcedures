@@ -1,0 +1,86 @@
+
+Use CONVERT to transform a member name display session (e.g.   LIB, SCAN, etc.)
+into procedure statements suitable  for  executing  in  place or copying into a
+procedure to perform mass operations on groups of members.  CONVERT inserts the
+specified or defaulted command name in front of each line representing a member
+name,  appends the specified operand  string  to  these lines,  and deletes all
+other lines.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| STR      | is the operand string to append  to each member name line in the |
+|          | current member name display session.                             |
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| CMD      | is the command name to insert  in front of each member name line |
+|          | in the current member  name display session.   If omitted,  this |
+|          | defaults to "COPY".                                              |
+-------------------------------------------------------------------------------
+
+If your terminal is running  under  control  of  SNA,  you may interrupt a long
+CONVERT command by pressing the ATTN key.
+
+The value of both operands is not  validated  in any way and is used exactly as
+specified (or defaulted).
+
+In addition to deleting all non-member name lines,  CONVERT also deletes member
+name lines if the member name has  an underscore ("_") character as part of its
+name.  This eliminates older generation members and member audit summaries from
+being processed.
+
+Example
+-------
+
+Produce procedure statements to "COPY" members  starting with "DFH" to a "TEST"
+library for further processing:
+
+                      DISP session before CONVERT command
+--------------------------------------------------------------------------------
+|=> convert test.*                                                             |
+|DISP  -> lib prod.dfh                         SESS= 3( 3) LINE=     0(    57) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7--|
+|*===* -- TOP OF DISPLAY --                                                    |
+|*===* LIBRARY=PROD                                                            |
+|*===* ------------------------------------------------------------------      |
+|*===*      MEMBER        TYPE                  TITLE                          |
+|*===* ---------------- -------- ----------------------------------------      |
+|*===* DFHALTSD         JCL      APPLICATION LOAD TABLE (DL/I NON-MPS)         |
+|*===* DFHALTSM         JCL      APPLICATION LOAD TABLE (DL/I MPS)             |
+|*===* DFHALTSP         JCL      APPLICATION LOAD TABLE                        |
+|*===* DFHCSDMG         JCL      CICS SYSTEM DEFINITIONS MERGE                 |
+|*===* DFHCSDUP         JCL      CICS SYSTEM DEFINITIONS UTILITY PROGRAM       |
+|*===* DFHDCTD1         JCL      DESTINATION CONTROL TABLE (DTOR)              |
+|*===* DFHDCTD2         JCL      DESTINATION CONTROL TABLE (DAOR)              |
+|*===* DFHDCTD3         JCL      DESTINATION CONTROL TABLE (DASI)              |
+|*===* DFHDCTD4         JCL      DESTINATION CONTROL TABLE (DMSA)              |
+|*===* DFHDCTP1         JCL      DESTINATION CONTROL TABLE (PTOR)              |
+|*===* DFHDCTP2         JCL      DESTINATION CONTROL TABLE (PAOR)              |
+--------------------------------------------------------------------------------
+
+                      DISP session after CONVERT command
+--------------------------------------------------------------------------------
+|=> execute /                                                                  |
+|DISP  -> lib prod.dfh                         SESS= 3( 3) LINE=     0(    57) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7--|
+|*===* -- TOP OF DISPLAY --                                                    |
+|*===* COPY     PROD.DFHALTSD                     TEST.*                       |
+|*===* COPY     PROD.DFHALTSM                     TEST.*                       |
+|*===* COPY     PROD.DFHALTSP                     TEST.*                       |
+|*===* COPY     PROD.DFHCSDMG                     TEST.*                       |
+|*===* COPY     PROD.DFHCSDUP                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTD1                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTD2                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTD3                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTD4                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTP1                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTP2                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTP3                     TEST.*                       |
+|*===* COPY     PROD.DFHDCTP4                     TEST.*                       |
+|*===* COPY     PROD.DFHDUP                       TEST.*                       |
+|*===* COPY     PROD.DFHFCTD1                     TEST.*                       |
+--------------------------------------------------------------------------------
+

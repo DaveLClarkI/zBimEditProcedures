@@ -1,0 +1,49 @@
+
+Use FCOMPARE to evaluate the difference(s) between two members.   These members
+may be any combination of  BIM-EDIT  and/or VSE Library members.   This command
+uses 80-column, full-screen mode for the compare process.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM1     | is considered  the  "original"  or  "distributed"  version  of a |
+|          | member in a change-control relationship.   If specified, it must |
+|          | be  an  existing  BIM-EDIT  or  VSE  Library  member  name whose |
+|          | contents are  to  be  compared  with  the  contents  of the MEM2 |
+|          | member.  This operand may include library information to qualify |
+|          | the location of the member.                                      |
+|-----------------------------------------------------------------------------|
+| MEM2     | is considered the "modified" or  "custom" version of a member in |
+|          | a change-control  relationship.   If  specified,  it  must be an |
+|          | existing BIM-EDIT or VSE Library  member name whose contents are |
+|          | to be compared  with  the  contents  of  the MEM1 member.   This |
+|          | operand may include library  information to qualify the location |
+|          | of the member.                                                   |
+-------------------------------------------------------------------------------
+
+During comparison,  when a mismatch  occurs,  the full-screen display will show
+the mismatched line(s) with, if available, one preceding matching line for your
+manual evaluation (i.e., for you to "eye-ball").   Your job,  at that point, is
+to tell the  procedure  how  many  lines  must  be  skipped  (in either or both
+members) in order to get  passed  any  and  all  lines that will continue to be
+mismatched.   When you press  ENTER,  after  entering  your line count(s),  the
+procedure will check to see if  the  line(s) skipped result in a matching line.
+If not, the screen is redisplayed -- at those new lines -- and showing the line
+count(s) that you previously entered.   Now you  have the same job ahead of you
+but,  this time you must  *add*  your  new  line  count(s) to the previous line
+count(s) in order to come  up  with  the  *total*  number of lines that must be
+skipped from the original point of the mismatch.
+
+The count you enter for MEM1  will  be  interpreted as lines "deleted" from the
+"original" member in order to  make  the "custom" member.   The count you enter
+for MEM2 will be interpreted as  lines "inserted" into the "original" member in
+order to make the "custom" member.
+
+Unless you prematurely cancel the procedure  (via  the PF3 key from the primary
+entry panel or the  PF12  key  from  the comparison entry panel),  the FCOMPARE
+command creates DISPLAY session (or PRINT)  output of the results of the entire
+comparison process.   This output is  formatted  as  a single member (though an
+abbreviated  one)  to  show  the  deleted/inserted  lines  so identified.   For
+reference purposes,  preceding and  following  matching (eye-catcher) lines are
+also included.   The number  of  "eye-catcher"  lines  is configurable from the
+primary entry panel.

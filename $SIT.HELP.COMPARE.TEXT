@@ -1,0 +1,43 @@
+
+Use COMPARE to evaluate the differences between two BIM-EDIT members or between
+two BIM-EDIT sessions that are configured in split-screen mode.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| MEM1     | is an existing member  name  whose  contents  are to be compared |
+|          | with the contents of the MEM2 member.  If MEM1 is not specified, |
+|          | the current two sessions (pre-configured in split-screen mode by |
+|          | the user) are compared.                                          |
+|-----------------------------------------------------------------------------|
+| MEM2     | is an existing member  name  whose  contents  are to be compared |
+|          | with the contents of the MEM1 member.  If MEM1 is not specified, |
+|          | MEM2 is ignored and the  current two sessions (pre-configured in |
+|          | split-screen mode by the user) are compared.                     |
+|-----------------------------------------------------------------------------|
+| FCT      | specifies the  number  of  lines  to  compare.   If  FCT  is not |
+|          | specified,  comparison proceeds from the current line to the end |
+|          | of the members or sessions.                                      |
+|-----------------------------------------------------------------------------|
+| ZONE     | is the column range in  which the comparison will occur.   Enter |
+|          | it in the format "xxx-yyy" where xxx and yyy are numbers between |
+|          | 1 and 253 separated by  a dash (-).   For example,  to limit the |
+|          | search to columns 11 to 20, specify ZONE as "11-20".   ZONE=5 is |
+|          | the same as ZONE=5-5,  ZONE=5-*  is  the  same as ZONE=5-253 and |
+|          | ZONE=-5 is the same as ZONE=1-5.   If ZONE is not specified, the |
+|          | current session zone is  searched  (see  the ZONE operand of the |
+|          | DEFINE, ALTER, and SESS commands.)                               |
+-------------------------------------------------------------------------------
+
+If MEM1 and MEM2 are  specified,  the  procedure  sets  up two list sessions in
+split-screen mode to process the comparison.   Thus,  comparison is always done
+between two sessions in split-screen mode regardless of the parameters used.
+
+During comparison,  if the current line in the first session does not match the
+current line of the  second  session,  the  procedure terminates with a message
+indicating the mismatch.   The user may  then elect to continue the comparison,
+by pressing the PA1 key, after acting upon the difference shown and re-aligning
+the two sessions through visual references.   The PA1 key is set by the COMPARE
+procedure  each  time  a  mismatch  occurs  in  order  to  save  the parameters
+specified,  the number of lines  compared  and  other information the procedure
+needs in order to pick up where it left off.

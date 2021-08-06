@@ -1,0 +1,33 @@
+
+Use DISCARD to end a LISTP or  MAIL  session and to delete the POWER job entry,
+JES job or data sets, or mail message associated with the session.
+
+DISCARD may also be entered as DISC.
+
+DISCARD has no operands.
+
+DISCARD is not rejected in situations that  prevent a job or message from being
+purged.  Instead, the session is ended and a warning message may be displayed.
+
+On DOS/VSE,  POWER job entries  can  be  purged  with either DISCARD or PURGEP.
+DISCARD sets "last referenced POWER job entry".  If purge access to a job entry
+is rejected,  the  session  is  terminated  but  the  job  is  not purged.   An
+'inadequate access level' message is displayed.
+
+Messages can be purged with either DISCARD or PURGEQ.
+
+See the PURGEP and PURGEQ command descriptions for more information.
+
+Use in a Procedure
+------------------
+
+DISCARD always  returns  OK,  even  though  the  operation  was  only a partial
+success.
+
+Example
+-------
+
+End the current session,  and  purge  the  job  or  message associated with the
+session:
+
+   => discard
