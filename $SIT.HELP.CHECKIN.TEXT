@@ -1,0 +1,36 @@
+
+Use CHECKIN to replace the text  of  a  production  member with the text of its
+development copy.
+
+CHECKIN may also be entered as CHKI.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| NAME     | is the qualified member name  to be checked in.   This may refer |
+|          | either to the  production  member  or  to the development member |
+|          | that is  already  checked  out.   Before  checkin begins,  if an |
+|          | obsoleted member already exists, you will be given the option of |
+|          | keeping the  obsoleted  member  (i.e.,  deleting  the production |
+|          | source) or just creating a new obsoleted member from the current |
+|          | production source (i.e., the old obsoleted member is archived to |
+|          | the network).                                                    |
+-------------------------------------------------------------------------------
+
+Depending upon the option taken when prompted during Checkin,  processing takes
+one of two option paths:
+
+1.  Any obsoleted member  is  not  touched.   The  current production member is
+    purged.  The development source is moved to production.
+
+2.  Any obsoleted member is  archived  to the network.   The current production
+    member is obsoleted.  The development source is moved to production.
+
+After being checked in,  the audit trail on the production member is amended to
+remove entries older than one  year.   However,  note that the obsoleted member
+still contains this information and,  when  archived,  two files are created on
+the network -- one with  the  member's  source  and one with the member's audit
+trail.  The member is now in a position to be checked out, again.
+
+CHECKIN sets the "last referenced member" to the production member.
+

@@ -1,0 +1,34 @@
+
+Use CHECKOUT to create the development copy of a production member.
+
+CHECKOUT may also be entered as CHKO.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| NAME     | is the qualified member name to be checked out.   This may refer |
+|          | either to a production member or to a development member that is |
+|          | already checked out.   If already checked out, you will be given |
+|          | the option of removing  the checkout status (i.e.,  deleting the |
+|          | development source) or just viewing the production source.       |
+-------------------------------------------------------------------------------
+
+A development copy  of  the  NAME  member  will  be  created  and stored in the
+equivalent source library for the  current user (by automatically modifying the
+current ATTACH  status).   Both  the  production  and  development  members are
+flagged with a checkout status record as  line one of the text source.   Do not
+modify or delete this record.
+
+This command is intended for use  in  a situation where a library of production
+members is to  be  maintained  in  a  controlled manner.   The checkout/checkin
+mechanism assures that all modifications are  made to develepment copies of the
+production member (rather than directly to the production member) and that only
+one development copy of a production member exists at a time.
+
+If an independent copy of a production member is desired, use the COPY command.
+
+The development member is created with all of the production member attributes.
+Both the member text and the audit trail (if it exists) are copied.
+
+CHECKOUT sets the "last referenced member" to the development member.
+

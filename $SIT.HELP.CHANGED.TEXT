@@ -1,0 +1,16 @@
+
+Use CHANGED to identify changed lines  in  a session according to their "stamp"
+status.
+
+-------------------------------------------------------------------------------
+|                             Required Operand                                |
+|-----------------------------------------------------------------------------|
+| DATE     |  is the Gregorian date by  which  changed lines greater than or  |
+|          |  equal to this date  are identified.   The format is MM/DD/CCYY  |
+|          |  or MM/DD/YY.  If omitted, the last date specified is reused.    |
+-------------------------------------------------------------------------------
+
+This  command  artificially  sets  the  "Last  Locate  String"  system variable
+(SIBLCSTR) so that this command may  be  used  from  a PF key without having to
+specify a date.
+

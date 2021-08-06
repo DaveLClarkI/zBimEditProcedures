@@ -1,0 +1,22 @@
+
+Use CASE to alter (or inquire as to) the alphabetic case of the session and, in
+the case of an EDIT session,  the  alphabetic  case of the member being edited.
+This command selectively combines the use of the "SESS CASE=" and "ALTER CASE="
+commands if alteration is requested.
+
+-------------------------------------------------------------------------------
+|                              Optional Operand                               |
+|-----------------------------------------------------------------------------|
+| CASE     | is the alphabetic case of  the session.   Specify "U" if updated |
+|          | text lines are to be  translated to upper case.   Specify "M" if |
+|          | translation is not to  occur.   Only  new  and updated lines are |
+|          | affected by this setting.   If  omitted,  the current setting is |
+|          | shown without any alterations.                                   |
+-------------------------------------------------------------------------------
+
+Example
+-------
+
+Allow mixed case entry:
+
+   => case m
