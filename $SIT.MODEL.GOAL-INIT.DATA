@@ -1,0 +1,14 @@
+/* To INITIALIZE your VSAM file:                                     */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of 'MY.FILE.NAME' to the name of your file*/
+/*   change ALL occurances of 'MYDLBL' to the name of your label     */
+/*   change DEVLCAT (if needed) to the appropriate catalog label     */
+/*                                                                   */
+/. STEPnn - INITIALIZE "MY.FILE.NAME" (VSOPRIME)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// DLBL   MYDLBL,'MY.FILE.NAME',,VSAM,CAT=DEVLCAT
+// EXEC   PGM=VSOPRIME,SIZE=VSOPRIME
+   INIT   F=MYDLBL
+/* EOD
+/*                                                                   */

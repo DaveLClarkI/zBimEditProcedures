@@ -1,0 +1,18 @@
+/* To COMPARE your disk backup:                                      */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of 'MY.FILE.NAME' to the name of your file*/
+/*   change ALL occurances of 'MY.BKUP.NAME' to the name of your bkup*/
+/*                                                                   */
+/. STEPnn - COMPARE "MY.FILE.NAME" FROM DISK (GVRESTOR)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// DLBL   SYS000,'MY.BKUP.NAME',,VSAM,CAT=WORKCAT,                     X
+               DISP=(OLD,KEEP,KEEP)
+// EXEC   PGM=GVRESTOR,SIZE=GVRESTOR
+   COMPARE
+   CLUSTER
+   CL=MY.FILE.NAME
+/* EOD
+/*                                                                   */
+/* If desired, multiple 'CL=' statements my be coded for more files. */
+/*                                                                   */

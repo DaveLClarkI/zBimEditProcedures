@@ -1,0 +1,22 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC DLI INSERT
+      *                                insert a segment
+                  < USING PCB(integer-expr) >
+                  < VARIABLE >
+                  < FIRST | LAST >
+                    SEGMENT(name)
+                      FROM(data-area)
+                      SEGLENGTH(integer-expr)
+                    < WHERE(name operator data-area) >
+                    < FIELDLENGTH(integer-expr) >
+           END-EXEC
+      *
+           IF DIBSTAT IS NOT = '  ' THEN
+      *        insert error handling code
+      *

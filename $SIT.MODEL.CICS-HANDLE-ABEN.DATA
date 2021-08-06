@@ -1,0 +1,19 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS HANDLE ABEND
+      *                                cancel, set, or reset an exit     (PC)
+                   { CANCEL | PROGRAM(name) | LABEL(label) | RESET }
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  PGMIDERR  (if PROGRAM specified)
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

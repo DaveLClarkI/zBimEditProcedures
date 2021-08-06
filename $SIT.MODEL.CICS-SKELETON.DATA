@@ -1,0 +1,373 @@
+      * This is a skeleton CICS/DOS/VS program intended to give a basic
+      * program format from which to build a new program when writting it
+      * from scratch.  There may be more facilities included in this
+      * skeleton than desired and it is definately lacking in others.
+      * It is up to the programmer to delete/add facilities as they are
+      * appropriate to the task.
+      *
+      ******************************************************************
+      *                                                                *
+      *    IDENTIFICATION DIVISION                                     *
+      *                                                                *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+
+       PROGRAM-ID.    ????????.
+       AUTHOR.        ????????????????????.
+       DATE-WRITTEN.  ????????.
+       DATE-COMPILED.
+       INSTALLATION.  CLARKE INDUSTRIES, INC.
+       SECURITY.      ?????????????????????????????????????????????????.
+       REMARKS.       ??????????????????????????????????????????????????
+                      ?????????????????????????????????????????????????.
+
+      /*****************************************************************
+      *                                                                *
+      *    ENVIRONMENT DIVISION                                        *
+      *                                                                *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+
+      ******************************************************************
+      *    CONFIGURATION SECTION                                       *
+      ******************************************************************
+       CONFIGURATION SECTION.
+
+       SOURCE-COMPUTER. IBM-4341.
+       OBJECT-COMPUTER. IBM-4341.
+
+      /*****************************************************************
+      *                                                                *
+      *    DATA DIVISION                                               *
+      *                                                                *
+      ******************************************************************
+       DATA DIVISION.
+
+      ******************************************************************
+      *    FILE SECTION                                                *
+      ******************************************************************
+       FILE SECTION.
+
+      ******************************************************************
+      *    WORKING-STORAGE SECTION                                     *
+      ******************************************************************
+       WORKING-STORAGE SECTION.
+
+       77  FILLER                      PIC X(58)    VALUE
+           '***** program title or description  - author's name  *****'.
+       77  PGM-NAME                    PIC X(8)     VALUE '????????'.
+       77  CTL-AREA-LEN                PIC S9(4)    VALUE +????  COMP.
+       77  DATASET                     PIC X(8)     VALUE 'DATASET '.
+       77  DATA-BUF-LEN                PIC S9(4)    VALUE +????  COMP.
+       77  DATA-KEY-LEN                PIC S9(4)    VALUE +????  COMP.
+       77  SCRNMS                      PIC X(8)     VALUE 'SCRNMS  '.
+       77  SCRNMAP-LEN                 PIC S9(4)    VALUE +????  COMP.
+       77  SCRNMAP                     PIC X(8)     VALUE 'SCRNMAP '.
+
+      * REFERENCE FIELDS FOR AID BYTE (EIBAID)
+       COPY DFHAID.
+
+      * THE FOLLOWING AREAS ARE FOR THE CICS/VS STANDARD ERROR ROUTINES
+       01  HEX-DATA.
+           05 FILLER PIC X(32) VALUE '000102030405060708090A0B0C0D0E0F'.
+           05 FILLER PIC X(32) VALUE '101112131415161718191A1B1C1D1E1F'.
+           05 FILLER PIC X(32) VALUE '202122232425262728292A2B2C2D2E2F'.
+           05 FILLER PIC X(32) VALUE '303132333435363738393A3B3C3D3E3F'.
+           05 FILLER PIC X(32) VALUE '404142434445464748494A4B4C4D4E4F'.
+           05 FILLER PIC X(32) VALUE '505152535455565758595A5B5C5D5E5F'.
+           05 FILLER PIC X(32) VALUE '606162636465666768696A6B6C6D6E6F'.
+           05 FILLER PIC X(32) VALUE '707172737475767778797A7B7C7D7E7F'.
+           05 FILLER PIC X(32) VALUE '808182838485868788898A8B8C8D8E8F'.
+           05 FILLER PIC X(32) VALUE '909192939495969798999A9B9C9D9E9F'.
+           05 FILLER PIC X(32) VALUE 'A0A1A2A3A4A5A6A7A8A9AAABACADAEAF'.
+           05 FILLER PIC X(32) VALUE 'B0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF'.
+           05 FILLER PIC X(32) VALUE 'C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF'.
+           05 FILLER PIC X(32) VALUE 'D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF'.
+           05 FILLER PIC X(32) VALUE 'E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF'.
+           05 FILLER PIC X(32) VALUE 'F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF'.
+       01  HEX-TABLE       REDEFINES   HEX-DATA.
+           05  HEX-ENTRY   OCCURS 256  PIC XX.
+       01  HEX-VALUE                   PIC S9(4)    VALUE ZEROES COMP.
+       01  FILLER          REDEFINES   HEX-VALUE.
+           05  FILLER                  PIC X.
+           05  CHR-VALUE               PIC X.
+       01  HEX-AREA.
+           05  HEX-BYT     OCCURS 6    PIC XX.
+       01  CHR-AREA.
+           05  CHR-BYT     OCCURS 6    PIC X.
+       01  WS-WORK-AREA.
+           05  HEX-CNT                 PIC 9        VALUE ZERO.
+           05  HEX-POS                 PIC 9        VALUE ZERO.
+           05  HEX-SUB                 PIC 999      VALUE ZEROES.
+           05  FN-DISPLAY.
+               10  FILLER              PIC X        VALUE 'X'.
+               10  FILLER              PIC X        VALUE QUOTE.
+               10  FN-VALUE            PIC X(4).
+               10  FILLER              PIC X        VALUE QUOTE.
+           05  RC-DISPLAY.
+               10  FILLER              PIC X        VALUE 'X'.
+               10  FILLER              PIC X        VALUE QUOTE.
+               10  RC-VALUE            PIC X(12).
+               10  FILLER              PIC X        VALUE QUOTE.
+           05  CICS-ERR-LEN            PIC S9(4)    COMP   VALUE +0240.
+           05  CICS-ERR-MSG            PIC X(240)   VALUE LOW-VALUES.
+
+      ******************************************************************
+      *    LINKAGE SECTION                                             *
+      ******************************************************************
+       LINKAGE SECTION.
+
+       01  DFHCOMMAREA                 PIC X(????).
+
+      * BASE LOCATOR FOR LINKAGE CELLS
+       01  DFHBLLDS.
+           05  DFHBLLDS-PTR            PIC S9(8)    COMP.
+           05  CTL-AREA-PTR            PIC S9(8)    COMP.
+           05  DATA-BUF-PTR            PIC S9(8)    COMP.
+           05  SCRNMAP-PTR             PIC S9(8)    COMP.
+
+      * GETMAIN'D AREA TO BUILD INITIAL DFHCOMMAREA CONTENTS
+       01  CTL-AREA.
+           05  CTL-INFO                PIC X(????).
+
+      * DATASET I/O BUFFER
+       01  DATA-BUF COPY DATABUF.
+
+      * TERMINAL I/O BUFFER
+       01  SCRNMAPI COPY SCRNMS.
+
+      /*****************************************************************
+      *                                                                *
+      *    PROCEDURE DIVISION                                          *
+      *                                                                *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+           SERVICE  RELOAD   DFHBLLDS.
+
+           EXEC CICS HANDLE CONDITION
+                     ERROR(X00-PGRM-ERRORS)
+           END-EXEC.
+
+           EXEC CICS GETMAIN
+                     SET(CTL-AREA-PTR)
+                     LENGTH(CTL-AREA-LEN)
+           END-EXEC.
+           SERVICE  RELOAD   CTL-AREA.
+
+           IF EIBCALEN < CTL-AREA-LEN
+               GO TO A00-INITIAL-ENTRY
+           ELSE
+           NEXT SENTENCE.
+
+           MOVE DFHCOMMAREA  TO CTL-AREA.
+
+           GO TO B00-OTHER-ENTRIES.
+
+      /*****************************************************************
+      *    FIRST TIME THROUGH ROUTINE                                  *
+      ******************************************************************
+       A00-INITIAL-ENTRY.
+
+           MOVE  LOW-VALUES  TO CTL-AREA.
+
+           EXEC CICS SEND
+                     MAP(SCRNMAP)
+                     MAPSET(SCRNMS)
+                     MAPONLY
+                     TERMINAL
+                     FREEKB
+                     FRSET
+                     ERASE
+                     ALARM
+                     NOHANDLE
+           END-EXEC.
+
+           GO TO C00-PGRM-RETURN.
+
+      /*****************************************************************
+      *    SUBSEQUENT TIMES THROUGH ROUTINE                            *
+      ******************************************************************
+       B00-OTHER-ENTRIES.
+
+           EXEC CICS GETMAIN
+                     SET(SCRNMAP-PTR)
+                     LENGTH(SCRNMAP-LEN)
+                     INITIMG(LOW-VALUE)
+           END-EXEC.
+           SERVICE  RELOAD   SCRNMAPI.
+
+           EXEC CICS RECEIVE
+                     MAP(SCRNMAP)
+                     INTO(SCRNMAPI)
+                     MAPSET(SCRNMS)
+                     TERMINAL
+                     ASIS
+           END-EXEC.
+
+           EXEC CICS GETMAIN
+                     SET(DATA-BUF-PTR)
+                     LENGTH(DATA-BUF-LEN)
+           END-EXEC.
+           SERVICE  RELOAD   DATA-BUF.
+
+           MOVE  LOW-VALUES  TO DATA-BUF.
+
+           EXEC CICS READ
+                     DATASET(DATASET)
+                     INTO(DATA-BUF)
+                     LENGTH(DATA-BUF-LEN)
+                     RIDFLD(DATA-KEY)
+                     KEYLENGTH(DATA-KEY-LEN)
+                     EQUAL
+           END-EXEC.
+
+           IF YOU-WISH-TO-SIGNIFY-ANY-ERRORS-THAT-ARE-FOUND
+               EXEC CICS SEND
+                         MAP(SCRNMAP)
+                         FROM(SCRNMAPO)
+                         MAPSET(SCRNMS)
+                         TERMINAL
+                         FREEKB
+                         FRSET
+                         ERASE
+                         ALARM
+                         CURSOR
+               END-EXEC
+           ELSE
+               EXEC CICS SEND
+                         MAP(SCRNMAP)
+                         FROM(SCRNMAPO)
+                         MAPSET(SCRNMS)
+                         TERMINAL
+                         FREEKB
+                         FRSET
+                         ERASE
+               END-EXEC.
+
+      /*****************************************************************
+      *    NORMAL TRANSACTION TERMINATION (WITH RETURN) ROUTINE        *
+      ******************************************************************
+       C00-PGRM-RETURN.
+
+           EXEC CICS RETURN
+                     TRANSID('????')
+                     COMMAREA(CTL-AREA)
+                     LENGTH(CTL-AREA-LEN)
+           END-EXEC.
+
+      /*****************************************************************
+      *    PROCESS EXCEPTIONAL CONDITION ERROR ROUTINE                 *
+      ******************************************************************
+       X00-PGRM-ERRORS.
+
+           EXEC CICS HANDLE CONDITION
+                     ERROR
+           END-EXEC.
+
+      * MASSAGE ENCODED AREAS INTO HEXIDECIMAL DISPLAYS
+           MOVE    ZEROES    TO HEX-POS HEX-VALUE.
+           MOVE      2       TO HEX-CNT.
+           MOVE    EIBFN     TO CHR-AREA.
+       X10-LOOP.
+           ADD       1       TO HEX-POS.
+           MOVE CHR-BYT(HEX-POS) TO CHR-VALUE.
+           ADD  1 HEX-VALUE  GIVING HEX-SUB.
+           MOVE HEX-ENTRY(HEX-SUB) TO HEX-BYT(HEX-POS).
+           IF HEX-POS < HEX-CNT
+               GO TO X10-LOOP.
+           IF HEX-CNT = 2
+               MOVE HEX-AREA TO FN-VALUE
+               MOVE  ZEROES  TO HEX-POS HEX-VALUE
+               MOVE    6     TO HEX-CNT
+               MOVE EIBRCODE TO CHR-AREA
+               GO TO X10-LOOP.
+           MOVE   HEX-AREA   TO RC-VALUE.
+
+      * BUILD THE STANDARD ERROR MESSAGE FORMAT
+           MOVE  LOW-VALUES  TO CICS-ERR-MSG.
+           STRING 'AN UNEXPECTED ERROR HAS OCCURED IN'
+                 ' TRANSACTION "' EIBTRNID
+               '", PROGRAM "' PGM-NAME
+               '", AT TERMINAL "' EIBTRMID
+               '", EIBFN=' FN-DISPLAY
+                ', EIBRCODE=' RC-DISPLAY
+               '.  PLEASE CALL THE MIS DEPARTMENT'
+                 ' TO REPORT THIS SITUATION.  THANK-YOU.'
+               DELIMITED BY SIZE INTO CICS-ERR-MSG.
+
+      * OUTPUT THE STANDARD ERROR MESSAGE
+           EXEC CICS SEND TEXT
+                     FROM(CICS-ERR-MSG)
+                     LENGTH(CICS-ERR-LEN)
+                     TERMINAL
+                     FREEKB
+                     ERASE
+                     ALARM
+                     CURSOR(CICS-ERR-LEN)
+           END-EXEC.
+
+      * ISSUE AN ABEND TO FORCE CONTROL BACK TO CICS
+           EXEC CICS ABEND
+                     ABCODE('????')
+                     CANCEL
+           END-EXEC.
+
+      /*****************************************************************
+      *    ABNORMAL TRANSACTION TERMINATION ROUTINE                    *
+      ******************************************************************
+       Y00-PGRM-ABEND.
+
+           EXEC CICS HANDLE CONDITION
+                     ERROR
+           END-EXEC.
+
+           MOVE  LOW-VALUES  TO CICS-ERR-MSG.
+           STRING EIBTRNID ' - SAMPLE PROGRAM-SPECIFIC ABEND MESSAGE.'
+               DELIMITED BY SIZE INTO CICS-ERR-MSG.
+           MOVE    +0080     TO CICS-ERR-LEN.
+
+           EXEC CICS SEND TEXT
+                     FROM(CICS-ERR-MSG)
+                     LENGTH(CICS-ERR-LEN)
+                     TERMINAL
+                     FREEKB
+                     ERASE
+                     ALARM
+                     CURSOR(CICS-ERR-LEN)
+           END-EXEC.
+
+           EXEC CICS ABEND
+                     ABCODE('????')
+                     CANCEL
+           END-EXEC.
+
+      /*****************************************************************
+      *    NORMAL TRANSACTION TERMINATION (WITHOUT RETURN) ROUTINE     *
+      ******************************************************************
+       Z00-PGRM-TERMINATION.
+
+           EXEC CICS HANDLE CONDITION
+                     ERROR
+           END-EXEC.
+
+           MOVE  LOW-VALUES  TO CICS-ERR-MSG.
+           STRING EIBTRNID ' - SAMPLE PROGRAM-SPECIFIC MESSAGE.'
+               DELIMITED BY SIZE INTO CICS-ERR-MSG.
+           MOVE    +0080     TO CICS-ERR-LEN.
+
+           EXEC CICS SEND TEXT
+                     FROM(CICS-ERR-MSG)
+                     LENGTH(CICS-ERR-LEN)
+                     TERMINAL
+                     FREEKB
+                     ERASE
+           END-EXEC.
+
+           EXEC CICS RETURN
+           END-EXEC.
+
+      ******************************************************************
+      *    UNEXECUTABLE STOP RUN, INCLUDED TO AVOID COMPILER MESSAGE   *
+      ******************************************************************
+           STOP RUN.

@@ -1,0 +1,49 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS ASSIGN
+      *                                obtain external values
+                     option(data-area) < option(data-area) > ...
+      *                                          (max 16/command)
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Options:  ABCODE          Current value of abend code
+      *           APPLID          Application identification for VTAM
+      *           COLOR           Extended color capability (X'FF')
+      *           CWALENG         Length of CWA
+      *           DESTCOUNT       Number of destination with overflow (BMS)
+      *           EXTDS           Extended data stream capability (X'FF')
+      *           FACILITY        Ident. of facility initiating transaction
+      *           FCI             Facility control indicator (from TCAFCI)
+      *           HILIGHT         Extended highlight capability (X'FF')
+      *           NETNAME         Name of the LU in the VTAM network
+      *           OPCLASS         Operator class (from TCTTEOCL)
+      *           OPERKEYS        Operator security key (64-bit mask)
+      *           OPID            Operator identifier (from TCTTEOI)
+      *           OPSECURITY      Operator security key (from TCTTESK)
+      *           PAGENUM         Current page no. of dest. with overflow
+      *           PRINSYSID       Name of principal CICS/VS system (MRO)
+      *           PS              Programmed symbols capability (X'FF')
+      *           QNAME           Name of TD queue initiating this task
+      *           RESTART         Task restart flag set on (X'FF')
+      *           SCRNHT          Current screen depth (3270)
+      *           SCRNWD          Current screen width (3270)
+      *           STARTCODE       Code indicating how transaction started
+      *           SYSID           Name of local CICS/VS system
+      *           TCTUALENG       Length of TCTUA
+      *           TERMCODE        Type and model number of terminal
+      *           TWALENG         Length of TWA
+      *           USERID          User identifier of whoever is signed on
+      *           VALIDATION      Validation capability (X'FF')
+      *
+      * Conditions:  INVREQ
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

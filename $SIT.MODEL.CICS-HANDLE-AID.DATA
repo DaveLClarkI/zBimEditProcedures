@@ -1,0 +1,20 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS HANDLE AID
+      *                                pass control on receipt of an AID (TC)
+                     option < (label) >< option < (label) > > ...
+      *                                                 (max 16/command)
+           END-EXEC
+      *
+      * Options:  ANYKEY          Any PA, any PF, or the CLEAR key
+      *           CLEAR           Clear key
+      *           ENTER           Enter key
+      *           LIGHTPEN        Light pen attention or CURSR SEL key
+      *           PA1, PA2, PA3   Program attention keys
+      *           PF1 thru PF24   Program function keys
+      *

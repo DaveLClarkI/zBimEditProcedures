@@ -1,0 +1,23 @@
+/* To COPY your tape backup:                                         */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of 'MY.FILE.NAME' to the name of your file*/
+/*   change ALL occurances of 'MY.BKUP.NAME' to the name of your bkup*/
+/*   change ALL occurances of 'MY.SEQU.NAME' to your sequential name */
+/*   change TAPE (in the ASSGN statement) to the correct tape address*/
+/*                                                                   */
+/. STEPnn - COPY "MY.FILE.NAME" FROM BACKUP TO DISK (GVCOPY)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// TLBL   FVRFILE,'MY.BKUP.NAME'
+// ASSGN  SYS004,TAPE,D0
+// ASSGN  SYS004,SYS000
+// PAUSE  MOUNT BACKUP TAPE LABELED "MY.BKUP.NAME" ON SYS004
+// MTC    REW,SYS004
+// DLBL   SEQFILE,'MY.SEQU.NAME',0,VSAM,CAT=WORKCAT,                   X
+               DISP=(NEW,KEEP,DELETE),RECSIZE=4080,RECORDS=(100,100)
+// EXEC   PGM=GVCOPY,SIZE=GVCOPY
+   CL=MY.FILE.NAME   OUTDD=(SEQFILE,FB,80,4080)
+/* EOD
+/*                                                                   */
+/* The OUTDD parameters are "(dname,recfm,lrecl,blksize)".           */
+/*                                                                   */

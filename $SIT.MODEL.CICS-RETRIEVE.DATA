@@ -1,0 +1,25 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS RETRIEVE
+      *                                retrieve stored data              (IC)
+                   < INTO(data-area) | SET(pointer-ref) >
+                     LENGTH(data-area)
+                   < RTRANSID(data-area) >
+                   < RTERMID(data-area) >
+                   < QUEUE(data-area) >
+                   < WAIT >
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  ENDDATA, ENVDEFERR, INVREQ, INVTSREQ, IOERR, LENGERR,
+      *              NOTAUTH, NOTFND
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

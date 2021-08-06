@@ -1,0 +1,30 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS START
+      *                                start a task                      (IC)
+                   < INTERVAL(0) | INTERVAL(hhmmss) | TIME(hhmmss) >
+                     TRANSID(name)
+                   < SYSID(name) >
+                   < REQID(name) >
+                   < FROM(data-area) LENGTH(data-value) >
+                   < TERMID(name) >
+                   < RTRANSID(data-area) >
+                   < RTERMID(data-area) >
+                   < QUEUE(data-area) >
+                   < NOCHECK >
+                   < PROTECT >
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  INVREQ, IOERR, ISCINVREQ, NOTAUTH, SYSIDERR,
+      *              TERMIDERR, TRANSIDERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

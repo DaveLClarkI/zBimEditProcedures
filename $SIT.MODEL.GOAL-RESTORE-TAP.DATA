@@ -1,0 +1,39 @@
+/* To RESTORE your VSAM file:                                        */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of 'MY.FILE.NAME' to the name of your file*/
+/*   change ALL occurances of 'MY.BKUP.NAME' to the name of your bkup*/
+/*   change TAPE (in the ASSGN statement) to the correct tape address*/
+/*   change DEVLCAT (if needed) to the appropriate catalog label     */
+/*                                                                   */
+/. STEPnn - RESTORE "MY.FILE.NAME" FROM TAPE (GVRESTOR)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// DLBL   TRENDS,'GOAL.TUNING.STATS',,VSAM,CAT=VSESPUC
+// TLBL   SYS000,'MY.BKUP.NAME'
+// ASSGN  SYS000,TAPE,D0
+// ASSGN  SYS000,SYS000
+// PAUSE  MOUNT BACKUP TAPE LABELED "MY.BKUP.NAME" ON SYS000
+// MTC    REW,SYS000
+// EXEC   PGM=GVRESTOR,SIZE=GVRESTOR
+   RESTORE PURGE REMP XTC VSAMAID
+   CLUSTER
+   CL=MY.FILE.NAME
+   AIX=MY.AIX.NAME
+   PATH=MY.PATH.NAME
+/* EOD
+/*                                                                   */
+/* If desired, multiple 'CL=', 'AIX=' and/or 'PATH=' statements may  */
+/* be coded to restore more of that type of file in the same run.    */
+/* (NOTE: 'AIX' and 'PATH' files are automatically restored with the */
+/* base cluster unless 'CLUSTER EXCLUDE AIX PATH' is specified.)     */
+/*                                                                   */
+/* If you wish to restore to a different catalog than the one where  */
+/* the original backup came, add this card after the RESTORE card:   */
+/*      CATDEF=*,NEWCAT                                              */
+/* where:  NEWCAT is the catalog label name to receive the restore.  */
+/*                                                                   */
+/* If you wish to change a file's name or attributes during restore, */
+/* add the '*AMS' keyword to the end of that 'CL=', 'AIX=' and/or    */
+/* 'PATH=' control card then add IDCAMS-compatible override cards    */
+/* after that 'CL=', 'AIX=' and/or 'PATH=' control card.             */
+/*                                                                   */

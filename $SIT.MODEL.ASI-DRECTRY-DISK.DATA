@@ -1,0 +1,29 @@
+/* To LIST the directory of your ATTACHE library:                    */
+/*   change STEPnn to the appropriate step number                    */
+/*                                                                   */
+/. STEPnn - LIST DIRECTORY OF ATTACHE LIBRARY ON DISK (PSSATTA)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.ASI,TEMP
+// UPSI   00011001                            NOINCLUDE,VSESP2,DISKLIB
+/*                                                                   */
+/*                   THIS IS THE PRODUCTION EXTENT                   */
+// DLBL   SYS020,'ATT.SOURCE.FILE',99/365     INPUT ATTACHE LIB
+// EXTENT SYS020,VSE003,1,0,1,1034
+// ASSGN  SYS020,DISK,VOL=VSE003,SHR
+/*                                                                   */
+/*                  THIS IS THE DEVELOPMENT EXTENT                   */
+// DLBL   SYS020,'ATT.SOURCE.FILE',99/365     INPUT ATTACHE LIB
+// EXTENT SYS020,VSE010,1,0,1500,1020
+// ASSGN  SYS020,DISK,VOL=VSE010,SHR
+/*                                                                   */
+// ASSGN  SYS021,IGN
+// ASSGN  SYS022,IGN
+// ASSGN  SYS023,IGN
+// ASSGN  SYS024,IGN
+// ASSGN  SYS025,READER
+// ASSGN  SYS026,PUNCH
+// ASSGN  SYS027,PRINTER
+// EXEC   PGM=PSSATTA,SIZE=256K
+./ DRECTRY
+/* EOD
+/*                                                                   */

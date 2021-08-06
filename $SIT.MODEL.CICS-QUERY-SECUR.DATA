@@ -1,0 +1,25 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS QUERY SECURITY
+      *                                get security auth. of curr. user
+                   { RESTYPE(data-value) |
+                       RESCLASS(data-value) RESIDLENGTH(data-value) }
+                     RESID(data-value)
+                   < READ(cvda) >
+                   < UPDATE(cvda) >
+                   < ALTER(cvda) >
+                   < LOGMESSAGE(cvda) >
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  INVREQ, LENGERR, NOTFND, QIDERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

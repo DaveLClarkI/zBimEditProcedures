@@ -1,0 +1,12 @@
+/* To MAP your disk backup:                                          */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of 'MY.BKUP.NAME' to the name of your bkup*/
+/*                                                                   */
+/. STEPnn - MAP A DISK BACKUP (GVMAP)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// DLBL   FVRFILE,'MY.BKUP.NAME',,VSAM,CAT=WORKCAT,                    X
+               DISP=(OLD,KEEP,KEEP)
+// EXEC   PGM=GVMAP,SIZE=GVMAP
+/* EOD
+/*                                                                   */

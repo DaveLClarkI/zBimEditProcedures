@@ -1,0 +1,22 @@
+/* To LIST the directory of your ATTACHE library:                    */
+/*   change STEPnn to the appropriate step number                    */
+/*   change 'ATT.SOURCE.TAPE' to the name of your ATTACHE tape       */
+/*   change ATTVOL (in the ASSGN SYS020 statement) to your tape volid*/
+/*                                                                   */
+/. STEPnn - LIST DIRECTORY OF ATTACHE LIBRARY ON TAPE (PSSATTA)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.ASI,TEMP
+// UPSI   00010001                            NOINCLUDE,VSESP2,TAPELIB
+// TLBL   SYS020,'ATT.SOURCE.TAPE',0          INPUT ATTACHE LIB
+// ASSGN  SYS020,TAPE,VOL=ATTVOL
+// ASSGN  SYS021,IGN
+// ASSGN  SYS022,IGN
+// ASSGN  SYS023,IGN
+// ASSGN  SYS024,IGN
+// ASSGN  SYS025,READER
+// ASSGN  SYS026,PUNCH
+// ASSGN  SYS027,PRINTER
+// EXEC   PGM=PSSATTA,SIZE=256K
+./ DRECTRY
+/* EOD
+/*                                                                   */

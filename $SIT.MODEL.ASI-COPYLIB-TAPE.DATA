@@ -1,0 +1,41 @@
+/* To COPY your ATTACHE library:                                     */
+/*   change STEPnn to the appropriate step number                    */
+/*                                                                   */
+/. STEPnn - COPY ATTACHE LIBRARY FROM TAPE TO DISK (PSSATTA)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.ASI,TEMP
+// UPSI   00010100                            NOINCLUDE,VSESP2,TAPELIB
+*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+*  TLBL   SYS020,'1.CLK90.EP.SOURCE',0        INPUT ATTACHE LIB*
+*  ASSGN  SYS020,TAPE,VOL=TE1281                FOR ASI-SEC    *
+*  TLBL   SYS020,'1.CLK30.MM.SOURCE',0        INPUT ATTACHE LIB*
+*  ASSGN  SYS020,TAPE,VOL=TE1430                FOR ASI-PMM    *
+*  TLBL   SYS020,'0.MF.V12R1.SOURCE',0        INPUT ATTACHE LIB*
+*  ASSGN  SYS020,TAPE,VOL=TE1303                FOR ASI-MFG    *
+*  TLBL   SYS020,'W1.CLK60.SOURCE',0          INPUT ATTACHE LIB*
+*  ASSGN  SYS020,TAPE,VOL=TE3017                FOR ASI-ARC    *
+*  TLBL   SYS020,'LK70.V07R1.SOURCE',0        INPUT ATTACHE LIB*
+*  ASSGN  SYS020,TAPE,VOL=TE3816                FOR ASI-COP 7.1*
+*  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+// PAUSE  ISSUE ONE (1) SET OF THE ABOVE PAIRS OF STATEMENTS
+// ASSGN  SYS021,IGN
+// ASSGN  SYS022,IGN
+// ASSGN  SYS023,IGN
+/*                                                                   */
+/*                   THIS IS THE PRODUCTION EXTENT                   */
+// DLBL   SYS024,'ATT.SOURCE.FILE',99/365     OUTPUT ATTACHE LIB
+// EXTENT SYS024,VSE003,1,0,1,1034
+// ASSGN  SYS024,DISK,VOL=VSE003,SHR
+/*                                                                   */
+/*                  THIS IS THE DEVELOPMENT EXTENT                   */
+// DLBL   SYS024,'ATT.SOURCE.FILE',99/365     OUTPUT ATTACHE LIB
+// EXTENT SYS024,VSE010,1,0,1500,1020
+// ASSGN  SYS024,DISK,VOL=VSE010,SHR
+/*                                                                   */
+// ASSGN  SYS025,READER
+// ASSGN  SYS026,PUNCH
+// ASSGN  SYS027,PRINTER
+// EXEC   PGM=PSSATTA,SIZE=256K
+./ COPYLIB
+/* EOD
+/*                                                                   */

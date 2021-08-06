@@ -1,0 +1,28 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS SEND CONTROL
+      *                                send control orders without data (BMS)
+                   < TERMINAL < WAIT > | PAGING | SET(pointer-ref) >
+                   < FORMFEED >
+                   < ACCUM >
+                   < ALARM >
+                   < ERASE < DEFAULT | ALTERNATE > | ERASEAUP >
+                   < HONEOM | L40 | L64 | L80 >
+                   < PRINT >
+                   < FRSET >
+                   < FREEKB >
+                   < CURSOR < (data-value) > >
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  INVREQ, RETPAGE, TSIOERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

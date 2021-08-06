@@ -1,0 +1,29 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS READ
+      *                                read a record                     (FC)
+                     DATASET(name)
+                   < SYSID(name) >
+                   { INTO(data-area) | SET(pointer-ref) }
+                   < LENGTH(data-area) >        mand. with INTO/SYSID
+                     RIDFLD(data-area)
+                   < KEYLENGTH(data-value) >    mand. with GENERIC/SYSID
+                   < GENERIC >                  VSAM only
+                   < RBA | RRN >                VSAM only
+                   < EQUAL | GTEQ >             VSAM only
+                   < UPDATE >
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  DISABLED, DSIDERR, DUPKEY, ILLOGIC, INVREQ, IOERR,
+      *              ISCINVREQ, LENGERR, NOTAUTH, NOTFND, NOTOPEN, SYSIDERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

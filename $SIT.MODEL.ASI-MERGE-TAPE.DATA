@@ -1,0 +1,35 @@
+/* To MERGE a library into your ATTACHE library:                     */
+/*   change STEPnn to the appropriate step number                    */
+/*   change 'ATT.SOURCE.TAPE' to the name of your ATTACHE tape       */
+/*   change ATTVOL (in the ASSGN SYS020 statement) to your tape volid*/
+/*   change 'ATT.MERGE.TAPE' to the name of your ATTACHE TAPE        */
+/*   choose MRGVOL (in the ASSGN SYS024 statement) to your tape volid*/
+/*                                                                   */
+/. STEPnn - MERGE TAPE LIBRARY INTO ATTACHE TAPE LIB (PSSATTA)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.ASI,TEMP
+// UPSI   00010000                            NOINCLUDE,VSESP2,TAPELIB
+// TLBL   SYS020,'ATT.SOURCE.TAPE'            PRIMARY SOURCE FILE
+// ASSGN  SYS020,TAPE,VOL=ATTVOL
+// ASSGN  SYS021,IGN
+// ASSGN  SYS022,IGN
+/*                                                                   */
+/*                   THIS IS THE PRODUCTION EXTENT                   */
+// DLBL   SYS023,'ATT.UPDATE.FILE',0          UPDATED SOURCE FILE
+// EXTENT SYS023,VSE004,1,0,1,1034
+// ASSGN  SYS023,DISK,VOL=VSE004,SHR
+/*                                                                   */
+/*                  THIS IS THE DEVELOPMENT EXTENT                   */
+// DLBL   SYS023,'ATT.UPDATE.FILE',0          UPDATED SOURCE FILE
+// EXTENT SYS023,VSE011,1,0,1500,1020
+// ASSGN  SYS023,DISK,VOL=VSE011,SHR
+/*                                                                   */
+// TLBL   SYS024,'ATT.MERGE.TAPE'             SECONDARY SOURCE FILE
+// ASSGN  SYS024,TAPE,VOL=MRGVOL
+// ASSGN  SYS025,READER
+// ASSGN  SYS026,PUNCH
+// ASSGN  SYS027,PRINTER
+// EXEC   PGM=PSSATTA,SIZE=256K
+./ MERGE                                   SECONDARY
+/* EOD
+/*                                                                   */

@@ -1,0 +1,60 @@
+/* To update a member in your ATTACHE library:                       */
+/*   change STEPnn to the appropriate step number                    */
+/*   change MEMNAME to the name of the member to be replaced         */
+/*   choose input source of tape, disk, or reader                    */
+/*   if you have chosen tape input:                                  */
+/*     change 'ATT.OUTPUT.TAPE' to the name of your input tape, and  */
+/*     change NEWVOL (in the ASSGN SYS021 statement) to your tape vol*/
+/*   otherwise:                                                      */
+/*     delete the TLBL SYS021 statement, and                         */
+/*     change the ASSGN SYS021 statement from TAPE... to IGN         */
+/*   if you have NOT chosen disk input:                              */
+/*     delete the DLBL SYS022 and EXTENT SYS022 statements, and      */
+/*     change the ASSGN SYS022 statement from DISK... to IGN         */
+/*                                                                   */
+/. STEPnn - UPDATE SOURCE IN ATTACHE LIBRARY ON DISK (PSSATTA)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.ASI,TEMP
+// UPSI   00011000                            NOINCLUDE,VSESP2,DISKLIB
+/*                                                                   */
+/*                 THESE ARE THE PRODUCTION EXTENTS                  */
+// DLBL   SYS020,'ATT.SOURCE.FILE',99/365     INPUT ATTACHE LIB
+// EXTENT SYS020,VSE003,1,0,1,1034
+// ASSGN  SYS020,DISK,VOL=VSE003,SHR
+// TLBL   SYS021,'ATT.OUTPUT.TAPE',0          INPUT SOURCE FILE
+// ASSGN  SYS021,TAPE,VOL=NEWVOL
+// DLBL   SYS022,'ATT.OUTPUT.FILE',0          INPUT SOURCE FILE
+// EXTENT SYS022,VSE003,1,0,1035,300
+// ASSGN  SYS022,DISK,VOL=VSE003,SHR
+// DLBL   SYS023,'ATT.UPDATE.FILE',0          UPDATED SOURCE FILE
+// EXTENT SYS023,VSE004,1,0,1,1034
+// ASSGN  SYS023,DISK,VOL=VSE004,SHR
+/*                                                                   */
+/*                 THESE ARE THE DEVELOPMENT EXTENTS                 */
+// DLBL   SYS020,'ATT.SOURCE.FILE',99/365     INPUT ATTACHE LIB
+// EXTENT SYS020,VSE010,1,0,1500,1020
+// ASSGN  SYS020,DISK,VOL=VSE010,SHR
+// TLBL   SYS021,'ATT.OUTPUT.TAPE',0          INPUT SOURCE FILE
+// ASSGN  SYS021,TAPE,VOL=NEWVOL
+// DLBL   SYS022,'ATT.OUTPUT.FILE',0          INPUT SOURCE FILE
+// EXTENT SYS022,VSE010,1,0,2520,300
+// ASSGN  SYS022,DISK,VOL=VSE010,SHR
+// DLBL   SYS023,'ATT.UPDATE.FILE',0          UPDATED SOURCE FILE
+// EXTENT SYS023,VSE011,1,0,1500,1020
+// ASSGN  SYS023,DISK,VOL=VSE011,SHR
+/*                                                                   */
+// ASSGN  SYS024,IGN
+// ASSGN  SYS025,READER                       INPUT SOURCE CARDS
+// ASSGN  SYS026,PUNCH
+// ASSGN  SYS027,PRINTER
+// EXEC   PGM=PSSATTA,SIZE=256K
+./ ADD     MEMNAME P    CT                 FROM TAPE (SYS021)
+./ ADD     MEMNAME P    CD                 FROM DISK (SYS022)
+./ ADD     MEMNAME P    C                  FROM READER (SYS025)
+./ CHANGE  MEMNAME
+./ DELETE  MEMNAME
+./ REPLACE MEMNAME P    CT                 FROM TAPE (SYS021)
+./ REPLACE MEMNAME P    CD                 FROM DISK (SYS022)
+./ REPLACE MEMNAME P    C                  FROM READER (SYS025)
+/* EOD
+/*                                                                   */

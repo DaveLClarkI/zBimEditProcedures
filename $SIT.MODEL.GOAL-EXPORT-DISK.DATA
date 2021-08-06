@@ -1,0 +1,19 @@
+/* To EXPORT your VSAM file:                                         */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of 'MY.FILE.NAME' to the name of your file*/
+/*   change ALL occurances of 'MY.BKUP.NAME' to the name of your bkup*/
+/*   change DEVLCAT (if needed) to the appropriate catalog label     */
+/*                                                                   */
+/. STEPnn - EXPORT "MY.FILE.NAME" TO DISK (GVEXPORT)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// DLBL   SYS000,'MY.BKUP.NAME',1,VSAM,CAT=WORKCAT,                    x
+               DISP=(NEW,KEEP,DELETE),RECSIZE=12288,RECORDS=(100,100)
+// EXEC   PGM=GVEXPORT,SIZE=GVEXPORT
+   EXPORT CAT=DEVLCAT
+   CLUSTER
+   CL=MY.FILE.NAME
+/* EOD
+/*                                                                   */
+/* If desired, multiple 'CL=' statements my be coded for more files. */
+/*                                                                   */

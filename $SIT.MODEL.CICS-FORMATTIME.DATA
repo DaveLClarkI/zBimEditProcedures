@@ -1,0 +1,28 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS FORMATTIME
+      *                                format a date & time              (IC)
+                     ABSTIME(data-value)
+                   < YYDDD(data-area) >
+                   < YYMMDD(data-area) >
+                   < YYDDMM(data-area) >
+                   < DDMMYY(data-area) >
+                   < MMDDYY(data-area) >
+                   < DATE(data-area) >
+                   < DATEFORM(data-area) >
+                   < DATESEP(data-value) >
+                   < DAYCOUNT(data-area) >
+                   < DAYOFWEEK(data-area) >
+                   < DAYOFMONTH(data-area) >
+                   < MONTHOFYEAR(data-area) >
+                   < YEAR(data-area) >
+                   < TIME(data-area) < TIMESEP(data-value) > >
+           END-EXEC
+      *
+      * Conditions:  None
+      *

@@ -1,0 +1,56 @@
+/* To LISTC VSAM catalog entries:                                    */
+/*   change STEPnn to the appropriate step number                    */
+/*   change ALL occurances of DEVL to the desired catalog qualifier  */
+/*                                                                   */
+/. STEPnn - LIST "DEVL.VSAM.USER.CATALOG" ENTRIES (MASTERCT)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.GOAL,TEMP
+// EXEC   PGM=MASTERCT,SIZE=MASTERCT
+   LISTC  CATALOG(DEVL.VSAM.USER.CATALOG)
+          ENTRIES(ALL)
+          SHOW(ALL)
+/* EOD
+/*                                                                   */
+/* Optionally, the 'ENTRIES' parameter of 'ALL' may be changed to:   */
+/*             1) a specific dataset name to be listed, or           */
+/*             2) a generic 'group' of datasets to list by ending    */
+/*                any characters specified with the '+' designator.  */
+/* Optionally, the 'SHOW' parameter may be omitted to list only data-*/
+/*             set names and types, or the keyword 'ALL' changed to  */
+/*             one or more of the following keywords:                */
+/*                ALLOC       primary and secondary allocations      */
+/*                ASSOC       associated catalog entries             */
+/*                ATTR        defined component attributes           */
+/*                BUFSP       allocated amount of buffer space       */
+/*                CASPLITS    number of control area splits          */
+/*                CICA        number of cntl intervals per cntl area */
+/*                CISIZE      size of control interval               */
+/*                CISPLITS    number of control interval splits      */
+/*                CREATED     cluster's creation date                */
+/*                DEVT        type of DASD device                    */
+/*                EXCPS       number of requsts to read/write a file */
+/*                EXPIRES     cluster's expiration date              */
+/*                EXTENTCNT   number of component extents            */
+/*                EXTENTS     detailed information on extents        */
+/*                FREEBYTES   current free space in empty cntl areas */
+/*                FREESPACE   percent of free space when allocated   */
+/*                HIALLOCRBA  high allocated relative byte address   */
+/*                HIUSEDRBA   high used relative byte address        */
+/*                INDEXLEVELS number of levels in index              */
+/*                KEYS        length and rel. position of primary key*/
+/*                LASTUPD     date and time of latest comp. update   */
+/*                NAME        cluster and component names            */
+/*                OWNER       cluster's owner                        */
+/*                PCTFULL     percent of primary allocation used     */
+/*                RECDEL      number of records deleted              */
+/*                RECINS      number of records inserted             */
+/*                RECORDFORMAT record format of a SAM managed file   */
+/*                RECORDSIZE  average and maximum record size        */
+/*                RECRETR     number of records retrieved            */
+/*                RECTOT      total number of records in component   */
+/*                RECUPD      number of records updated              */
+/*                SHR         cross region and system share options  */
+/*                TYPE        type of cluster, e.g. KSDS, SAMI...    */
+/*                USECLASS    primary and secondary use class values */
+/*                VOLSER      vol's serial number and usage priority */
+/*                                                                   */

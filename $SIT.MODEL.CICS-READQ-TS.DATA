@@ -1,0 +1,25 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS READQ TS
+      *                                read data from temp. storage queue(TS)
+                     QUEUE(name)
+                   < SYSID(name) >
+                   { INTO(data-area) | SET(pointer-ref) }
+                   < LENGTH(data-area) >
+                   < NUMITEMS(data-area) >
+                   < NEXT | ITEM(data-value) >
+                   < NOHANDLE | RESP(data-area) >
+           END-EXEC
+      *
+      * Conditions:  INVREQ, IOERR, ISCINVREQ, ITEMERR, NOTAUTH, LENGERR,
+      *              QIDERR, SYSIDERR
+      *
+           IF  EIBRESP NOT = DFHRESP(NORMAL) THEN
+               ...etc...
+           END-IF
+      *

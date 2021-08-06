@@ -1,0 +1,32 @@
+/* To COPY your ATTACHE library:                                     */
+/*   change STEPnn to the appropriate step number                    */
+/*   change 'NEW.ASI.XX.SOURCE' to the name of your backup tape      */
+/*   change NEWVOL (in the ASSGN SYS024 statement) to your tape volid*/
+/*                                                                   */
+/. STEPnn - COPY ATTACHE LIBRARY FROM DISK TO TAPE (PSSATTA)
+/*                                                                   */
+// LIBDEF PHASE,SEARCH=CLARKE.ASI,TEMP
+// UPSI   00011000                            NOINCLUDE,VSESP2,DISKLIB
+/*                                                                   */
+/*                   THIS IS THE PRODUCTION EXTENT                   */
+// DLBL   SYS020,'ATT.SOURCE.FILE',99/365     INPUT ATTACHE LIB
+// EXTENT SYS020,VSE003,1,0,1,1034
+// ASSGN  SYS020,DISK,VOL=VSE003,SHR
+/*                                                                   */
+/*                  THIS IS THE DEVELOPMENT EXTENT                   */
+// DLBL   SYS020,'ATT.SOURCE.FILE',99/365     INPUT ATTACHE LIB
+// EXTENT SYS020,VSE010,1,0,1500,1020
+// ASSGN  SYS020,DISK,VOL=VSE010,SHR
+/*                                                                   */
+// ASSGN  SYS021,IGN
+// ASSGN  SYS022,IGN
+// ASSGN  SYS023,IGN
+// TLBL   SYS024,'NEW.ASI.XX.SOURCE',0        OUTPUT ATTACHE LIB
+// ASSGN  SYS024,TAPE,VOL=NEWVOL
+// ASSGN  SYS025,READER
+// ASSGN  SYS026,PUNCH
+// ASSGN  SYS027,PRINTER
+// EXEC   PGM=PSSATTA,SIZE=256K
+./ COPYLIB
+/* EOD
+/*                                                                   */

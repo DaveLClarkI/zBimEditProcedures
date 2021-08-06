@@ -1,0 +1,33 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text needs to be coded.
+      * < > are used to indicate that the enclosed identifiers are optional.
+      *  |  is used to separate mutually exclusive alternatives.
+      * { } encloses a set of alternatives, one of which must be coded.
+      * ... denotes the preceding identifier(s) may be coded repetitively.
+      *
+           EXEC CICS HANDLE CONDITION
+      *                                pass control if condition raised
+                     condition < (label) >< condition < (label) > > ...
+      *                                                 (max 16/command)
+           END-EXEC
+      *
+      * Conditions:  CBIDERR           INVREQ            OVERFLOW
+      *              CCERROR           INVTSREQ          PGMIDERR
+      *              DISABLED          IOERR             QBUSY
+      *              DSIDERR           ISCINVREQ         QIDERR
+      *              DUPKEY            ITEMERR           QZERO
+      *              DUPREC            JIDERR            RETPAGE
+      *              ENDDATA           LENGERR           ROLLEDBACK
+      *              ENDFILE           MAPERROR          RTEFAIL
+      *              ENDINPT           MAPFAIL           RTESOME
+      *              ENQBUSY           NAMEERROR         SESSBUSY
+      *              ENVDEFERR         NOJBUFSP          SESSIONERR
+      *              EOC               NOSPACE           SYSBUSY
+      *              EODS              NOSPOOL           SYSIDERR
+      *              EOF               NOSTG             TERMERR
+      *              ERROR             NOTALLOC          TERMIDERR
+      *              EXPIRED           NOTAUTH           TRANSIDERR
+      *              ILLOGIC           NOTFND            TSIOERR
+      *              INVERRTERM        NOTOPEN           WRONGSTAT
+      *              INVMPSZ
+      *
