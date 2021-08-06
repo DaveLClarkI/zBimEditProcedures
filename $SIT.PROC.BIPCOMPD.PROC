@@ -1,0 +1,188 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: COMPILE A VSE LIBRARY MEMBER IN SELECTED LPAR          *
+* Procedure..: BIPCOMPD                                               *
+* Command....: COMPILED member,link,class                             *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Checks existence of VSE  libary member and,  if found,  prompts for *
+* type and  destination  of  compile  job.   For  the compile job,  a *
+* procedure in  the  $SIT.COMP  library  is  executed  with  the name *
+* derived from the member type and the selected compile type.         *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+DCL MEM,CHAR,34,V
+DCL LINK,CHAR,8,V
+DCL CLASS,CHAR,1,V
+DCL REMID,CHAR,2,V
+DCL TYPE,CHAR,8,V
+DCL ATTR,CHAR,8,V
+DCL LIBDEF,CHAR,8,V
+DCL DEST,CHAR,8,V
+DCL LEN,NUM,3,V
+DCL TEST,CHAR,1,V
+DCL MESG,CHAR,76,V
+
+PARSE MEM,LINK,CLASS
+
+   IF LINK,EQ,''
+      GOTO TESTLINK
+   SET TEST,'&LINK',1,1
+   IF TEST,NE,'&LINK'
+      GOTO TESTLINK
+   SET CLASS,&LINK
+   SET LINK,''
+
+LABEL TESTLINK
+
+   IF LINK,EQ,'NOLINK'
+      GOTO OKLINK
+   IF LINK,EQ,'LINK'
+      GOTO OKLINK
+   IF LINK,EQ,'CATAL'
+      GOTO OKLINK
+   IF LINK,NE,''
+      EXIT ER,'INVALID LINK PARAMETER ENTERED'
+   SET LINK,'CATAL'
+
+LABEL OKLINK
+
+   IF CLASS,EQ,''
+      SET CLASS,'C'
+
+   IF MEM,EQ,'*'
+      GOTO CURMEM
+   IF MEM,EQ,'='
+      GOTO CURMEM
+   IF MEM,EQ,'/'
+      GOTO CURMEM
+   IF MEM,NE,''
+      GOTO OKMEM
+
+LABEL CURMEM
+
+   SET  MEM  '&SIBLSPDS{1,16}.&SIBLSPDS{17,17}'
+
+LABEL OKMEM
+
+   SET  ATTR    'BATCH'
+   SET  LIBDEF  'PROD'
+   SET  DEST    'TEST'
+
+   BYPASS
+   LISTD &MEM
+
+   SET  MEM     &SIBLSPDS{1,16}
+   VEXAM MEM   '.'
+   SET  LEN     &PPDCOL
+   ADD  LEN 1
+   SET  LIBDEF  &MEM{&LEN,}
+
+   SET  MEM    '&SIBLSPDS{1,16}.&SIBLSPDS{17,17}'
+   SET  TYPE   '&SSDTYPEM'
+
+   IF TYPE EQ 'A'
+      SET  TYPE  'ASM'
+   IF TYPE EQ 'C'
+      SET  TYPE  'CBL'
+
+   SET  PPDCOND  1
+   BYPASS
+   LOCATE '\DFHMSD+TYPE+FINAL'
+   IF SIBRETCD EQ OK
+      SET  ATTR  'BMS'
+   BYPASS
+   LOCATE '\EXEC+CICS+RETURN'
+   IF SIBRETCD EQ OK
+      SET  ATTR  'ONLINE'
+   SET  PPDCOND  0
+
+   BYPASS
+   END NOSAVE
+
+   IF TYPE,EQ,ASM
+      GOTO SHOWMAP
+   IF TYPE,EQ,CBL
+      GOTO SHOWMAP
+   EXIT ER,'VSE MEMBER "&MEM" TYPE CANNOT BE COMPILED'
+
+LABEL SHOWMAP
+SET  PPDCOND  0
+
+MAPF
+COMPILED
+
+
+ ¬Specify the desired compile parameters:
+
+
+     VSE Member    :¬&MEM
+
+     Compile Type  :{TYPE    }  ASM or CBL
+
+     Compile Attr  :{ATTR    }  BATCH, BMS, OBJECT, ONLINE, or TRACK
+
+     Compile LIBDEF:{LIBDEF  }  PROD, PROD-TS, TEST, or TEST-TS
+
+     Compile Dest  :{DEST    }  TEST or PROD
+
+
+ }Press¬ENTER}when ready to submit the compile job.
+
+
+ ¬&MESG                                                                        }
+
+++/*
+
+IF PPDKEY NE 'ENTER'
+   EXIT ER,'(BIPCOMPD) ** TERMINATED VIA "&PPDKEY" KEY **'
+
+SET  PPDALARM 0
+SET  PPDCOND  1
+
+VEXAM DEST '\TEST|PROD'
+IFTHEN SIBRETCD NE OK
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'DEST'
+  SET  MESG 'Please specify one of the destinations shown.'
+ENDIF
+
+VEXAM ATTR '\BATCH|BMS|OBJECT|ONLINE|TRACK'
+IFTHEN SIBRETCD NE OK
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'ATTR'
+  SET  MESG 'Please specify one of the attributes shown.'
+ENDIF
+
+VEXAM TYPE '\ASM|CBL'
+IFTHEN SIBRETCD NE OK
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'TYPE'
+  SET  MESG 'Please specify one of the types shown.'
+ENDIF
+
+IFTHEN TYPE EQ CBL
+IFTHEN ATTR EQ BMS
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'ATTR'
+  SET  MESG 'ATTR=BMS not valid with TYPE=CBL.'
+ENDIF
+ENDIF
+
+IF PPDALARM EQ 1
+   GOTO -SHOWMAP
+
+* === EXECUTE COMPILE PROC, ITS SIBMSG WILL BE DISPLAYED WHEN DONE
+
+EXEC $SIT.COMP.&TYPE-&ATTR LINK='&LINK',CLASS='&CLASS',LIBDEF='&LIBDEF',XDEST='&DEST'

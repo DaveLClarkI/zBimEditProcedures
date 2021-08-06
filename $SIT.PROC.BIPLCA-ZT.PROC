@@ -1,0 +1,30 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: LCA COMMAND TO ZERO AN AUDIT TRAIL                     *
+* Procedure..: BIPLCA-ZT                                              *
+* Command....: ZT (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* LCA Command to Zero an Audit Trail                                  *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(LCA-ZT) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET PPDCOND 1
+VEXAM XTRSLINE '/CTL/M' 136-141
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZT) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET PPDCOND 0
+
+ALTER &PARMLIST AUDIT=OFF,STAMP=ON

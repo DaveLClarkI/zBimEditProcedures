@@ -1,0 +1,61 @@
+;"GET" IS THE FRONT-END FOR THE GET COMMAND
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL 1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(GET     ) ** COMMAND REQUIRES A SESSION **'
+
+DCL  X        CHAR   1 V U
+DCL  1        CHAR  40 V U
+DCL  2        CHAR  40 V U
+DCL  3        CHAR  40 V U
+DCL  4        CHAR  40 V U
+DCL  5        CHAR  40 V U
+DCL  6        CHAR  40 V U
+DCL  7        CHAR  40 V U
+;
+DCL  MEM      CHAR  33 V U
+DCL  BASE     CHAR  40 V U
+DCL  DEPTH    CHAR  40 V U
+DCL  PSWD     CHAR  40 V U
+
+PARSE MEM BASE DEPTH PSWD 1 2 3 4 5 6 7
+IF MEM,EQ,''
+   GOTO GET
+SETD X MEM 1 1
+IF X,EQ,'$'
+   GOTO SPECIAL
+
+LABEL GET
+BYPASS
+GET &PARMLIST
+EXIT
+
+LABEL SPECIAL
+PARSE MEM 1 2 3 4 5 6 7
+IF MEM,EQ,$LOG
+   GOTO PROCESS
+IF MEM,EQ,$MAIL
+   GOTO PROCESS
+IF MEM,EQ,$STACK
+   GOTO PROCESS
+
+SET  PPDVBL 2
+
+SETD X MEM 1 1
+IF X,NE,'$'
+   GOTO PROCESS
+IF SSDTYPE,NE,'ED'
+   EXIT SV,'(GET     ) ** Command requires an "EDIT" session **'
+
+LABEL PROCESS
+SET PPDINCL 2
+INSERTF
+/INCLUDE &MEM
+++/*

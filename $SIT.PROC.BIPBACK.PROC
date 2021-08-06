@@ -1,0 +1,77 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: SCROLL SESSION BACKWARD                                *
+* Procedure..: BIPBACK                                                *
+* Command....: BACKWARD                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Support new parameters to allow  session scrolling not only by FCT, *
+* but also give the ability to scroll by 'CURSOR', 'DATA', or 'HALF'. *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+SET PPDLITEX,1
+DCL NCT,NUM,6,V
+ 
+DCL FCT,CHAR,6,V
+PARSE FCT
+IF FCT EQ 'CURSOR'
+   GOTO BYCURSOR
+IF FCT EQ 'DATA'
+   GOTO BYDATA
+IF FCT NE 'HALF'
+   GOTO PROCEED
+
+LABEL BYHALF
+SET  NCT &SIBSCRD&SIBSCRPM
+SUBT NCT 3
+DIV  NCT 2
+SET  PPDCOND 1
+UP   &NCT
+SET  PPDCOND 0
+EXIT OK
+
+LABEL BYDATA
+SET  NCT &SIBSCRD&SIBSCRPM
+SUBT NCT 4
+SET  PPDCOND 1
+UP   &NCT
+SET  PPDCOND 0
+EXIT OK
+
+LABEL BYCURSOR
+SET  FCT ''
+IF SIBCURLS EQ 0
+   GOTO EXECUTE
+IF SIBCURLS NE &SIBSCRPM
+   <
+IF SIBCURRL LT 0
+   GOTO EXECUTE
+IF SIBCURRL EQ 0
+   GOTO -BYDATA
+SET  NCT &SIBSCRD&SIBSCRPM
+SUBT NCT 4
+IF SIBCURRL EQ &NCT
+   GOTO EXECUTE
+SUBT NCT &SIBCURRL
+UP   &NCT
+EXIT OK
+
+LABEL PROCEED
+SET PPDCOND 0
+IFTHEN FCT NE ''
+   SET FCT &NCT
+ENDIF
+
+LABEL EXECUTE
+BYPASS
+BACKWARD &FCT

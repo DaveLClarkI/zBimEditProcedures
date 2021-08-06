@@ -1,0 +1,30 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: Checkout out a Member for TEST Status                  *
+* Procedure..: BIPLCA-ZO                                              *
+* Command....: ZO (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* LCA front-end for the WIN CHECKOUT command.                         *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(LCA-ZO) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET PPDCOND 1
+VEXAM XTRSLINE '/CTL/M' 136-141
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZO) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET PPDCOND 0
+
+CHECKOUT &PARMLIST

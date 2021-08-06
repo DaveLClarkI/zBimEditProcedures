@@ -1,0 +1,36 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: Move a Member to OBSOLETE Library                      *
+* Procedure..: BIPLCA-ZB                                              *
+* Command....: ZB (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* LCA front-end for the OBS command.                                  *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(LCA-ZB) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET PPDCOND 1
+VEXAM XTRSLINE '/CTL/M' 136-141
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZB) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+VEXAM XTRSLINE 'OBSOLETE' 156-171
+IFTHEN SIBRETCD,EQ,OK
+    SET PPDCOND 0
+    UNOBS &PARMLIST
+ELSE
+    SET PPDCOND 0
+    OBS &PARMLIST
+ENDIF

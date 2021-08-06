@@ -1,0 +1,268 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: Update VSAM.DEFINES member with RETUNE Information     *
+* Procedure..: BIPLCA-ZD                                              *
+* Command....: ZD (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* This LCA command will automatically update the VSAM.DEFINES library *
+* with new  IDCAMS  Delete  and  Define  information  from a VSAMTUNE *
+* "RETUNE" member that was created  via the M4AMSDEF job and GENBIMUT *
+* REXX procedure process.   These last  two  named members are in the *
+* INST.M4 library.                                                    *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  RC       CHAR  2 V
+DCL  FID      CHAR  7 V
+DCL  ATR      CHAR  8 V
+DCL  OLD      CHAR 16 V
+DCL  MEM      CHAR 33 V
+DCL  DSN      CHAR 40 V
+
+IF SSDTYPE NE 'DI'
+   EXIT SV,'(LCA-ZD) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET  PPDCOND 1
+VEXAM XTRSLINE '/CTL/M' 136-141
+IF SIBRETCD NE 'OK'
+   EXIT SV,'(LCA-ZD) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+VEXAM XTRSLINE '\GENBIMU|RETUNE_' 1-7
+IF SIBRETCD NE 'OK'
+   EXIT SV,'(LCA-ZD) ** LCA COMMAND ONLY FOR ''RETUNE_'' MEMBER NAME DISPLAY **'
+SET  PPDCOND 0
+
+READ &PARMLIST
+SET  MEM &TXMLIB..&TXMMEM
+SET  DSN "&TXMTITLE"
+
+SET  TXMLIB 'VSAM.DEFINES'
+SET  TXMMEM ''
+SET  PPDCOND 1
+BLOCK
+  BROWSE
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  IF TXMTITLE NE "&DSN"
+     LOOP
+ENDBLOCK
+SET  PPDCOND 0
+IF TXMTITLE EQ "&DSN"
+   GOTO FOUNDIT
+
+MAPF
+
+
+        NO MATCHING MEMBER WAS FOUND IN THE "VSAM.DEFINES" LIBRARY FOR:
+               ¬&DSN}
+
+        PLEASE SPECIFY THE DLBL NAME FOR THIS DATASET:!FID}
+        AND PRESS¬ENTER}TO CONTINUE
+
+        OR LEAVE IT BLANK AND PRESS¬ENTER}TO
+        BYPASS PROCESSING OF THIS SELECTION.
+
+
+++/*
+
+IFTHEN FID EQ ''
+  SET  PPDCOND 2             ;BYPASS ALL ERRORS
+  READ &LSTMEM               ;RESTORE USER'S LAST REFERENCED INFO
+  SET  PPDCOND 0             ;DEFAULT ERROR HANDLING
+  EXIT NF,'(LCA-ZD) ** NO MATCHING MEMBER FOUND IN THE "VSAM.DEFINES" LIBRARY **'
+ENDIF
+
+SET  OLD &FID
+SET  PARMLIST &OLD
+GOTO PROCESS
+
+LABEL FOUNDIT
+SET  OLD &TXMMEM
+SET  PARMLIST &OLD{1,12}
+
+LABEL PROCESS
+SET  ATR 'PROCEDUR'
+SET  PPDCOND 1
+READ VSAM.DEFINES.&OLD
+SETD RC SIBRETCD
+IF RC EQ 'NF'
+   GOTO KEEPOLD
+IF RC EQ 'OK'
+   SET  ATR &TXMATTR
+READ VSAM.DEFINES.&PARMLIST._OLD
+IF SIBRETCD NE 'OK'
+   GOTO CONTINUE
+SET  PPDCOND 0
+
+DCL ANS CHAR 1 V U
+SET ANS 'Y'
+MAPF
+
+
+        EXISTING OLD MEMBER WAS FOUND IN THE "VSAM.DEFINES" LIBRARY FOR:
+               ¬&DSN}
+
+        DO YOU WISH TO PURGE THE EXISTING OLD MEMBER (Y/N)?!ANS}
+
+        PURGING THE EXISTING OLD MEMBER WILL:
+         -- RENAME THE CURRENT MEMBER AS A NEW OLD MEMBER
+         -- BEFORE THE NEW CURRENT MEMBER IS CREATED.
+
+        KEEPING THE EXISTING OLD MEMBER WILL:
+         -- FIRST PURGE THE CURRENT MEMBER
+         -- BEFORE THE NEW CURRENT MEMBER IS CREATED.
+
+
+++/*
+
+IF ANS NE 'Y'
+   PURGE VSAM.DEFINES.&OLD
+IF ANS NE 'Y'
+   GOTO KEEPOLD
+PURGE VSAM.DEFINES.&OLD._OLD
+
+LABEL CONTINUE
+SET  PPDCOND 0
+RENAME VSAM.DEFINES.&OLD VSAM.DEFINES.&PARMLIST._OLD
+
+LABEL KEEPOLD
+RENAME &MEM VSAM.DEFINES.&OLD
+
+BYPASS
+EDIT VSAM.DEFINES.&OLD
+SET  PPDTRAP   1
+INSERTF
+)IF ATR EQ 'PROCEDUR'
+   CATALOG &OLD..PROC   REPLACE=YES   DATA=YES
+// EXEC   PGM=IDCAMS,SIZE=AUTO
+++/*
+POS  &SSDSZLN
+INSERTF
+/* EOD
+)IF ATR EQ 'PROCEDUR'
+/+
+++/*
+SET  PPDTRAP   0
+
+DCL POS  NUM 6
+DCL CNT  NUM 6
+DCL END  NUM 6
+DCL LOOP NUM 6
+
+TOP
+SET  PPDCOND 1
+BYPASS                       ;SHIFT DASHES TO COLUMN 71
+LOCATE ' - ' 60-71
+IF SIBRETCD NE 'OK'
+   GOTO SKIPALL
+SET  PPDCOND 0
+SET  POS &SSDCOL&SIBSCRPM
+ADD  POS 1
+SET  CNT 71
+SUBT CNT &POS
+SHIFT +&CNT * &POS-71
+
+TOP
+SET  PPDCOND 1
+FIND 'DELETE' 4              ;SHIFT LINES FOLLOWING 'DELETE' KEYWORD
+IFTHEN SIBRETCD EQ 'OK'
+  SET  PPDCOND 0
+  SET  POS &SSDBASE&SIBSCRPM
+  FIND 'DEFINE' 4
+  SET  CNT &SSDBASE&SIBSCRPM
+  SUBT CNT &POS
+  SUBT CNT 1
+  POS  &POS
+  DOWN 1
+  SHIFT +7 &CNT 1-70
+  OVLY 20 'NOERASE  PURGE' 1 ;PUT IN OUR DEFAULT PARAMETERS
+  DOWN 1
+  BLOCK                      ;  REMOVE ANY OTHERS
+    SET  PPDCOND 1
+    VEXAM XTRSLINE 'CATALOG(' 11-18
+    IF SIBRETCD EQ 'OK'
+       LEAVE
+    SET  PPDCOND 0
+    DELETE 1
+    LOOP
+  ENDBLOCK
+  SET  PPDCOND 0
+ENDIF
+INSERTF
+   SET MAXCC = 0
+++/*
+
+TOP
+SET  PPDCOND 1
+FIND 'DEFINE' 4              ;SHIFT LINES FOLLOWING 'DEFINE' KEYWORD
+IFTHEN SIBRETCD EQ 'OK'
+  SET  PPDCOND 0
+  SET  POS &SSDBASE&SIBSCRPM ;WE'LL DO THE REST OF OUR WORK FROM HERE
+  BYPASS
+  LOCATE 'CATALOG('
+  SET  END &SSDBASE&SIBSCRPM ;  ONLY DOWN TO THE NEXT 'CATALOG' KEYWORD D
+  POS  &POS
+  SET  LOOP 0
+  BLOCK                      ;PROCESSING UP TO THREE SECTIONS
+    ADD  LOOP 1              ;  CLUSTER/AIX/PATH, DATA, INDEX
+    SET  PPDCOND 1
+    VEXAM XTRSLINE '\CLUSTER|AIX|PATH|DATA|INDEX' 11-17
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    SET  PPDCOND 0
+    DOWN 1                   ;MERGE THE 'NAME' LINE
+    SHIFT +16 1 1-70
+    DELETE 1 STACK
+    UP   1
+    MERGE 1
+    DOWN 1                   ;SHIFT LINES REMAINING IN THIS SECTION
+    SET  POS &SSDBASE&SIBSCRPM
+    SET  PPDCOND 1
+    BYPASS
+    LOCATE '\/\**\*/' 18-40  ;  SECTION ENDS AT '/* ... */' LINE
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    IF SSDBASE&SIBSCRPM GT &END
+       LEAVE
+    SET  PPDCOND 0
+    SET  CNT &SSDBASE&SIBSCRPM
+    SUBT CNT &POS
+    POS  &POS
+    SHIFT +16 &CNT 1-70
+    DOWN &CNT
+    BLANK 19-38 1            ;AND BLANK OUT THE '/* ... */' FLAG
+    SHIFT +4 1 1-70
+    DOWN 1
+    IF LOOP LT 3
+       LOOP
+  ENDBLOCK
+  SET  PPDCOND 1
+  VEXAM XTRSLINE 'CATALOG(' 4-11
+  IF SIBRETCD EQ 'OK'
+     SHIFT +7 1 1-70
+ENDIF
+
+INSERTF
+   IF MAXCC > 0 THEN CANCEL JOB
+++/*
+
+LABEL SKIPALL
+SET  PPDCOND 0
+BYPASS
+SAVE
+
+IF ATR EQ 'PROCEDUR'
+   COMPILE VSAM.DEFINES.&OLD
+EXIT OK,'(LCA-ZD) ## MEMBER "VSAM.DEFINES.&OLD" UPDATED ##'

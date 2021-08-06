@@ -1,0 +1,65 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: PROCESS A BIM-EDIT MEMBER                              *
+* Procedure..: BIPPROC                                                *
+* Command....: PROCESS                                                *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Send everything except member types of DATA, TEXT, JCL, and PROC to *
+* the COMPILE command for processing.                                 *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,2
+
+DCL MEM,CHAR,33,V
+PARSE MEM
+READ &MEM
+
+IF XTREUSER,NE,''
+    EXIT SV,'(BIPPROCA) ** MEMBER "&TXMLIB..&TXMMEM" IS BEING EDITED **'
+IF TXMTYPE,EQ,''
+    EXIT SV,'(BIPPROCB) ** MEMBER "&TXMLIB..&TXMMEM" TYPE NOT SET **'
+IF TXMTYPE,EQ,DATA
+    GOTO NPROCESS
+IF TXMTYPE,EQ,TEXT
+    GOTO NPROCESS
+GOTO CONTINUE
+
+LABEL NPROCESS
+EXIT SV, -
+ '(BIPPROCC) ** MEMBER "&TXMLIB..&TXMMEM" TYPE "&TXMTYPE" INVALID **'
+
+LABEL CONTINUE
+IF TXMATTR,EQ,COPYBOOK
+    GOTO L300
+IF TXMATTR,EQ,PROCEDUR
+    GOTO L300
+IF TXMATTR,EQ,SLI
+    GOTO L300
+IF TXMTYPE,EQ,PROC
+    GOTO L200
+IF TXMTYPE,EQ,REXX
+    GOTO L200
+IF TXMTYPE,EQ,JCL
+    GOTO L100
+
+LABEL L300
+COMPILE
+EXIT OK,'&SIBMSG'
+
+LABEL L200
+EXECUTE
+EXIT OK,'&SIBMSG'
+
+LABEL L100
+SUBMIT
+EXIT OK,'&SIBMSG'

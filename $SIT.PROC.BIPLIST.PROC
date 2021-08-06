@@ -1,0 +1,99 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPLIST    Proc Created 10/30/2001   By Dave Clark        *
+;*                  Last Revised 08/27/2009                        *
+;*                                                                 *
+;*      This procedure front-ends the LIST command for the purpose *
+;* of issuing the SETKEYS command in the new session.              *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  Then add the following line(s), without the *
+;* ruler line and  in  sorted sequence,  to the $SIT.CTRL.COMMANDS *
+;* member and issue the "NEWCOPY COMMANDS" command:                *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* LI       BIPLIST                                                *
+;* LIST     BIPLIST                                                *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+SET PPDLITEX,1
+ 
+DCL PARMSAVE CHAR 253 V
+DCL L        NUM    3 V
+DCL X        CHAR   4 V
+DCL MEM      CHAR  33 V
+DCL PSWD     CHAR   8 V
+;
+DCL DMY1     CHAR  36 V
+DCL DMY2     CHAR  36 V
+DCL CMD      CHAR  36 V
+DCL LIB      CHAR  36 V
+DCL STR      CHAR  36 V
+DCL TYPE     CHAR  36 V
+
+IF SIBDIALG NE 'T'
+   GOTO CONTINUE
+
+SET  PPDCOND  1
+VEXAM SIBUSER{1,3} '\AMR|DLA|JMB'
+IF SIBRETCD EQ OK
+   GOTO CONTINUE
+SET  PPDCOND  0
+
+IF SIBSESSD,EQ,0
+   GOTO BYPASS
+IF SSDTYPE,NE,DI
+   GOTO BYPASS
+ 
+SETD PARMSAVE PARMLIST
+SETD PARMLIST SSDOBJ
+SET PPDCOND 2
+PARSE DMY1 DMY2 CMD LIB STR TYPE
+SET PPDCOND 0
+SETD PARMLIST PARMSAVE
+ 
+LABEL BYPASS
+SET PPDCOND 2
+PARSE MEM PSWD
+IFTHEN SIBRETCD EQ OK
+  READ &MEM
+  IFTHEN SIBRETCD EQ OK
+    IFTHEN TXMAUDIT NE 1
+      IFTHEN TXMLIB  EQ 'RDR.Q'
+        ALTER AUDIT=ON
+      ENDIF
+      IFTHEN TXMTYPE NE 'JCL'
+        ALTER AUDIT=ON
+      ENDIF
+    ENDIF
+    IFTHEN TXMSTAMP NE 1
+      ALTER STAMP=ON
+    ENDIF
+  ENDIF
+ENDIF
+
+LABEL CONTINUE
+SET PPDCOND 0
+BYPASS
+LIST &PARMLIST
+
+SETKEYS
+IF CMD,NE,SCAN
+   EXIT OK
+
+TOP
+SET PPDCOND 1
+BYPASS
+LOCATE '&STR'
+SET PPDCOND 0
+TOP
+EXIT OK

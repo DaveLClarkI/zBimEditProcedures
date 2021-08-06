@@ -1,0 +1,85 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: PROCEDURE TO ALIGN MACRO4 IDCAMS DEFINES               *
+* Procedure..: BIPLCA-ZDX                                             *
+* Command....: FIXDEF                                                 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* This command is used in conjunction with the ZO LCA command.   This *
+* is for use where MACRO4  creates  a member with multiple DEFINEs in *
+* it.   MACRO4 does this for base clusters with one or more alternate *
+* indexes (AIX) built over them.   The  ZO LCA command will take care *
+* of the DELETE and DEFINE  for the base cluster.   This command must *
+* be used to take care of the AIX and PATH DEFINEs.                   *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+DCL POS  NUM 6
+DCL CNT  NUM 6
+DCL END  NUM 6
+DCL LOOP NUM 6
+
+SET  PPDCOND 1
+VEXAM XTRSLINE 'DEFINE' 4-9  ;SHIFT LINES FOLLOWING 'DEFINE' KEYWORD
+IFTHEN SIBRETCD EQ 'OK'
+  SET  PPDCOND 0
+  SET  POS &SSDBASE&SIBSCRPM ;WE'LL DO THE REST OF OUR WORK FROM HERE
+  BYPASS
+  LOCATE 'CATALOG('
+  SET  END &SSDBASE&SIBSCRPM ;  ONLY DOWN TO THE NEXT 'CATALOG' KEYWORD D
+  POS  &POS
+  SET  LOOP 0
+  BLOCK                      ;PROCESSING UP TO THREE SECTIONS
+    ADD  LOOP 1              ;  CLUSTER/AIX/PATH, DATA, INDEX
+    SET  PPDCOND 1
+    VEXAM XTRSLINE '\CLUSTER|AIX|PATH|DATA|INDEX' 11-17
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    SET  PPDCOND 0
+    DOWN 1                   ;MERGE THE 'NAME' LINE
+    SHIFT +16 1 1-70
+    DELETE 1 STACK
+    UP   1
+    MERGE 1
+    DOWN 1                   ;SHIFT LINES REMAINING IN THIS SECTION
+    SET  POS &SSDBASE&SIBSCRPM
+    SET  PPDCOND 1
+    BYPASS
+    LOCATE '\/\**\*/' 18-40  ;  SECTION ENDS AT '/* ... */' LINE
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    IF SSDBASE&SIBSCRPM GT &END
+       LEAVE
+    SET  PPDCOND 0
+    SET  CNT &SSDBASE&SIBSCRPM
+    SUBT CNT &POS
+    POS  &POS
+    SHIFT +16 &CNT 1-70
+    DOWN &CNT
+    BLANK 19-38 1            ;AND BLANK OUT THE '/* ... */' FLAG
+    SHIFT +4 1 1-70
+    DOWN 1
+    IF LOOP LT 3
+       LOOP
+  ENDBLOCK
+  SET  PPDCOND 1
+  VEXAM XTRSLINE 'CATALOG(' 4-11
+  IF SIBRETCD EQ 'OK'
+     SHIFT +7 1 1-70
+ENDIF
+
+INSERTF
+   IF MAXCC > 0 THEN CANCEL JOB
+++/*
+
+EXIT OK

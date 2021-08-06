@@ -1,0 +1,104 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: LCA Command to Purge a Library                         *
+* Procedure..: BIPLCA-ZY                                              *
+* Command....: ZY (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* LCA Command to Purge a Library.                                     *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(LCA-ZY) ** LCA COMMAND REQUIRES A LIBRARY NAME DISPLAY **'
+SET PPDCOND 1
+VEXAM XTRSLINE '/CTL/L' 136-141
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZY) ** LCA COMMAND REQUIRES A LIBRARY NAME DISPLAY **'
+SET PPDCOND 0
+
+DCL  PURGE    CHAR   1 V U   ;MAPF FIELD
+DCL  MESG     CHAR  79 V U   ;MAPF FIELD
+DCL  LIB      CHAR  16 V U   ;MAPF FIELD
+PARSE LIB PURGE
+READL &LIB
+
+IF PURGE EQ Y
+   GOTO CONTINUE
+
+LABEL DISPLAY
+
+IF PURGE EQ ""
+   SET  PURGE  "N"
+
+MAPF
+}BIPLCA-ZY              ¬LCA Command to Purge a Library              }&OPSDATE
+                              Confirmation Screen                      }&OPSTIME
+
+
+          ¬WARNING!!! }The effects of this command cannot be undone!
+
+
+          }This command will purge all members in the¬&LIB
+          }library¬without}placing those members in the $SIT.PURGE
+          }library for later possible recovery.
+
+
+          }Are you sure you wish to continue?!PURGE}
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to terminate this command without purging anything.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   EXIT OK,"(BIPLCA-ZY) ## COMMAND TERMINATED ON USER REQUEST. ##"
+IF PPDKEY,EQ,PF15
+   EXIT OK,"(BIPLCA-ZY) ## COMMAND TERMINATED ON USER REQUEST. ##"
+IF PURGE EQ Y
+   GOTO CONTINUE
+
+SET  MESG     "Enter the letter 'Y' to purge, or press the PF3 key to exit without purging."
+SET  PPDALARM 1
+GOTO -DISPLAY
+
+LABEL CONTINUE
+
+SET  TXMLIB   '&TXLLIB'
+SET  TXMMEM   ''
+BLOCK
+  SET PPDCOND 1
+  BROWSE
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  SET PPDCOND 0
+  BYPASS
+  PURGE &TXMLIB..&TXMMEM OPT=NOPGCTL
+  LOOP
+ENDBLOCK
+SET PPDCOND 0
+
+PURGEL &TXLLIB
+
+EXIT OK,"(BIPLCA-ZY) ## LIBRARY &TXLLIB PURGED. ##"

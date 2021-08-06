@@ -1,0 +1,375 @@
+SET PPDVBL,1
+SET PPDCOND,1
+DCL MEM,CHAR,33,V
+DCL CLASS,CHAR,1,F
+DCL FNO,CHAR,8,V
+DCL CASE,CHAR,1,F
+DCL RJEIDR,CHAR,1,F
+DCL RJEID,CHAR,4,V
+DCL RJEID3,NUM,3,F
+DCL JSEP,CHAR,1,F
+DCL COPY,CHAR,1,F
+DCL COPYN,NUM,1,F
+DCL XCOPY,CHAR,1,F
+DCL DESTNODE,CHAR,8,V
+DCL DESTUSER,CHAR,8,V
+DCL PSWD,CHAR,8,V
+DCL FMT,CHAR,3,V
+DCL WORKNUM1,NUM,3,V              ; WORK NUMERIC VARIABLE
+DCL PGSIZ,NUM,3,V
+DCL UINF,CHAR,16,V
+DCL BASE,NUM,8,V
+DCL DEPTH,NUM,8,V
+DCL BASEOPT,CHAR,16,V
+DCL DEPTHOPT,CHAR,16,V
+DCL BIJPRNT,CHAR,33,V
+READ $SIT.JCL.BIJPRNT
+IF SIBRETCD,NE,OK
+    GOTO SYSJCL
+SET BIJPRNT,'$SIT.JCL.BIJPRNT'
+GOTO SUBPRNT
+LABEL SYSJCL
+SET BIJPRNT,'$SYS.JCL.BIJPRNT'
+LABEL SUBPRNT
+PARSE MEM,CLASS,FNO,CASE,FMT,PGSIZ,PSWD,BASE,DEPTH,RJEID,JSEP,COPY,DESTNODE,DESTUSER,UINF
+
+SET BASEOPT ""
+SET DEPTHOPT ""
+IF BASE NE 0
+   SET BASEOPT "BASE=&BASE"
+IF DEPTH NE 0
+   SET DEPTHOPT "DEPTH=&DEPTH"
+
+IF MEM,EQ,/
+    GOTO L120
+IF MEM,EQ,$STACK
+    GOTO L140
+IF MEM,EQ,$MAIL
+    GOTO L140
+IF MEM,EQ,$LOG
+    GOTO L140
+
+LABEL L100
+AUTHORIZ CMD=ON                   ;SET COMMAND SECURITY ON
+READ &MEM                         ;SET TXM VARIABLES
+AUTHORIZ CMD=OFF                  ;SET COMMAND SECURITY OFF
+IFD TXMPSWD,EQ,MMPZERO            ;PASSWORD PROTECTED
+    GOTO L140                     ;NO - BRANCH
+IF TXMPSWD,EQ,''                  ;PASSWORD PROTECTED
+    GOTO L140                     ;NO - BRANCH
+IF PSWD,EQ,''                     ;PASSWORD ENTERED
+    EXIT SC,'(BIPPRNTH) ** Member "&TXMPATH" is password protected, enter password **'
+IFD PSWD,NE,TXMPSWD
+    EXIT SC,'(BIPPRNTI) ** Password for "&TXMPATH" is incorrect **'
+SETD SIBPPSWD,PSWD                ;SAVE ENTERED PASSWORD
+GOTO L140
+LABEL L120
+IF SIBSESSD,EQ,0
+    EXIT SV,'(BIPPRNTA) ** COMMAND REQUIRES A SESSION **'
+LABEL L140
+
+IF CLASS,EQ,''
+    SET CLASS,A
+IF CLASS,LT,A
+    EXIT SV,'(BIPPRNTB) ** INVALID CLASS "&CLASS" **'
+IF CLASS,GT,9
+    EXIT SV,'(BIPPRNTC) ** INVALID CLASS "&CLASS" **'
+
+IF CASE,EQ,M
+    GOTO L180
+IF CASE,EQ,U
+    GOTO L180
+IF CASE,NE,''
+    EXIT ER,'(BIPPRNTD) ** CASE "&CASE" IS INVALID **'
+SET CASE,M
+
+LABEL L180
+
+IF FMT,EQ,YES                                                   ;
+    GOTO L190                                                   ;
+IF FMT,EQ,1                                                     ;
+    GOTO L190                                                   ;
+IF FMT,EQ,NO                                                    ;
+    GOTO L190                                                   ;
+IF FMT,EQ,0                                                     ;
+    GOTO L190                                                   ;
+IF FMT,NE,''                                                    ;
+    EXIT ER,'(BIPPRNTD) ** PAGE HEADER FLAG, FMT=&FMT IS INVALID, SPECIFY "YES" OR "NO" **'
+SET FMT,YES                                                     ;
+LABEL L190                                                      ;
+
+IF MMPOPREL,GE,45
+    GOTO L300
+IF SIBDIALG,EQ,U
+    GOTO L300
+
+IF MEM,EQ,/
+    EXIT SV,'(BIPPRNTE) ** PRINT OF CURRENT SESSION NOT SUPPORTED **'
+DCL JNAME,CHAR,8,V
+SET JNAME,&TXMMEM
+
+VEXAMINE JNAME,'\_|-'             ; Connector in JNAME?
+IF SIBRETCD,EQ,NF                 ; Is connector missing?
+   GOTO L210                      ;
+SETD WORKNUM1,PPDCOL              ; Calc name length up
+SUBTRACT WORKNUM1,1               ;   to the connector.
+SETD JNAME,JNAME,1,&WORKNUM1      ; Trunc JNAME at connector.
+LABEL L210                        ;
+
+DCL XFNO,CHAR,9,V
+IF FNO,NE,''
+    SET XFNO,',FNO=&FNO'
+SET XCOPY,1
+SETD COPYN,COPY
+IF COPY,EQ,''
+    GOTO NOCOPY1
+IF COPYN,LT,1
+    GOTO COPYINV
+IF COPYN,LE,255
+    GOTO SETCOPY
+LABEL COPYINV
+EXIT SV,'(BIPPRNTF) ** COPY=&COPY IS INVALID **'
+LABEL SETCOPY
+SET XCOPY,COPYN
+LABEL NOCOPY1
+PEND
+SET PPDINCL,1
+SUBMITF
+/INCL &BIJPRNT
+++/*
+EXIT OK,'## JOB TO PRINT MEMBER "&TXMPATH" SUBMITTED ##'
+
+LABEL L300
+
+DCL LSTNAME,CHAR,8,V
+DCL LSTCLASS,CHAR,1,V
+SETD LSTCLASS,CLASS
+
+IF PGSIZ NE 0                     ; IF USER SPECIFIED A PAGE
+    SETD PPDPGSIZ,PGSIZ           ;   SIZE, USE IT.
+
+DCL LSTCOPY,NUM,3,V
+SET LSTCOPY,1
+SETD COPYN,COPY
+IF COPY,EQ,''
+    GOTO NOCOPY
+IF COPYN,LT,1
+    GOTO COPYIV
+IF COPYN,LE,255
+    GOTO SETCOPY2
+LABEL COPYIV
+EXIT SV,'(BIPPRNTF) ** COPY=&COPY IS INVALID **'
+LABEL SETCOPY2
+SETD LSTCOPY,COPYN
+LABEL NOCOPY
+DCL LSTDISP,CHAR,1,V
+SET LSTDISP,D
+DCL LSTPRI,CHAR,1,V
+SET LSTPRI,3
+DCL LSTFCB,CHAR,8,V
+SET LSTFCB,''
+DCL LSTFNO,CHAR,8,V
+SETD LSTFNO,FNO
+DCL LSTUSER,CHAR,16,V
+SET LSTUSER,&SIBUSER
+IF UINF,NE,''                                                   ;
+    SETD LSTUSER,UINF                                           ;
+DCL LSTJSEP,NUM,3,V
+SET LSTJSEP,0
+IF JSEP,EQ,''
+    GOTO NOJSEP
+IF JSEP,LT,0
+    GOTO JSEPIV
+IF JSEP,LE,9
+    GOTO SETJSEP
+LABEL JSEPIV
+EXIT SV,'(BIPPRNTF) ** JSEP=&JSEP IS INVALID **'
+LABEL SETJSEP
+SETD LSTJSEP,JSEP
+LABEL NOJSEP
+DCL LSTRJEID,CHAR,4,V
+IF RJEID,EQ,''
+    GOTO NORJEID
+SETD RJEIDR,RJEID
+IF RJEIDR,NE,R
+    GOTO NORJER
+SETD RJEID,RJEID,2
+LABEL NORJER
+SETD RJEID3,RJEID
+IF RJEID3,LT,1
+    GOTO RJEIDIV
+IF RJEID3,LE,250
+    GOTO SETRJEID
+LABEL RJEIDIV
+EXIT SV,'(BIPPRNTG) ** RJEID=&RJEID IS INVALID **'
+LABEL SETRJEID
+SETD LSTRJEID,RJEID3
+LABEL NORJEID
+DCL LSTDSNOD,CHAR,8,V
+DCL LSTDSUSR,CHAR,8,V
+IF DESTNODE,NE,''
+    SETD LSTDSNOD,DESTNODE
+IF DESTUSER,NE,''
+    SETD LSTDSUSR,DESTUSER
+DCL XMEM,CHAR,33,F
+DCL WRKDATE,CHAR,10,V
+DCL WRKTIME,CHAR,8,V
+SET WRKDATE,&SIBDATE
+SET WRKTIME,&SIBTIME
+IF SIBDIALG,EQ,U
+    GOTO L320
+SET WRKDATE,&OPSDATE
+SET WRKTIME,&OPSTIME
+LABEL L320
+
+SET PPDINCL,2
+
+; SET FMT TO THE VALUES PRINTF EXPECTS.
+IF FMT,EQ,YES                                                   ;
+    SET FMT,1                                                   ;
+IF FMT,EQ,NO                                                    ;
+    SET FMT,0                                                   ;
+
+IF MEM,EQ,/
+    GOTO L400
+IF MEM,EQ,$STACK
+    GOTO L500
+IF MEM,EQ,$MAIL
+    GOTO L600
+IF MEM,EQ,$LOG
+    GOTO L700
+
+SET XMEM,&TXMPATH
+SETD LSTNAME,TXMMEM
+
+;SET PPDCOND,1                    ; TOLERATE CMD ERRORS.
+VEXAMINE LSTNAME,'\_|-'           ; Connector in LSTNAME?
+IF SIBRETCD,EQ,NF                 ; Is connector missing?
+   GOTO L325                      ;
+SETD WORKNUM1,PPDCOL              ; Calc name length up
+SUBTRACT WORKNUM1,1               ;   to the connector.
+SETD LSTNAME,LSTNAME,1,&WORKNUM1  ; Trunc LSTNAME at connector.
+LABEL L325                        ;
+;CONSOLEI '$SYS.PROC.BIPPRNT, LABEL L325'
+IF FMT,EQ,0                                                     ;
+    GOTO L330                                                   ;
+;CONSOLEI '$SYS.PROC.BIPPRNT, LABEL L325 AFTER IF FMT,EQ,0'
+SET PPDVBL,0
+HEADF
+BIMEDIT                           BIM-EDIT PROGRAM EDITOR                           RUN DATE: &WRKDATE  TIME: &WRKTIME  PAGE: &SIBPAGE
+
+MEM=&XMEM TITLE=&TXMTITLE
+       ----.----1----.----2----.----3----.----4----.----5----.----6----.----7----.----8----.----9----.---10----.---11----.---12----.-
+++/*
+LABEL L330
+SET PPDVBL,2
+PRINTF FMT=&FMT,CASE=&CASE
+/INCL &TXMPATH &BASEOPT &DEPTHOPT
+++/*
+
+IF SIBDIALG,NE,U
+    GOTO L340
+EJECT
+EXIT OK
+LABEL L340
+EXIT OK,'## MEMBER "&TXMPATH" PRINTED AS POWER LST JNM=&PWRJNAME,JNO=&PWRJNUM ##'
+
+LABEL L400
+SETD XMEM,SSDOBJ
+SET LSTNAME,&SIBUSER.LIST
+IF FMT,EQ,0                                                     ;
+    GOTO L430                                                   ;
+SET PPDVBL,0
+HEADF
+BIMEDIT                           BIM-EDIT PROGRAM EDITOR                           RUN DATE: &WRKDATE  TIME: &WRKTIME  PAGE: &SIBPAGE
+
+&XMEM
+       ----.----1----.----2----.----3----.----4----.----5----.----6----.----7----.----8----.----9----.---10----.---11----.---12----.-
+++/*
+LABEL L430
+SET PPDVBL,2
+PRINTF FMT=&FMT,CASE=&CASE
+/INCL (SESS) &BASEOPT &DEPTHOPT
+++/*
+
+IF SIBDIALG,NE,U
+    GOTO L440
+EJECT
+EXIT OK
+LABEL L440
+EXIT OK,'## CURRENT SESSION PRINTED AS POWER LST JNM=&PWRJNAME,JNO=&PWRJNUM ##'
+
+LABEL L500
+SET XMEM,$STACK
+SET LSTNAME,&SIBUSER.$STACK
+IF FMT,EQ,0                                                     ;
+    GOTO L530                                                   ;
+SET PPDVBL,0
+HEADF
+BIMEDIT                           BIM-EDIT PROGRAM EDITOR                           RUN DATE: &WRKDATE  TIME: &WRKTIME  PAGE: &SIBPAGE
+
+&XMEM
+       ----.----1----.----2----.----3----.----4----.----5----.----6----.----7----.----8----.----9----.---10----.---11----.---12----.-
+++/*
+LABEL L530
+SET PPDVBL,2
+PRINTF FMT=&FMT,CASE=&CASE
+/INCL $STACK &BASEOPT &DEPTHOPT
+++/*
+
+IF SIBDIALG,NE,U
+    GOTO L550
+EJECT
+EXIT OK
+LABEL L550
+EXIT OK,'## &SIBUSER $STACK PRINTED AS POWER LST JNM=&PWRJNAME,JNO=&PWRJNUM ##'
+
+LABEL L600
+SET XMEM,$MAIL
+SET LSTNAME,&SIBUSER.$MAIL
+IF FMT,EQ,0                                                     ;
+    GOTO L630                                                   ;
+SET PPDVBL,0
+HEADF
+BIMEDIT                           BIM-EDIT PROGRAM EDITOR                           RUN DATE: &WRKDATE  TIME: &WRKTIME  PAGE: &SIBPAGE
+
+&XMEM
+       ----.----1----.----2----.----3----.----4----.----5----.----6----.----7----.----8----.----9----.---10----.---11----.---12----.-
+++/*
+LABEL L630
+SET PPDVBL,2
+PRINTF FMT=&FMT,CASE=&CASE
+/INCL $MAIL &BASEOPT &DEPTHOPT
+++/*
+
+IF SIBDIALG,NE,U
+    GOTO L660
+EJECT
+EXIT OK
+LABEL L660
+EXIT OK,'## &SIBUSER $MAIL PRINTED AS POWER LST JNM=&PWRJNAME,JNO=&PWRJNUM ##'
+
+LABEL L700
+SET XMEM,$LOG
+SET LSTNAME,&SIBUSER.$LOG
+IF FMT,EQ,0                                                     ;
+    GOTO L730                                                   ;
+SET PPDVBL,0
+HEADF
+BIMEDIT                           BIM-EDIT PROGRAM EDITOR                           RUN DATE: &WRKDATE  TIME: &WRKTIME  PAGE: &SIBPAGE
+
+&XMEM
+       ----.----1----.----2----.----3----.----4----.----5----.----6----.----7----.----8----.----9----.---10----.---11----.---12----.-
+++/*
+LABEL L730
+SET PPDVBL,2
+PRINTF FMT=&FMT,CASE=&CASE
+/INCL $LOG &BASEOPT &DEPTHOPT
+++/*
+
+IF SIBDIALG,NE,U
+    GOTO L770
+EJECT
+EXIT OK
+LABEL L770
+EXIT OK,'## &SIBUSER $LOG PRINTED AS POWER LST JNM=&PWRJNAME,JNO=&PWRJNUM ##'

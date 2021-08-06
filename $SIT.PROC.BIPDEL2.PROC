@@ -1,0 +1,92 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: DELETE SESSION LINE(S)                                 *
+* Procedure..: BIPDEL2                                                *
+* Command....: DELETE                                                 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Allow session line deletion by FCT or down to a STR.   Also, add an *
+* option to stack the deleted line(s).                                *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+SET PPDLITEX,1
+DCL STR,CHAR,72,V,M
+DCL PTR,NUM,6,V
+DCL NCT,NUM,6,V
+ 
+DCL FCT,CHAR,72,V,M
+DCL OPT,CHAR,6,V
+DCL BY ,CHAR,6,V
+PARSE FCT OPT BY
+IF FCT EQ '*'
+   GOTO PROCEED
+
+IFTHEN BY{1,3} NE 'STR'
+  SET PPDCOND 1
+  VTESTNUM FCT
+  IF SIBRETCD EQ 'OK'
+     GOTO PROCEED
+  SET PPDCOND 0
+ENDIF
+
+SETD STR FCT
+IFTHEN STR EQ ''
+   SET FCT 1
+   GOTO PROCEED
+ENDIF
+
+SET PTR &SSDBASE&SIBSCRPM
+IFTHEN PTR EQ 0
+   SET PTR 1
+   GOTO LOCSTR
+ENDIF
+
+SET PPDCOND 1
+BYPASS
+EXAMINE "&STR"
+IF SIBRETCD EQ 'NF'
+   GOTO LOCSTR
+CURSOR
+SET PPDCOND 0
+EXIT NF,"** Nothing deleted, string found on the current line. **"
+
+LABEL LOCSTR
+SET PPDCOND 1
+BYPASS
+LOCATE "&STR"
+IF SIBRETCD EQ 'SV'
+   EXIT &SIBRETCD,"&SIBMSG"
+IF SIBRETCD EQ 'NF'
+   POSITION &PTR
+
+LABEL READY
+SET PPDCOND 0
+SET NCT &SSDBASE&SIBSCRPM
+SUBT NCT &PTR
+SET FCT &NCT
+BYPASS
+POSITION &PTR
+IF FCT EQ 0
+   EXIT NF,"** Nothing deleted, string not found before end of session. **"
+
+LABEL PROCEED
+SET PPDCOND 0
+IFTHEN OPT NE ''
+   IF OPT{1,2} EQ ST
+      SET OPT CLEAR
+   BYPASS
+   STACK &FCT &OPT
+ENDIF
+
+BYPASS
+DELETE &FCT

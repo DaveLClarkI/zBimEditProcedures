@@ -1,0 +1,30 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: Submit a VSE Library Member for Processing             *
+* Procedure..: BIPLCA-ZS                                              *
+* Command....: ZS (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* LCA front-end for the SUBMIT command.                               *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(LCA-ZT) ** LCA COMMAND REQUIRES A VSE LIBRARY MEMBER DISPLAY **'
+SET PPDCOND 1
+VEXAM XTRSLINE '/CTL/D' 136-141
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZT) ** LCA COMMAND REQUIRES A VSE LIBRARY MEMBER DISPLAY **'
+SET PPDCOND 0
+
+PROCESSD &PARMLIST

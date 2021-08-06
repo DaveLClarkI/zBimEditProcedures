@@ -1,0 +1,94 @@
+* -------------------------------------------------------------------- *
+* AGEP        - Age the $SIT.PURGE Library                             *
+*               by Dave Leonard Clark I                                *
+* -------------------------------------------------------------------- *
+SET  PPDVBL 1                ;PERFORM VARIABLE SUBSTITUTION
+DCL  AGEDATE NUM   8 F       ;CALCULATED AGING DATE
+DCL  PRGDATE NUM   8 F       ;DATE MEMBER ORIGINALLY PURGED
+DCL  CNT     NUM   7 V       ;COUNT OF MEMBERS PURGED
+DCL  STR     CHAR 33 F
+DCL  LSTMEM CHAR 33 V        ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  KEEP    NUM   2 V       ;NUMBER OF DAYS TO KEEP
+SET  KEEP  7                 ;DEFAULT
+IF PARMLIST NE ''            ;IF PARAMETER SUPPLIED
+   PARSE KEEP                ;   GET IT
+GOSUB CALCAGE                ;CALCULATE THE AGING DATE
+
+STACK OPT=CLEAR
+SET  PPDLPLMT 300000         ;SET LOOP LIMIT
+SET  TXMLIB '$SIT.PURGE'     ;POINT TO LIBRARY TO AGE
+SET  TXMMEM ''               ;TOP OF THE MEMBER LIST
+
+BLOCK                        ;DO LOOP
+   SET  PPDCOND  1           ;BYPASS NORMAL ERRORS
+   BROWSE                    ;GET MEMBER INFO FROM LIBRARY
+   IF SIBRETCD NE OK         ;IF END OF MEMBER LIST
+      LEAVE                  ;   EXIT THE LOOP
+   SET  PPDCOND  0           ;DEFAULT ERROR HANDLING
+   SETD PRGDATE TXMMEM 1 8   ;GET THE MEMBER'S ORIGINAL PURGE DATE
+   IFTHEN PRGDATE LE &AGEDATE;IF THAT IS PRIOR TO THE AGING DATE
+      SET  STR &TXMLIB..&TXMMEM ; PRINT MESSAGE FOR EACH MEMBER
+      STACKF
+Aged:  &STR   &TXMTITLE
+++/*
+      PURGE *                ;   PURGE THE MEMBER
+      ADD  CNT  1            ;   AND INCREMENT THE COUNTER
+   ENDIF                     ;END IF
+   LOOP                      ;LOOP
+ENDBLOCK                     ;END DO
+
+IFTHEN SIBSTSIZ GT 0
+   SET  PPDINCL  1
+   SET  PPDTRAP  1
+   OUTPUTF
+/INCLUDE $STACK
+++/*
+ENDIF
+
+SET  PPDCOND  2              ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND  0              ;DEFAULT ERROR HANDLING
+EXIT OK '## AGEP completed.  &CNT members aged from &AGEDATE. ##'
+
+LABEL CALCAGE
+   SET  PPDVBL  1            ;PERFORM VARIABLE SUBSTITUTION
+   DCL  SYSDATE CHAR 10 V    ;TEMPORARY HOLDER FOR THE SYSTEM DATE
+   DCL  MM      NUM   2 F    ;MONTH
+   DCL  DD      NUM   2 F    ;DAY
+   DCL  YY      NUM   4 F    ;YEAR
+   SETD SYSDATE OPSDATE      ;GET THE SYSTEM DATE
+
+   SETD MM SYSDATE 1 2       ;SPLIT OUT MONTH
+   SETD DD SYSDATE 4 2       ;SPLIT OUT DAY
+   SETD YY SYSDATE 7 4       ;SPLIT OUT YEAR
+
+   BLOCK
+      IF DD GT &KEEP
+         LEAVE
+      BLOCK
+         IF MM GT 1
+            LEAVE
+         IF YY EQ 0
+            ADD  YY 100
+         SUBT YY  1
+         ADD  MM 12
+      ENDBLOCK LOOP
+      SUBT MM  1
+      ADD  DD 31
+      IF MM EQ 2
+         SUBT DD 3
+      IF MM EQ 4
+         SUBT DD 1
+      IF MM EQ 6
+         SUBT DD 1
+      IF MM EQ 9
+         SUBT DD 1
+      IF MM EQ 11
+         SUBT DD 1
+   ENDBLOCK LOOP
+
+   SUBT DD &KEEP
+   SET  AGEDATE &YY&MM&DD    ;CALCULATED AGING DATE
+RETURN

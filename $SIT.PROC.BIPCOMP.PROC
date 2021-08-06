@@ -1,0 +1,215 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: COMPILE A BIM-EDIT MEMBER IN CURRENT LPAR              *
+* Procedure..: BIPCOMP                                                *
+* Command....: COMPILE member,link,class                              *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Checks status and contents of member, if not being editted and does *
+* not contain POWER/VSE JECL  nor  DOS  JCL,  then a procedure in the *
+* $SIT.COMP library is executed  with  the name of the TYPE-attribute *
+* of the member.                                                      *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+DCL MEM,CHAR,33,V
+DCL LIB,CHAR,16,V
+DCL LINK,CHAR,8,V
+DCL CLASS,CHAR,1,V
+DCL REMID,CHAR,2,V
+DCL LEN,NUM,3,V
+DCL TEST,CHAR,1,V
+DCL TEST8,CHAR,8,V
+DCL TEST3,CHAR,3,V
+
+SET LIB,'&SIBLIB'
+
+PARSE MEM,LINK,CLASS
+
+   IF LINK,EQ,''
+      GOTO TESTLINK
+   SET TEST,'&LINK',1,1
+   IF TEST,NE,'&LINK'
+      GOTO TESTLINK
+   SET CLASS,&LINK
+   SET LINK,''
+
+LABEL TESTLINK
+
+   IF LINK,EQ,'NOLINK'
+      GOTO OKLINK
+   IF LINK,EQ,'LINK'
+      GOTO OKLINK
+   IF LINK,EQ,'CATAL'
+      GOTO OKLINK
+   IF LINK,NE,''
+      EXIT ER,'INVALID LINK PARAMETER ENTERED'
+   SET LINK,'CATAL'
+
+LABEL OKLINK
+
+   IF CLASS,EQ,''
+      SET CLASS,'C'
+   SET TEST3,'&SIBTRMID',1,3
+   IF TEST3,EQ,'SAB'
+      SET CLASS,'S'
+
+   IF MEM,EQ,'*'
+      GOTO CURMEM
+   IF MEM,EQ,'='
+      GOTO CURMEM
+   IF MEM,EQ,'/'
+      GOTO CURMEM
+   IF MEM,NE,''
+      GOTO OKMEM
+LABEL CURMEM
+   SET MEM,'&TXMMEM'
+   SET LIB,'&TXMLIB'
+   GOTO CHKMEM
+
+LABEL OKMEM
+
+    READ &MEM
+    IF SIBRETCD,NE,OK
+       GOTO CHKMEM
+    SET LIB,'&TXMLIB'
+    SET MEM,'&TXMMEM'
+
+LABEL CHKMEM
+
+    READ &LIB..&MEM
+    IF SIBRETCD,EQ,NF
+       EXIT ER,'MEMBER "&TXMLIB..&TXMMEM" DOES NOT EXIST'
+    IF SIBRETCD,NE,OK
+       EXIT ER,'YOU DO NOT HAVE ACCESS TO &TXMLIB..&TXMMEM'
+    IF XTREUSER NE ''
+       EXIT ER,'MEMBER "&TXMLIB..&TXMMEM" IS BEING EDITED'
+    SET MEM,'&TXMMEM'
+    SET LIB,'&TXMLIB'
+
+    IF TXMTYPE NE 'JCL'
+       GOTO CHK8
+    IF TXMATTR EQ 'PROCEDUR'
+       GOTO OK8
+LABEL CHK8
+    SET TEST8,'&MEM',1,8
+    VTRUNC TEST8
+    IF TEST8,NE,'&MEM'
+       EXIT ER,'YOU CANNOT COMPILE A MEMBER WITH A NAME OVER 8 CHARACTERS'
+LABEL OK8
+
+    SET TEST3,'&TXMLIB',1,3
+    IF TEST3,EQ,'LIB'
+       EXIT ER,'YOU ARE NO LONGER ALLOWED TO COMP ICCF LIBS-RENAME TO PROD'
+    IF TXMLIB,EQ,'OBSOLETE'
+       EXIT ER,'YOU ARE NOT ALLOWED TO COMP FROM OBSOLETE LIBRARY'
+
+    BYPASS
+    LIST  &TXMLIB..&TXMMEM
+    SET PPDCOND 1
+    EXAMINE '\\%CHKO|\%TEST' 1-5
+    IF SIBRETCD,EQ,OK
+       EXIT ER,'CANNOT COMPILE A MEMBER CURRENTLY IN TEST STATUS!'
+    SET PPDCOND 0
+
+* === CHECK TO SEE THAT COMPILE DECK DOES NOT CONTAIN * $$ COMMANDS
+LABEL CHKPOWER
+
+    IF TXMATTR,EQ,'SLI'
+       GOTO CATP
+    SET PPDCOND 1
+    BYPASS
+    LOCATE '* $$' 1-4
+    IF SIBRETCD,NE,OK
+       GOTO NOPOWER
+    EXAMINE '* $$ SLI' 1-8
+    IF SIBRETCD,EQ,OK
+       GOTO NXTPOWER
+    EXAMINE '* $$ /' 1-6
+    IF SIBRETCD,NE,OK
+       EXIT ER,'MEMBER CONTAINS POWER/VSE JECL, NOT SUBMITTED'
+LABEL NXTPOWER
+    SET PPDCOND 0
+    DOWN 1
+    GOTO -CHKPOWER
+
+* === CHECK TO SEE THAT COMPILE DECK DOES NOT CONTAIN // COMMANDS
+LABEL NOPOWER
+    SET PPDCOND 0
+    IF TXMATTR,EQ,'COPYBOOK'
+       GOTO CATP
+    IF TXMATTR,EQ,'PROCEDUR'
+       GOTO CATP
+    IF TXMATTR,EQ,'QUICKJOB'
+       GOTO CATP
+    IF TXMATTR,EQ,'SLI'
+       GOTO CATP
+
+    TOP
+    SET PPDCOND 1
+    BYPASS
+    LOCATE '// ' 1-3
+    IF SIBRETCD,NE,OK
+       GOTO CATP
+    SET PPDCOND 0
+    EXIT ER,'MEMBER CONTAINS DOS JCL, NOT SUBMITTED'
+
+* === QUIT PRIOR EDIT SESSION
+LABEL CATP
+    SET PPDCOND 0
+    BYPASS
+    END NOSAVE
+
+* === MAKE SURE THE LIBDEF IS OK
+    IF TXMLDEF  EQ ''
+       EXIT ER,'MISSING LIBDEF, USE ALTMEM TO FIX'
+
+    SET PPDCOND 1
+    READ $SIT.COMP.LIBDEF-&TXMLDEF
+    IF SIBRETCD NE 'OK'
+       EXIT ER,'MEMBER "LIBDEF-&TXMLDEF" NOT FOUND IN LIBRARY "$SIT.COMP"'
+    SET PPDCOND 0
+
+    READ &LIB..&MEM
+
+    SETL LEN TXMLDEF
+    SUBT LEN 2
+    IF TXMLDEF{&LEN,3} EQ 'LIB'
+       GOTO SECADM
+    IF TXMLDEF  EQ 'CONFIG'
+       GOTO SECADM
+    IF TXMLDEF  NE 'IJSYSRS'
+       GOTO GETREM
+LABEL SECADM
+    IF SIBSECCM LT '4'
+       EXIT ER,'ONLY THE SECURITY OFFICER CAN USE LIBDEF "&TXMLDEF"'
+
+* === GET DEFAULT REMOTE ID FOR PRINTOUT IN GENERATED JCL
+LABEL GETREM
+
+    SET PPDCOND 1
+    EXEC $SIT.PROC.REMOTEID
+    SET REMID,'&SIBMSG',1,2
+    SET PPDCOND 0
+
+* === SET UP MEMBER AS ACTIVE SESSION MEMBER
+
+    READ &LIB..&MEM
+
+* === EXECUTE COMPILE PROC, ITS SIBMSG WILL BE DISPLAYED WHEN DONE
+
+IFTHEN TXMATTR EQ 'COPYBOOK'
+    EXEC $SIT.COMP.ANY-&TXMATTR LINK='&LINK',CLASS='&CLASS',REMID='&REMID'
+ELSE
+    EXEC $SIT.COMP.&TXMTYPE-&TXMATTR LINK='&LINK',CLASS='&CLASS',REMID='&REMID'
+ENDIF

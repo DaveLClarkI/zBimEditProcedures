@@ -1,0 +1,37 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: DISPLAY LINE STAMP INFORMATION                         *
+* Procedure..: BIPLCA-ZW                                              *
+* Command....: ZW (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Dislays the WHAT, WHEN, and WHO of session line modifications.      *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+DCL  TYPE CHAR  7 V
+DCL  DATE CHAR 10 V
+DCL  USER CHAR  8 V
+
+IF XTRSTAMP EQ ''
+   EXIT OK,'Sorry, no stamp information available for this line.'
+
+SETD  PARMLIST XTRSTAMP
+PARSE TYPE DATE USER
+
+IFTHEN TYPE EQ 'A'
+  SET TYPE 'added'
+ELSE
+  SET TYPE 'changed'
+ENDIF
+
+EXIT OK,'This line &TYPE by "&USER" on &DATE..'

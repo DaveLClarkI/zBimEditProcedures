@@ -1,0 +1,164 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* Proc: AUDITSUM   Proc Created 11/06/2007   by Dave Clark        *
+;*                  Last Revised 11/06/2007                        *
+;*                                                                 *
+;*      This procedure scans all members  in all of the authorized *
+;* libraries for the logged  on  user and summarizes,  by library, *
+;* the total number of  audit  lines  being  used in that library. *
+;* Upon completion,  the resulting  output  session is sorted,  in *
+;* weighted descending order,  by the  number of total audit lines *
+;* vs. the number  of total  member text lines listed.   Libraries *
+;* with fewer total audit lines  than  total member text lines are *
+;* omitted from the resulting output.                              *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svcs *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.   The following lines (without the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and  the "NEWCOPY COMMANDS" command *
+;* issued:                                                         *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* AUDSUM   AUDITSUM                                               *
+;* AUDITSUM AUDITSUM                                               *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+SET  PPDLITEX 1
+SET  PPDPFOPT 1
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  LIBSZLN  NUM   8 V,,,0
+DCL  LIBAULN  NUM   8 V,,,0
+DCL  DIFFERS  NUM   8 V,,,0
+DCL  TOTSZLN  NUM   8 V,,,0
+DCL  TOTAULN  NUM   8 V,,,0
+DCL  SAVAULN  NUM   8 V,,,0
+DCL  EDIT     NUM   8 Z
+DCL  JDATE    CHAR  7 V U GLOBAL
+DCL  RC       CHAR  2 V M
+DCL  MSG      CHAR 82 V M
+
+IF SIBSECCM LT 4
+   SET  PARMLIST  ''
+
+DCL  LIST     CHAR  3 V
+DCL  DATE     CHAR 10 V
+PARSE LIST DATE
+
+IF DATE NE ''
+   GRG2JUL JDATE '&DATE'
+
+IF   SIBSESSD EQ 0
+     GOTO CONTINUE
+IF   SSDTYPE NE 'DI'
+     GOTO CONTINUE
+IF   SSDOBJ{1,17} NE 'DISP  -> AUDITSUM'
+     GOTO CONTINUE
+BYPASS
+END  NOSAVE
+
+LABEL CONTINUE
+
+OUTPUTF 'AUDITSUM &LIST'
+++/*
+SESS CASE=M
+POS  &SSDSZLN
+
+SET  PPDCOND  1
+SET  PPDLPLMT 99999999
+SET  TXLLIB   ''
+BLOCK
+  BROWSEL
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  SET  TXMLIB   '&TXLLIB'
+  SET  TXMMEM   ''
+  BLOCK
+    BROWSE
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    IFTHEN DATE NE ''
+      IFTHEN TXMAULN GT 0
+         SET  SAVAULN &TXMAULN
+         AUDCL &TXMPATH DATE='&DATE'
+         IF TXMAULN NE &SAVAULN
+            LOGI 'AUDITSUM &SAVAULN.:&TXMAULN for &TXMPATH'
+      ENDIF
+    ENDIF
+    ADD  LIBSZLN  &TXMSZLN
+    ADD  LIBAULN  &TXMAULN
+    LOOP
+  ENDBLOCK
+  IFTHEN LIST NE 'ALL'
+    IFTHEN LIBAULN GT &LIBSZLN
+      SET  LIST  'YES'
+    ELSE
+      SET  LIST  ''
+    ENDIF
+  ENDIF
+  VEXAM LIST '\ALL|YES'
+  IFTHEN SIBRETCD EQ 'OK'
+    LADD
+    POS  &SSDSZLN
+    OVLY 1   '&TXLLIB'
+    SET  EDIT &LIBSZLN
+    OVLY 18  '&EDIT'
+    SET  EDIT &LIBAULN
+    OVLY 27  '&EDIT'
+    OVLY 36  '&TXLTITLE'
+    OVLY 136 '/CTL/L-DFLT-1/     /                /CTL/'
+    IFTHEN LIBAULN GT &LIBSZLN
+      SET  DIFFERS &LIBAULN
+      SUBT DIFFERS &LIBSZLN
+    ELSE
+      SET  DIFFERS  0
+    ENDIF
+    SET  EDIT &DIFFERS
+    OVLY 181 '&EDIT'
+    ADD  TOTSZLN  &LIBSZLN
+    ADD  TOTAULN  &LIBAULN
+  ENDIF
+  SET  LIBSZLN  0
+  SET  LIBAULN  0
+  LOOP
+ENDBLOCK
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+TOP
+SORT '181-188-D,27-34-D,1-16-A' *
+
+TOP
+INSERTF
+---------------------------------------------------------------------------
+     LIBRARY     ----- LINES -----                  TITLE
+                   TEXT     AUDIT
+---------------- -------- -------- ----------------------------------------
+++/*
+
+POS  &SSDSZLN
+INSERTF
+                 -------- --------
+
+++/*
+
+POS  &SSDSZLN
+SET  EDIT &TOTSZLN
+OVLY 18  '&EDIT'
+SET  EDIT &TOTAULN
+OVLY 27  '&EDIT'
+
+TOP
+EXIT OK

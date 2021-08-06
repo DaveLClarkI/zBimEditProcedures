@@ -1,0 +1,137 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPLIBY    Proc Created 10/30/2001   By Dave Clark        *
+;*                  Last Revised 08/27/2009                        *
+;*                                                                 *
+;*      Among other things,  this procedure front-ends the LIBRARY *
+;* command for the purpose of  issuing  the SETKEYS command in the *
+;* new session.                                                    *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  Then add the following line(s), without the *
+;* ruler line and  in  sorted sequence,  to the $SIT.CTRL.COMMANDS *
+;* member and issue the "NEWCOPY COMMANDS" command:                *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* LIB      BIPLIBY                                                *
+;* LIBRARY  BIPLIBY                                                *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDPFOPT 1
+DCL  CATVARN  CHAR   8 V M
+DCL  CATVAR   CHAR   8 V M
+
+DCL  MEM      CHAR  33 V M
+DCL  FMT      CHAR   6 V M
+DCL  TYPE     CHAR  40 V M
+DCL  ATTR     CHAR  40 V M
+DCL  CKUSER   CHAR  40 V M
+DCL  TITLE    CHAR  40 V M
+
+PARSE MEM FMT TYPE ATTR CKUSER TITLE
+
+IFTHEN FMT EQ ''
+  SET  PPDCOND  1
+  VEXAM SIBUSER{1,3} '\TJR'
+  IF SIBRETCD EQ OK
+     GOTO CONTINUE
+  SET  PPDCOND  0
+ENDIF
+
+SET  PPDCOND  1
+VEXAM FMT '\UPDATE|UPD'
+IF SIBRETCD NE OK
+   GOTO CONTINUE
+SET  FMT      'UPDATE'
+
+LABEL REBUILD
+SET  PPDCOND  0
+SET  PARMLIST ''
+SET  CATVARN  'parmlist'
+SET  CATVAR   'mem'
+GOSUB CONCAT
+VAPP PARMLIST ' fmt=full'
+SET  CATVAR   'type'
+GOSUB CONCAT
+SET  CATVAR   'attr'
+GOSUB CONCAT
+SET  CATVAR   'ckuser'
+GOSUB CONCAT
+SET  CATVAR   'title'
+GOSUB CONCAT
+
+GOTO CONTINUE
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL CONCAT                 ;SUBROUTINE -- CATENATE TO VARNAME
+  IF &CATVAR EQ ''
+     RETURN
+  IFTHEN &CATVARN NE ''
+    VAPP &CATVARN ' &CATVAR='
+  ENDIF
+  VUPP CATVAR
+  SET  PPDCOND  1
+  VEXAM &CATVAR ''''
+  IF SIBRETCD EQ OK
+     GOTO CONCATQ
+  VEXAM &CATVAR '\\' ZONE=1-1
+  IF SIBRETCD EQ OK
+     GOTO CONCATQ
+  VAPP &CATVARN '&&CATVAR'
+  GOTO CONCATX
+LABEL CONCATQ
+  SET  PPDLITEX 2
+  VAPP &CATVARN '''&&CATVAR'''
+  SET  PPDLITEX 0
+LABEL CONCATX
+  SET  PPDCOND  0
+RETURN
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+LABEL CONTINUE
+SET  PPDCOND  0
+BYPASS
+LIB &PARMLIST
+
+IFTHEN FMT EQ 'UPDATE'
+  IFTHEN SSDSZLN GT 8
+    POS  6
+    SORT '67-70-D,61-65-D,56-59-D,50-54-D,1-16-A' *
+    POS  1
+    SESS CASE=M
+    OVLY 41 '(descending sort by last update date)'
+    SESS CASE=U
+    TOP
+  ENDIF
+ENDIF
+
+SET PPDCOND 1
+BYPASS
+FIND "/CTL/M-FULL-1/" 136
+IFTHEN SIBRETCD EQ 'OK'
+  IFTHEN SIBDIALG EQ 'T'
+    IF SSDSCRSZ EQ 'D'
+       SCREEN ALT
+  ENDIF
+  IFTHEN FMT NE 'UPDATE'
+    POS  1
+    SESS CASE=M
+    OVLY 32 "(use 'fmt=update' to sort by last update date)"
+    SESS CASE=U
+    TOP
+  ENDIF
+ENDIF
+
+TOP
+SET PPDCOND 0
+SETKEYS
+EXIT OK

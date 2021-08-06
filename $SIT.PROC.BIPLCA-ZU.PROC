@@ -1,0 +1,36 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: Undo the Purge of a Member                             *
+* Procedure..: BIPLCA-ZU                                              *
+* Command....: ZU (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* LCA front-end for the UNPURGE command.                              *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(LCA-ZU) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+SET PPDCOND 1
+VEXAM XTRSLINE '/CTL/M' 136-141
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZU) ** LCA COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+VEXAM XTRSLINE '$SIT.PURGE ' 156-166
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(LCA-ZU) ** LCA COMMAND ONLY FOR ''$SIT.PURGE'' MEMBER NAME DISPLAY **'
+SET PPDCOND 0
+
+READ &PARMLIST
+DCL  MEM CHAR 33 V
+SETD MEM TXMTITLE 8 33
+UNPURGE &MEM

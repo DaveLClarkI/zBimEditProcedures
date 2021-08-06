@@ -1,0 +1,130 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: LOCATE USER STRING                                     *
+* Procedure..: BIPLOCA                                                *
+* Command....: LOCATE                                                 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* To locate multiple occurrences on the same line,  this front-end to *
+* the LOCATE command uses the  EXAMINE  command to first determine if *
+* there are any more occurrences  on the current line.   If not,  the *
+* normal LOCATE command is then used.   Lastly, the CURSOR command is *
+* used in order to point out where the latest match took place.       *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+DCL SAVRESP,CHAR,82,F,M
+DCL SAVRTC,CHAR,2,V,M
+DCL SAVMSG,CHAR,80,V,M
+ 
+SET  PPDCOND 1
+VEXAM SIBUSER '\JCD|JPD|WCW'
+IF SIBRETCD NE 'OK'
+   GOTO CONTINUE
+SET  PPDCOND 0
+
+BYPASS
+LOCATE &PARMLIST
+EXIT OK
+
+LABEL CONTINUE
+SET  PPDCOND 0
+IF SIBSESSD,GT,0
+   GOTO BEGIN
+BYPASS
+LOCATE
+
+LABEL BEGIN
+
+DCL STCOL NUM   3 V
+IF SSDCOL&SIBSCRPM LT &SSDZONLM
+   SET STCOL &SSDCOL&SIBSCRPM
+IF STCOL,NE,0
+   ADD STCOL 1
+IF STCOL,EQ,0
+   SET STCOL &SSDZONBS
+;
+DCL STR   CHAR 72 V M
+DCL ZONE  CHAR  7 V
+DCL CASE  CHAR  1 V
+PARSE STR ZONE CASE
+
+DCL ZONO  CHAR  7 V
+SETD ZONO ZONE
+IF ZONE,EQ,''
+   SET ZONE '&STCOL.-&SSDZONLM.'
+IF CASE,EQ,''
+   SETD CASE SSDCASE
+
+SET PPDCOND 1
+IFTHEN STR,EQ,''
+  BYPASS
+  EXAMINE ZONE=&ZONE CASE=&CASE
+  IF SIBRETCD,EQ,OK
+     GOTO SETVIEW
+ELSE
+  BYPASS
+  EXAMINE STR="&STR." ZONE=&ZONE CASE=&CASE
+  IF SIBRETCD,EQ,OK
+     GOTO SETVIEW
+ENDIF
+
+IF ZONO,EQ,''
+   SET ZONE '&SSDZONBS.-&SSDZONLM.'
+
+SET PPDCOND 0
+IFTHEN STR,EQ,''
+  BYPASS
+  LOCATE ZONE=&ZONE CASE=&CASE
+ELSE
+  BYPASS
+  LOCATE STR="&STR." ZONE=&ZONE CASE=&CASE
+ENDIF
+
+LABEL SETVIEW
+DCL MAXW  NUM   3 V
+SET MAXW &SIBSC&SSDSCRSZ.WD
+IFTHEN MAXW LE 80
+  IFTHEN SSDLCA EQ 0
+    SET MAXW 71
+  ELSE
+    SET MAXW 61
+  ENDIF
+  IFTHEN SSDCOL&SIBSCRPM GE 181
+    VIEW 181
+  ELSE
+    IFTHEN SSDCOL&SIBSCRPM GE 121
+      VIEW 121
+    ELSE
+      IFTHEN SSDCOL&SIBSCRPM GE &MAXW
+        VIEW &MAXW
+      ELSE
+        VIEW 1
+      ENDIF
+    ENDIF
+  ENDIF
+ELSE
+  IFTHEN SSDLCA EQ 0
+    SET MAXW 131
+  ELSE
+    SET MAXW 124
+  ENDIF
+  IFTHEN SSDCOL&SIBSCRPM GE &MAXW
+    VIEW &MAXW
+  ELSE
+    VIEW 1
+  ENDIF
+ENDIF
+
+IF SIBUSER EQ 'DLC'
+   CURSOR
+EXIT OK

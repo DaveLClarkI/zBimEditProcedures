@@ -1,0 +1,57 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: PROCESS A VSE LIBRARY MEMBER                           *
+* Procedure..: BIPPROCD                                               *
+* Command....: PROCESSD                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Send VSE library member types of A or C to the COMPILED command for *
+* processing.  Everything else goes to the SUBMIT command.            *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 2
+DCL MSG CHAR 80 V
+
+DCL MEM CHAR 34 V
+PARSE MEM
+
+BYPASS
+LISTD &MEM
+
+IFTHEN SSDTYPEM EQ ''
+  BYPASS
+  END NOSAVE
+  EXIT SV,'(BIPPROCD) ** VSE MEMBER "&MEM" TYPE NOT SET **'
+ENDIF
+IF SSDTYPEM EQ A
+    GOTO COMPILE
+IF SSDTYPEM EQ ASM
+    GOTO COMPILE
+IF SSDTYPEM EQ C
+    GOTO COMPILE
+IF SSDTYPEM EQ CBL
+    GOTO COMPILE
+
+SUBMIT /
+SETD MSG SIBMSG
+
+BYPASS
+END NOSAVE
+
+EXIT OK,'&MSG'
+
+LABEL COMPILE
+BYPASS
+END NOSAVE
+
+COMPILED &SIBLSPDS{1,16}.&SIBLSPDS{17,17}
+EXIT OK,'&SIBMSG'

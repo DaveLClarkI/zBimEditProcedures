@@ -1,0 +1,122 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: VIEW COPY OR SLI MEMBER                                *
+* Procedure..: BIPLCA-ZV                                              *
+* Command....: ZV (LCA)                                               *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Dislays the COPY or SLI member from the associated session line.    *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+DCL  DMY1    CHAR  6 V
+DCL  DMY2    CHAR  8 V
+DCL  CREATE  CHAR 20 V
+DCL  BY      CHAR 18 V
+DCL  FROM    CHAR 33 V
+
+DCL  RC   CHAR  2 V
+DCL  LEN  NUM   3 V
+DCL  CMD  CHAR  8 V
+DCL  MEM  CHAR 33 V
+DCL  S    CHAR 16 V
+DCL  EXTR CHAR 16 V
+DCL  EXTS CHAR 16 V
+DCL  EXTT CHAR 16 V
+DCL  EXTU CHAR 16 V
+DCL  PROC CHAR  8 V
+DCL  LINE CHAR 80 V
+
+SET PPDCOND 1
+VEXAM SSDTYPE '\ED|LI'
+IF SIBRETCD,NE,OK
+  EXIT SV,'(LCA-ZV) ** LCA COMMAND REQUIRES AN EDIT OR LIST SESSION **'
+SETD LINE  XTRSLINE
+VEXAM LINE '\INCL|COPY|SLI|EXEC|\*CHKO'
+IF  SIBRETCD,NE,OK
+  EXIT SV,'(LCA-ZV) ** NO COPY VERB OR INCLUDE COMMAND ON THAT LINE **'
+SET PPDCOND 0
+
+IFTHEN LINE{1,5} EQ '*CHKO'
+  SETD PARMLIST XTRSLINE
+  PARSE DMY1 DMY2 CREATE BY FROM
+  LIST &FROM
+  EXIT OK
+ENDIF
+
+SETD PARMLIST LINE{&PPDCOL,42}
+PARSE CMD MEM S EXTR EXTS EXTT EXTU PROC
+
+IFTHEN CMD,EQ,'SLI'          ;VIEW SLI MEMBER CONTENT?
+  SET  PPDCOND  1
+  VEXAM MEM '.'
+  IF SIBRETCD,NE,OK               ;MEMBER TYPE NOT PRESENT?
+    SET MEM '&MEM..P'
+  VEXAM S   '.'
+  IF SIBRETCD,NE,OK               ;SUBLIBRARY NOT PRESENT?
+    SET  S   'PRD2.CONFIG'
+  SET  PPDCOND  2
+  LISTD &S..&MEM                  ;FIRST TRY
+  SETD RC SIBRETCD                ;SAVE RETURN CODE FOR TESTING
+  SET  PPDCOND  0
+  IF RC,EQ,SV
+    EXIT SV,'(LCA-ZV) ** LINE IS INVALID AS AN SLI STATEMENT **'
+  IFTHEN RC,NE,OK                 ;NOT FOUND IN CONFIG LIBRARY?
+    SET  S   'DAP.PROD'           ;TRY DAPSCO LIBRARY
+    LISTD &S..&MEM                ;SECOND TRY
+  ENDIF
+ELSE
+  IFTHEN CMD,NE,'COPY'       ;COMMAND NOT 'COPY'? (IS 'INCLUDE'?)
+    IFTHEN CMD,EQ,'EXEC'
+      IFTHEN PROC,GT,' '
+        LISTD DAP.PROD.&PROC..PROC
+      ELSE
+        EXIT SV,'(LCA-ZV) ** LINE NOT VALID "EXEC PROC" STATEMENT **'
+      ENDIF
+    ELSE
+      LIST &MEM                   ;VIEW INCLUDE MEMBER CONTENT
+    ENDIF
+  ELSE
+    SET PPDCOND 1                 ;VIEW COPYBOOK CONTENT
+    VEXAM MEM '.'
+    IFTHEN SIBRETCD,EQ,OK
+      SET PPDCOND 0                    ;REMOVE PERIOD
+      SET  LEN &PPDCOL
+      SUBT LEN 1
+      SET MEM &MEM{1,&LEN}
+    ENDIF
+    IFTHEN MEM{1,3},NE,DFH
+      SET PPDCOND 0                    ;DAPSCO COPYBOOK
+      IFTHEN SSDTYPEM,EQ,ASM                ;ASSEMBLER
+        LISTD DAP.PROD.&MEM..A
+      ELSE                                  ;COBOL
+        LISTD DAP.PROD.&MEM..C
+      ENDIF
+    ELSE
+      SET PPDCOND 1                    ;IBM CICS COPYBOOK
+      IFTHEN SSDTYPEM,EQ,ASM                ;ASSEMBLER
+        LISTD PRD1.BASE.&MEM..A                  ;CICS/TS
+        IFTHEN SIBRETCD,NE,OK
+          SET PPDCOND 0                          ;CICS/VSE
+          LISTD PRD2.CICSOLDP.&MEM..A
+        ENDIF
+      ELSE                                  ;COBOL
+        LISTD PRD1.BASE.&MEM..C                  ;CICS/TS
+        IFTHEN SIBRETCD,NE,OK
+          SET PPDCOND 0                          ;CICS/VSE
+          LISTD PRD2.CICSOLDP.&MEM..C
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+ENDIF
