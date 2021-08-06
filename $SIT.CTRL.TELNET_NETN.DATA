@@ -1,0 +1,34 @@
+DAP0N     NORTH HAVEN, CT                             001
+DAP1D     DAYTON, OH                                  101
+DAP2M     ST. LOUIS, MO                               201
+DAP3S     DENVER, CO                                  301
+DAP4P     PHOENIX, AZ                                 401
+DAP5W     RENO, NV                                    501
+DAP6T     ATLANTA, GA                                 601
+DAP7H     OMAHA, NE                                   701
+DAP8V     NEWPORT NEWS, VA                            801
+DAP9A     ACCOUNTING
+DAP9B     RVP AND/OR AL
+DAP9C     ADMINISTRATION
+DAP9E     ROMS EMPLOYEES
+DAP9I     INFORMATION SYSTEMS
+DAP9O     DISTRO/VALUATION
+DST0N     NORTH HAVEN, CT                             002
+DST1D     DAYTON, OH                                  102
+DST2M     ST. LOUIS, MO                               202
+DST3S     DENVER, CO                                  302
+DST4P     PHOENIX, AZ                                 402
+DST5W     RENO, NV                                    502
+DST6T     ATLANTA, GA                                 602
+DST7H     OMAHA, NE                                   702
+DST8V     NEWPORT NEWS, VA                            802
+WINL0     NORTH HAVEN, CT
+WINL1     DAYTON, OH
+WINL2     ST. LOUIS, MO
+WINL3     DENVER, CO
+WINL4     PHOENIX, AZ
+WINL5     RENO, NV
+WINL6     ATLANTA, GA
+WINL7     OMAHA, NE
+WINL8     NEWPORT NEWS, VA
+WINLX     EXTERNAL POWER USERS

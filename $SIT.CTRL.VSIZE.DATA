@@ -1,0 +1,73 @@
+DCL  SUP    NUM   7,F,,,0000760  ;Supervisor Size
+DCL  SDA    NUM   7,F,,,0000064  ;SDAIDS Buffer
+DCL  VLA24  NUM   7,F,,,0001864  ;Virtual Library Area (24-bit)
+DCL  SGV24  NUM   7,F,,,0002368  ;System GETVIS (24-bit)
+DCL  VPL    NUM   7,F,,,0000064  ;Virtual Pool
+DCL  SPA    NUM   7,F,,,0000000  ;Shared Partition Area
+DCL  SBG    NUM   7,F,,,0065536  ;BG Static Partition K-bytes
+DCL  UBG    NUM   7,F,,,0000000  ;BG Static Partition Unused Amount
+DCL  SF1    NUM   7,F,,,0016384  ;F1 Static Partition K-bytes
+DCL  UF1    NUM   7,F,,,0000000  ;F1 Static Partition Unused Amount
+DCL  SF2    NUM   7,F,,,0024576  ;F2 Static Partition K-bytes
+DCL  UF2    NUM   7,F,,,0000000  ;F2 Static Partition Unused Amount
+DCL  SF3    NUM   7,F,,,0008192  ;F3 Static Partition K-bytes
+DCL  UF3    NUM   7,F,,,0000000  ;F3 Static Partition Unused Amount
+DCL  SF4    NUM   7,F,,,0008192  ;F4 Static Partition K-bytes
+DCL  UF4    NUM   7,F,,,0000000  ;F4 Static Partition Unused Amount
+DCL  SF5    NUM   7,F,,,0008192  ;F5 Static Partition K-bytes
+DCL  UF5    NUM   7,F,,,0000000  ;F5 Static Partition Unused Amount
+DCL  SF6    NUM   7,F,,,0008192  ;F6 Static Partition K-bytes
+DCL  UF6    NUM   7,F,,,0000000  ;F6 Static Partition Unused Amount
+DCL  SF7    NUM   7,F,,,0010240  ;F7 Static Partition K-bytes
+DCL  UF7    NUM   7,F,,,0000000  ;F7 Static Partition Unused Amount
+DCL  SF8    NUM   7,F,,,0008192  ;F8 Static Partition K-bytes
+DCL  UF8    NUM   7,F,,,0000000  ;F8 Static Partition Unused Amount
+DCL  SF9    NUM   7,F,,,0008192  ;F9 Static Partition K-bytes
+DCL  UF9    NUM   7,F,,,0000000  ;F9 Static Partition Unused Amount
+DCL  SFA    NUM   7,F,,,0008192  ;FA Static Partition K-bytes
+DCL  UFA    NUM   7,F,,,0000000  ;FA Static Partition Unused Amount
+DCL  SFB    NUM   7,F,,,0003072  ;FB Static Partition K-bytes
+DCL  UFB    NUM   7,F,,,0000000  ;FB Static Partition Unused Amount
+DCL  H      CHAR  1,F,,,'D'      ;Dynamic Partition Class
+DCL  DAH    NUM   7,F,,,0024576  ;Dynamic Partition Allocation
+DCL  DMH    NUM   2,F,,,02       ;Dynamic Partition Max-Count
+DCL  I      CHAR  1,F,,,'I'      ;Dynamic Partition Class
+DCL  DAI    NUM   7,F,,,0262144  ;Dynamic Partition Allocation
+DCL  DMI    NUM   2,F,,,02       ;Dynamic Partition Max-Count
+DCL  J      CHAR  1,F,,,'K'      ;Dynamic Partition Class
+DCL  DAJ    NUM   7,F,,,0102400  ;Dynamic Partition Allocation
+DCL  DMJ    NUM   2,F,,,01       ;Dynamic Partition Max-Count
+DCL  K      CHAR  1,F,,,'Q'      ;Dynamic Partition Class
+DCL  DAK    NUM   7,F,,,0524288  ;Dynamic Partition Allocation
+DCL  DMK    NUM   2,F,,,01       ;Dynamic Partition Max-Count
+DCL  L      CHAR  1,F,,,'R'      ;Dynamic Partition Class
+DCL  DAL    NUM   7,F,,,0008192  ;Dynamic Partition Allocation
+DCL  DML    NUM   2,F,,,04       ;Dynamic Partition Max-Count
+DCL  M      CHAR  1,F,,,'S'      ;Dynamic Partition Class
+DCL  DAM    NUM   7,F,,,0061440  ;Dynamic Partition Allocation
+DCL  DMM    NUM   2,F,,,03       ;Dynamic Partition Max-Count
+DCL  Q      CHAR  1,F,,,'U'      ;Dynamic Partition Class
+DCL  DAQ    NUM   7,F,,,0008192  ;Dynamic Partition Allocation
+DCL  DMQ    NUM   2,F,,,08       ;Dynamic Partition Max-Count
+DCL  R      CHAR  1,F,,,'W'      ;Dynamic Partition Class
+DCL  DAR    NUM   7,F,,,0081920  ;Dynamic Partition Allocation
+DCL  DMR    NUM   2,F,,,04       ;Dynamic Partition Max-Count
+DCL  T      CHAR  1,F,,,'X'      ;Dynamic Partition Class
+DCL  DAT    NUM   7,F,,,0006144  ;Dynamic Partition Allocation
+DCL  DMT    NUM   2,F,,,05       ;Dynamic Partition Max-Count
+DCL  V      CHAR  1,F,,,'Z'      ;Dynamic Partition Class
+DCL  DAV    NUM   7,F,,,0081920  ;Dynamic Partition Allocation
+DCL  DMV    NUM   2,F,,,01       ;Dynamic Partition Max-Count
+DCL  W      CHAR  1,F,,,' '      ;Dynamic Partition Class
+DCL  DAW    NUM   7,F,,,0000000  ;Dynamic Partition Allocation
+DCL  DMW    NUM   2,F,,,00       ;Dynamic Partition Max-Count
+DCL  X      CHAR  1,F,,,' '      ;Dynamic Partition Class
+DCL  DAX    NUM   7,F,,,0000000  ;Dynamic Partition Allocation
+DCL  DMX    NUM   2,F,,,00       ;Dynamic Partition Max-Count
+DCL  VLA31  NUM   7,F,,,0010696  ;Virtual Library Area (31-bit)
+DCL  SGV31  NUM   7,F,,,0012856  ;System GETVIS (31-bit)
+DCL  PMT    NUM   7,F,,,0009792  ;Page Management Table @ 4K/M of VSIZE
+DCL  VDK    NUM   7,F,,,0284640  ;Virtual Disk @ 512B/BLK of FBA disk
+DCL  DSP    NUM   7,F,,,0077856  ;Data Space (non-VDISK)
+DCL  VSIZE  NUM   7,F,,,0002443  ;Virtual Storage Size
+DCL  VIO    NUM   7,F,,,0000001  ;Virtual I/O Area

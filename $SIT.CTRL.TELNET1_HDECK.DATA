@@ -1,0 +1,8 @@
+ID 00
+OPEN 10.1.21.2 1023
+*
+APPLID BSTTUSSP    VTAM USS TABLE EMULATION
+APPLID CICSPROD    Press ENTER here to sign back on
+APPLID BSTTVNET    Press ENTER to update Status column
+*
+TITLE WinWholesale Group Services

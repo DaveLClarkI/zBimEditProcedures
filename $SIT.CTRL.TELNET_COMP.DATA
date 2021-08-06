@@ -1,0 +1,456 @@
+001       DAPSCO NORTH HAVEN CO.                      48    1023
+002       DISTRO INC. - NHV RDC                        7    1023
+006       NEWBURGH WINNELSON CO.                       5    2023
+007       NEWBURGH WINWATER WORKS CO.                  7    2023
+008       WARWICK WINWATER WORKS CO.                   6    2023
+009       TRIPLE CITIES WINDUSTRIAL CO.                0
+010       WEYMOUTH WINNELSON CO.                       5    2023
+011       VERNON WINNELSON CO.                         3    3023
+012       WINDSOR WINAIR CO.                           7    2023
+014       CONNECTICUT WINPUMP CO.                      4    3023
+015       STAMFORD WINNELSON CO.                       0
+016       CATAMOUNT WINNELSON CO.                      4    3023
+017       CARMEL WINWATER WORKS CO.                    0
+018       DANBURY WINAIR CO.                           5    3023
+019       DANBURY WINNELSON CO.                        0
+020       ELMSFORD WINNELSON CO.                       3    3023
+021       MARSHFIELD WINNELSON CO.                     0
+022       BRIDGEWATER WINNELSON CO.                    0
+023       NUTMEG WINLECTRIC CO.                        4    3023
+024       COASTAL WINAIR CO.                           4    2023
+025       HUDSON VALLEY WINDUSTRIAL CO.                0
+026       ELMIRA WINDUSTRIAL CO.                       0
+027       ALBANY WINDUSTRIAL CO.                       0
+028       BALTIMORE WINDUSTRIAL CO.                    6    2023
+029       BILLERICA WINWATER WORKS CO.                 0
+030       WARWICK WINNELSON CO.                        0
+031       AUBURN WINWATER WORKS CO.                    0
+032       HOLYOKE WINDUSTRIAL CO.                      3    2023
+033       MID HUDSON WINFASTENER CO.                   4    2023
+034       WESTPORT WINWATER WORKS DIVISION             3    2023
+035       COMFORT WINAIR CO.                           4    2023
+036       CAPITAL WINAIR CO.                           3    2023
+037       ALBANY WINWATER WORKS CO.                    4    2023
+038       SYRACUSE WINDUSTRIAL CO..                    3    2023
+039       CONCORD WINWATER WORKS CO.                   5    3023
+071       MANCHESTER WINNELSON CO.                    12    2023
+072       SHELTON WINNELSON CO.                       13    3023
+073       COLCHESTER WINNELSON CO.                     4    3023
+074       ESSEX WINNELSON CO.                          6    2023
+075       BRANFORD WINNELSON CO.                       4    3023
+076       NORTHERN WINDUSTRIAL CO.                     7    3023
+077       SHELTON WINAIR CO.                          10    2023
+078       PORTLAND WINAIR CO.                          0
+079       BRISTOL WINNELSON CO.                        6    2023
+080       HARTFORD WINNELSON CO.                       3    3023
+081       NEW HAVEN WINDUSTRIAL CO.                    9    2023
+082       WALLINGFORD WINNELSON CO.                    4    3023
+083       ESSEX WINAIR CO.                             4    3023
+084       PIONEER VALLEY WINNELSON CO.                 7    2023
+085       TORRINGTON WINNELSON CO.                     0
+086       MIDDLETOWN WINNELSON CO.                     5    3023
+087       NEW LONDON WINDUSTRIAL CO.                   6    2023
+088       WILLIMANTIC WINNELSON CO.                    4    3023
+089       WORCESTER WINNELSON CO.                      4    3023
+090       CHAMPLAIN WINAIR CO.                         4    3023
+091       THAMES VALLEY WINNELSON CO.                  0
+092       EAST GREENWICH WINAIR CO.                    4    2023
+093       CRANSTON WINDUSTRIAL CO.                     3    3023
+094       NEWBURGH WINDUSTRIAL CO.                     7    2023
+095       STAMFORD WINDUSTRIAL CO.                     0
+096       STAMFORD WINAIR CO.                          4    3023
+098       BAYSTATE WINAIR CO.                          5    2023
+099       EASTON WINWATER WORKS CO.                    4    2023
+101       DAPSCO DAYTON CO.                            7    1023
+102       DISTRO INC. - FRK RDC                        3    1023
+104       FLORENCE WINWATER WORKS CO.                  4    3023
+107       PADUCAH WINNELSON CO.                        3    3023
+108       DAYTON WINNELSON CO.                         7    2023
+109       FINDLAY WINNELSON CO.                        9    3023
+110       PIQUA WINNELSON CO.                          7    2023
+111       DAYTON WINAIR CO.                            5    3023
+112       CENTERVILLE WINNELSON CO.                    6    2023
+114       SPRINGFIELD WINNELSON CO.                    8    2023
+115       DAYTON WINTRONIC CO.                         7    2023
+116       ZANESVILLE WINNELSON CO.                     3    3023
+117       LAKE ERIE WINNELSON CO.                     10    3023
+120       DAYTON WINFASTENER CO.                       4    3023
+121       GAHANNA WINFASTENER CO.                      4    3023
+122       WESTWOOD WINNELSON CO.                       7    2023
+124       ASHLAND WINCO SUPPLY CO.                     3    2023
+133       EVANSVILLE WINAIR CO.                        4    2023
+134       NEW ALBANY WINNELSON CO.                     0
+135       JASPER WINLECTRIC CO.                        0
+136       EVANSVILLE WINNELSON CO.                     5    2023
+137       MAYSVILLE WINNELSON CO.                      0
+144       BOWLING GREEN WINNELSON CO.                  6    2023
+145       BOWLING GREEN WINLECTRIC CO.                 7    2023
+146       BOWLING GREEN WINFASTENER CO.                4    2023
+148       LOUISVILLE WINAIR CO.                        5    3023
+149       LOUISVILLE WINLECTRIC CO.                    3    3023
+151       LEBANON WINNELSON CO.                        6    2023
+153       OWENSBORO WINNELSON CO.                      5    2023
+154       ELIZABETHTOWN WINLECTRIC CO.                 3    2023
+155       ELIZABETHTOWN WINNELSON CO.                 13    2023
+156       ELIZABETHTOWN WINAIR CO.                     4    2023
+159       INDIANAPOLIS WINAIR CO.                      4    2023
+160       FAIRFIELD WINNELSON CO.                     14    2023
+161       WILDER WINNELSON CO.                         6    3023
+162       MILFORD WINNELSON CO.                        7    2023
+164       WILDER WINLECTRIC CO                         4    2023
+165       MASON WINLECTRIC CO.                         3    3023
+166       DAYTON WINDUSTRIAL CO.                      15    2023
+167       SIDNEY WINDUSTRIAL CO.                       3    3023
+168       INDIANAPOLIS WINNELSON CO.                   5    2023
+170       COLUMBUS WINNELSON CO.                       9    2023
+171       LOUISVILLE WINNELSON CO.                     6    3023
+172       LEXINGTON WINNELSON CO.                      6    2023
+174       NEWARK WINNELSON CO.                         5    3023
+175       MARYSVILLE WINNELSON CO.                     3    3023
+187       FLORENCE WINTERIORS DIVISION                 8    2023
+188       FLORENCE WINNELSON CO.                       6    2023
+190       WESTFIELD WINNELSON CO.                      4    3023
+191       FLORENCE WINLECTRIC CO.                      4    2023
+193       GRIFFITH WINDUSTRIAL CO.                     7    3023
+195       WITHAMSVILLE WINNELSON CO.                   4    3023
+197       ASHLAND WINNELSON CO.                        8    2023
+201       DAPSCO ST. LOUIS CO.                        49    1023
+202       DISTRO ST. LOUIS CO.                         6    1023
+203       CAPE GIRARDEAU WINNELSON CO.                 0
+204       JEFFERSON CITY WINNELSON CO.                 5    2023
+205       MARION WINNELSON CO.                         4    3023
+206       O'FALLON WINNELSON CO.                       0
+207       COLLIERVILLE WINNELSON CO.                   4    3023
+208       ST. JOSEPH WINNELSON CO.                     0
+209       COLUMBIA WINNELSON CO.                       4    3023
+210       LAKE WINLECTRIC CO.                          0
+211       MT. VERNON WINAIR CO.                        0
+212       BATON ROUGE WINWATER WORKS CO.               6    3023
+213       BENTONVILLE WINNELSON CO.                    4    2023
+215       BLYTHEVILLE WINNELSON CO.                    4    3023
+216       CAMDENTON WINNELSON CO.                      4    3023
+217       LITTLE ROCK WINWATER WORKS CO.               0
+218       GLADSTONE WINNELSON CO.                      5    3023
+219       CHICAGO WINTRONIC CO.                        0
+220       HENDERSONVILLE WINNELSON CO.                 4    3023
+221       SPRINGDALE WINAIR CO.                        0
+222       EDWARDSVILLE WINAIR CO.                      3    2023
+223       CONWAY WINNELSON CO.                         5    2023
+224       WEST KEARNEY WINNELSON CO.                   5    2023
+225       RAYTOWN WINNELSON CO.                        6    2023
+226       BLUE SPRINGS WINNELSON CO.                   0
+227       DYERSBURG WINNELSON CO.                      3    3023
+228       JANESVILLE WINAIR CO.                        3    2023
+229       CARTERVILLE WINLECTRIC CO.                   4    3023
+230       SEARCY WINTEMP CO.                           4    2023
+231       TOPEKA WINNELSON CO.                         5    2023
+232       LITTLE ROCK WINNELSON CO.                    8    3023
+233       FT. SMITH WINNELSON CO.                      6    2023
+234       NORTH LITTLE ROCK WINNELSON CO.              4    2023
+235       PINE BLUFF WINNELSON CO.                     0
+236       WICHITA WINNELSON CO.                        5    3023
+237       POPLAR BLUFF WINNELSON CO.                   5    3023
+238       BATON ROUGE WINDUSTRIAL CO.                  0
+239       SEARCY WINNELSON CO.                         4    2023
+240       KANSAS CITY WINNELSON CO.                    0
+241       POPLAR BLUFF WINAIR CO.                      4    3023
+242       N.L.R. WINTEMP SUPPLY CO.                    7    3023
+243       MT. VERNON WINNELSON CO.                     0
+244       LAFAYETTE WINWATER WORKS CO.                 5    3023
+246       SPRINGDALE WINNELSON CO.                     5    2023
+247       JONESBORO WINAIR CO.                         7    3023
+248       WICHITA WINWATER WORKS CO.                   7    3023
+249       MEMPHIS WINNELSON CO.                        4    3023
+250       JONESBORO WINNELSON CO.                      4    3023
+251       ALTON WINLECTRIC CO.                         4    2023
+252       WEST PLAINS WINNELSON CO.                    3    3023
+256       CARTERVILLE WINAIR CO.                       3    3023
+257       LITTLE ROCK WINAIR CO.                       3    2023
+259       SEARCY WINLECTRIC CO.                        0
+260       CAPE WINAIR CO.                              4    3023
+261       JOPLIN WINNELSON CO.                         5    3023
+262       ALTON WINAIR CO.                             4    3023
+263       ALTON WINNELSON CO.                          3    3023
+264       COTTON STATES WINNELSON CO.                  0
+266       LAWRENCE WINNELSON CO.                       4    2023
+267       JEFFERSON CITY WINAIR CO.                    5    2023
+268       QUEEN CITY WINNELSON CO.                     7    2023
+269       KANSAS CITY WINWATER WORKS CO.               4    3023
+270       JERSEYVILLE WINNELSON CO.                    0
+276       HARRISONVILLE WINNELSON CO.                  3    3023
+277       GRANDVIEW WINNELSON CO.                     16    2023
+278       POPLAR BLUFF WINLECTRIC CO.                  3    3023
+279       OLATHE WINWATER WORKS CO.                    0
+280       EDWARDSVILLE WINNELSON CO.                   6    2023
+281       GATEWAY WINNELSON CO.                        4    2023
+283       NASHVILLE WINNELSON CO.                      0
+284       OTTAWA WINNELSON CO.                         4    3023
+285       SPRINGFIELD WINWATER WORKS CO.               4    2023
+288       LACLEDE WINNELSON CO.                        3    3023
+289       BLUE SPRINGS WINWATER WORKS CO.              0
+292       RIVER VALLEY WINWATER WORKS CO.              0
+294       ROLLA WINNELSON CO.                          2    3023
+297       JONESBORO WINWATER WORKS DIVISION            0
+301       DAPSCO DENVER CO.                           83    1023
+302       DISTRO INC - DEN RDC                         0    1023
+304       DURANGO WINNELSON CO.                        0
+305       GRAND JUNCTION WINWATER WORKS CO.            5    2023
+306       BROOMFIELD WINNELSON CO.                     4    3023
+307       DENVER WINAIR CO.                            7    3023
+311       BOULDER WINNELSON CO.                        5    3023
+313       CHEYENNE WINNELSON CO.                       3    3023
+314       DENVER WINNELSON CO.                         4    2023
+315       GILLETTE WINNELSON CO.                       7    2023
+316       FORT COLLINS WINNELSON CO.                   5    2023
+317       CODY WINNELSON CO.                           4    3023
+318       GRAND JUNCTION WINNELSON CO.                 7    2023
+319       COLORADO SPRINGS WINNELSON CO.               6    3023
+320       GREELEY WINNELSON CO.                        3    3023
+321       DENVER WINPUMP CO.                           3    3023
+322       FORT COLLINS WINLECTRIC CO.                 15    2023
+323       ENGLEWOOD WINNELSON CO.                      3    3023
+328       SHERIDAN WINNELSON CO.                       4    3023
+329       DENVER WINDUSTRIAL CO.                       3    3023
+330       PARKER WINNELSON CO.                         3    3023
+331       COLORADO SPRINGS WINDUSTRIAL CO.             3    3023
+332       PUEBLO WINAIR CO.                            3    2023
+333       CASPER WINLECTRIC CO.                        6    3023
+334       CASPER WINFASTENER CO.                       3    3023
+335       CASPER WINAIR CO.                            3    3023
+337       LONGMONT WINNELSON CO.                       7    2023
+338       NORTH DENVER WINAIR CO.                      5    2023
+339       LONGMONT WINAIR CO.                          5    2023
+341       CANON CITY WINNELSON CO.                     5    3023
+344       FORT COLLINS WINAIR CO.                      4    3023
+348       FORT COLLINS WINTRONIC CO.                   4    2023
+350       SALIDA WINNELSON CO.                         5    3023
+351       PUEBLO WINTRONIC CO.                         3    2023
+352       PIKE'S PEAK WINNELSON CO.                    5    2023
+353       DENVER BETA WINTRONIC CO.                    0
+354       COLORADO SPRINGS WINWATER WORKS CO.          7    2023
+356       SOUTH DENVER WINDUSTRIAL CO.                 7    2023
+358       CASTLE ROCK WINNELSON CO.                    9    2023
+360       CASPER WINNELSON CO.                         6    3023
+361       RIVERTON WINNELSON CO.                       4    3023
+364       DENVER WINLECTRIC CO.                        5    2023
+365       PUEBLO WINNELSON CO.                         8    2023
+369       FRONT RANGE WINWATER WORKS CO.               4    3023
+370       ROCK SPRINGS WINNELSON CO.                   4    2023
+371       ST. GEORGE WINLECTRIC CO.                    3    3023
+372       VERNAL WINNELSON CO.                         7    2023
+373       SALT LAKE WINNELSON CO.                      6    2023
+374       PARK CITY WINLECTRIC CO.                     0
+375       ROCK SPRINGS WINDUSTRIAL CO.                 3    2023
+376       POCATELLO WINDUSTRIAL CO.                    3    3023
+377       SALT LAKE WINDUSTRIAL CO.                    7    2023
+378       ROCK SPRINGS WINLECTRIC CO.                  4    2023
+379       ST. GEORGE WINNELSON CO.                     4    3023
+380       SALT LAKE WINLECTRIC CO.                     4    2023
+381       CHEYENNE WINLECTRIC CO.                      0
+382       GRAND JUNCTION WINAIR CO.                    4    2023
+383       COLORADO SPRINGS WINAIR CO.                  0
+384       NORTHGLENN WINNELSON CO.                     4    2023
+385       AURORA WINNELSON CO.                        10    2023
+387       LONGMONT WINLECTRIC CO.                      4    2023
+391       CASTLE PINES WINNELSON CO.                   0
+393       STEAMBOAT SPRINGS WINNELSON CO.              0
+395       LITTLETON WINNELSON CO.                      4    3023
+401       DAPSCO PHOENIX CO.                          59    1023
+402       DISTRO INC. - PHX RDC                       10    1023
+404       WACO WINNELSON CO.                           4    3023
+407       PRESCOTT WINAIR CO.                          4    2023
+408       ALAMOGORDO WINNELSON CO.                     5    3023
+409       AMARILLO WINNELSON CO.                       6    2023
+410       ALBUQUERQUE WINNELSON CO.                    5    3023
+411       ARLINGTON WINNELSON CO.                      4    3023
+412       BAKERSFIELD WINNELSON CO.                    6    2023
+413       TULSA WINNELSON CO.                          0
+414       CORSICANA WINNELSON CO.                      3    3023
+415       SOUTH FORT WORTH WINNELSON CO.               4    3023
+416       MIDLAND WINNELSON CO.                        6    2023
+417       LAWTON WINNELSON CO.                         7    3023
+418       EL PASO WINNELSON CO.                        5    3023
+419       PALMDALE WINNELSON CO.                       7    3023
+420       LAS CRUCES WINNELSON CO.                     8    2023
+422       OKLAHOMA CITY WINPUMP CO.                    5    3023
+423       MIDLAND WINPUMP CO.                          4    2023
+424       PASO ROBLES WINNELSON CO.                    7    3023
+425       MIDLAND WINLECTRIC CO.                       3    2023
+426       ROSWELL WINNELSON CO.                        0
+427       EL PASO WINDUSTRIAL CO.                      0
+428       FORT WORTH WINNELSON CO.                     5    3023
+429       PRESCOTT WINLECTRIC CO.                      5    2023
+430       SANTA FE WINNELSON CO.                       4    3023
+431       ORANGE COUNTY WINDUSTRIAL CO.                0
+432       PRESCOTT WINNELSON CO.                       4    2023
+433       TAOS WINNELSON CO.                           3    3023
+434       IRONWOOD WINNELSON CO.                       4    3023
+435       TUCSON WINNELSON CO.                         4    2023
+436       ROANOKE WINNELSON CO.                        0
+437       RIVERSIDE WINNELSON CO.                      0
+438       ENID WINNELSON CO.                           4    3023
+439       MESA WINNELSON CO.                           0
+440       YUMA WINNELSON CO.                           7    2023
+441       GROVE WINNELSON CO.                          3    3023
+442       LAS CRUCES WINLECTRIC CO.                    5    2023
+443       EL PASO WINTRONIC CO.                        0
+444       LEWISVILLE WINLECTRIC CO.                    4    3023
+445       SAN DIEGO WINDUSTRIAL CO.                    3    3023
+446       HOUSTON WINNELSON CO.                        0
+447       STILLWATER WINNELSON CO.                     0
+448       TEMPLE WINNELSON CO.                         4    3023
+450       ABILENE WINNELSON CO.                        0
+451       ALBUQUERQUE WINAIR CO.                       4    3023
+453       KINGMAN WINNELSON CO.                        0
+454       TEMECULA WINNELSON CO.                       0
+455       OKLAHOMA CITY WINTRONIC CO.                  7    3023
+456       ODESSA WINLECTRIC CO.                        4    2023
+457       NORMAN WINNELSON CO.                         7    3023
+459       OKLAHOMA CITY WINWATER WORKS CO.             5    3023
+460       WEST HOUSTON WINNELSON CO.                   0
+461       PHOENIX WINPUMP CO.                          0
+462       ALBUQUERQUE WINDUSTRIAL CO.                  4    3023
+463       YUMA WINLECTRIC CO.                          4    2023
+464       EL MONTE WINNELSON CO.                       0
+465       ONTARIO WINNELSON CO.                        0
+466       CENTRAL OKLAHOMA WINNELSON CO.               5    3023
+467       MUSKOGEE WINNELSON CO.                       0
+468       ROSWELL WINLECTRIC CO.                       0
+469       WEST ALBUQUERQUE WINNELSON CO.               3    2023
+470       VICTORVILLE WINNELSON CO.                    5    2023
+471       SANTA FE SPRINGS WINWATER WORKS CO.         12    2023
+472       ORANGE COUNTY WINWATER WORKS CO.             0
+473       OKLAHOMA CITY WINNELSON CO.                  5    3023
+474       AUSTIN WINNELSON CO.                         4    2023
+475       BRENHAM WINNELSON CO.                        4    2023
+476       SCOTTSDALE WINNELSON CO.                     6    2023
+477       GRANBURY WINNELSON CO.                       4    2023
+478       AMARILLO WINAIR CO.                          3    3023
+479       AUSTIN WINDUSTRIAL CO.                       3    2023
+480       MESQUITE WINLECTRIC CO.                      5    3023
+481       LAS VEGAS WINLECTRIC CO.                     0
+482       SANTA CLARA WINDUSTRIAL CO.                 10    3023
+483       S. SAN FRANCISCO WINDUSTRIAL CO.             0
+484       SALINAS WINDUSTRIAL CO.                      6    3023
+485       SUNNYVALE WINDUSTRIAL CO.                   10    3023
+486       STOCKTON WINDUSTRIAL CO.                     6    2023
+487       SACRAMENTO WINDUSTRIAL CO.                   7    3023
+488       FREMONT WINDUSTRIAL CO.                      4    3023
+489       ROCKLIN WINDUSTRIAL CO.                      4    3023
+490       WOODLAND WINDUSTRIAL CO.                     3    3023
+491       ELKO WINDUSTRIAL CO.                         3    3023
+492       RENO WINDUSTRIAL CO.                         4    2023
+493       LAS VEGAS WINDUSTRIAL CO.                    6    2023
+494       MODESTO WINDUSTRIAL CO.                      0
+495       FRESNO WINDUSTRIAL CO.                       3    3023
+496       PORTLAND WINDUSTRIAL CO.                     3    3023
+497       COLUMBIA WINDUSTRIAL DIVISION                4    3023
+498       PITTSBURG WINNELSON CO.                      0
+501       DAPSCO RENO CO.                              0    1023
+601       DAPSCO ATLANTA CO.                          43    1023
+607       OLIVE BRANCH WINNELSON CO.                   0
+609       HINESVILLE WINNELSON CO.                     5    2023
+610       VALDOSTA WINNELSON CO.                       4    3023
+617       BIRMINGHAM WINNELSON CO.                     0
+618       ATLANTA WINDUSTRIAL CO.                      3    2023
+619       DOUGLASVILLE WINAIR CO.                      4    2023
+620       WAYCROSS WINLECTRIC CO.                      3    2023
+621       MT. PLEASANT WINNELSON CO.                   4    3023
+622       DUBLIN WINLECTRIC CO.                        3    3023
+623       HINESVILLE WINLECTRIC CO.                    5    2023
+624       CHARLESTON WINNELSON CO.                    10    2023
+625       SAVANNAH WINLECTRIC CO.                      6    3023
+626       BREVARD COUNTY WINDUSTRIAL CO.               4    3023
+627       DOUGLASVILLE WINLECTRIC CO.                  3    2023
+628       FAYETTEVILLE WINLECTRIC CO.                  3    2023
+629       TOCCOA WINLECTRIC CO.                        6    2023
+630       CLEVELAND WINNELSON CO.                      6    2023
+635       RINCON WINLECTRIC DIVISION                   0
+638       BLUFFTON WINNELSON CO.                       4    2023
+640       BRUNSWICK WINNELSON CO.                      3    2023
+641       BRUNSWICK WINLECTRIC CO.                     4    2023
+642       STATESBORO WINLECTRIC CO.                    4    2023
+643       CANTON WINNELSON CO.                         4    2023
+644       ANDERSON WINNELSON CO.                       4    2023
+645       RALEIGH WINWATER WORKS CO.                   4    3023
+647       BEAUFORT WINLECTRIC CO.                      4    3023
+648       CHARLESTON WINLECTRIC CO.                    3    3023
+649       TALLAHASSEE WINAIR CO                        3    2023
+650       BRUNSWICK WINAIR CO.                         4    2023
+651       CHARLOTTE WINNELSON CO.                      4    3023
+653       WAYCROSS WINAIR CO.                          3    3023
+654       COLUMBUS WINAIR CO.                          0
+655       LAWRENCEVILLE WINNELSON CO.                  5    2023
+657       ANNISTON WINDUSTRIAL CO.                     5    2023
+658       FT. WALTON BEACH WINNELSON CO.               4    2023
+659       PORT CITY WINNELSON CO.                      4    3023
+660       CARROLLTON WINAIR CO.                        3    2023
+663       GREENVILLE WINNELSON CO.                     3    3023
+664       CONYERS WINNELSON CO.                        0
+665       DOUGLASVILLE WINNELSON CO.                   4    2023
+667       MYRTLE BEACH WINNELSON CO.                   5    2023
+670       MARIETTA WINAIR CO.                          3    3023
+671       JACKSONVILLE WINLECTRIC CO.                  3    3023
+672       PEE DEE WINNELSON CO.                        3    3023
+674       TIFTON WINLECTRIC CO.                        4    2023
+675       AUGUSTA WINNELSON CO.                        3    3023
+676       TIFTON WINNELSON CO.                         5    2023
+677       MARIETTA WINNELSON CO.                       4    3023
+678       FAIRHOPE WINNELSON CO.                       4    3023
+679       DUBLIN WINNELSON CO.                         4    2023
+680       STATESBORO WINNELSON CO.                     6    2023
+681       ALBANY WINNELSON CO.                         4    2023
+682       CARROLLTON WINNELSON CO.                     3    3023
+683       SAVANNAH WINNELSON CO.                       3    3023
+684       AUBURN WINNELSON CO.                         4    2023
+685       FAYETTEVILLE WINNELSON CO.                   5    2023
+686       JAX BEACH WINNELSON CO.                      4    3023
+687       MACON WINNELSON CO.                          3    3023
+689       WILMINGTON WINLECTRIC CO.                    3    3023
+701       DAPSCO OMAHA CO.                             2    1023
+708       KEARNEY WINNELSON CO.                        4    3023
+709       RAPID CITY WINAIR CO.                        5    3023
+710       YANKTON WINNELSON CO.                        4    3023
+712       FAIRBURY WINNELSON CO.                       3    3023
+714       ALEXANDRIA WINNELSON CO.                     7    3023
+724       NORFOLK WINAIR CO.                           4    3023
+725       KEARNEY WINLECTRIC CO.                       4    3023
+726       SCOTTSBLUFF WINNELSON CO.                    6    2023
+727       MILLARD WINNELSON CO.                        4    2023
+728       JANESVILLE WINAIR CO.                        3    2023
+743       MILBANK WINWATER WORKS CO.                   3    3023
+745       AMES WINNELSON CO.                           4    2023
+753       ELK RIVER WINLECTRIC CO.                     4    3023
+754       TWIN CITIES WINNELSON CO.                    4    3023
+755       TWIN CITY WINDUSTRIAL CO.                    4    3023
+756       LINCOLN WINPUMP CO.                          3    3023
+757       LINCOLN WINDUSTRIAL CO.                      5    2023
+759       NORTH PLATTE WINNELSON CO.                   3    3023
+763       PLATTE VALLEY WINNELSON CO.                  5    3023
+764       LAKEVILLE WINLECTRIC CO.                     3    3023
+765       PARK RAPIDS WINNELSON CO.                    0
+766       OMAHA WINLECTRIC CO.                         4    3023
+767       LINCOLN WINLECTRIC CO.                       5    3023
+768       LINCOLN WINAIR CO.                           6    2023
+769       SIOUX FALLS WINAIR CO.                       7    3023
+770       LINCOLN WINNELSON CO.                        9    2023
+771       SIOUX CITY WINNELSON CO.                     4    2023
+773       SIOUX CITY WINTRONIC CO.                     6    2023
+774       RED OAK WINNELSON CO.                        4    2023
+775       SIOUX CITY WINAIR CO.                        4    2023
+776       CORNHUSKER WINNELSON CO.                     5    2023
+778       SIOUX FALLS WINNELSON CO.                   10    3023
+779       OMAHA WINAIR CO.                             3    3023
+780       WATERTOWN WINNELSON CO.                      4    3023
+781       ALBERT LEA WINNELSON CO.                     4    2023
+785       OMAHA WINNELSON CO.                          5    3023
+786       FREMONT WINNELSON CO.                        4    3023
+787       NORFOLK WINNELSON CO.                        5    3023
+788       OMAHA WINDUSTRIAL CO.                        3    3023
+789       RAPID CITY WINNELSON CO.                     5    3023
+790       GRAND FORKS WINNELSON CO.                    3    3023
+791       CEDAR RAPIDS WINPUMP CO.                     4    3023
+792       OMAHA HYDRO WINPUMP CO.                      6    3023
+793       SIOUX FALLS WINPUMP CO.                      4    3023
+795       EDEN PRAIRIE WINLECTRIC CO.                  4    3023
+930       WISE SUPPORT TESTING                         2    2023
