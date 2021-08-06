@@ -1,0 +1,49 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BSTTMEML   Proc Created 11/09/2005   By Dave Clark        *
+;*                  Last Revised 11/16/2005                        *
+;*                                                                 *
+;*      This procedure is designed to create a member listing in a *
+;* specific format -- and  without  headers or control information *
+;* (as required for use with LCA commands).   In other words, this *
+;* is specifically for use with the BIM-EDIT Application Interface *
+;* and the BSTTBEAM BSI FTP exit routine.   This procedure must be *
+;* loaded,  as a member,  into the  BIM-EDIT $SIT.PROC library (no *
+;* command definition is required).                                *
+;*                                                                 *
+;* WARNING!!! The BSI FTP server and exit routine are hardcoded to *
+;* expect this exact library, procedure name, and output format.   *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svc. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   1
+SET  PPDCOND  1
+SET  PPDLITEX 1
+DCL  SZBY     NUM  8 F
+
+DISPLAYF 'BSTTMEML'
+++/*
+
+SET  TXMLIB   '&TXLLIB'
+SET  TXMMEM   ''
+BLOCK
+  BROWSE
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  LADD
+  POS  &SSDSZLN
+  OVLY  1  'M'
+  OVLY  3  '&TXMMEM..&TXMTYPE'
+  OVLY 29  '&TXMDTUPD &TXMTMUPD'
+  SET  SZBY &TXMSZBY
+  OVLY 49  '&SZBY'
+  LOOP
+ENDBLOCK
+
+TOP
+EXIT OK,'## MEMBER LISTING CREATED ##'

@@ -1,0 +1,124 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: SUBMIT A JOB FOR PROCESSING IN CURRENT LPAR            *
+* Procedure..: BIPSUBM                                                *
+* Command....: SUBMIT                                                 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Require the presence of a POWER JOB and EOJ card.                   *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,2
+SET PPDINCL,1
+SET PPDTRAP,1
+DCL MEM,CHAR,33,V
+DCL CLASS,CHAR,1,V
+DCL DISP,CHAR,1,V
+DCL USER,CHAR,16,V
+DCL LSTCLASS,CHAR,1,V
+DCL LSTDISP,CHAR,1,V
+DCL PUNCLASS,CHAR,1,V
+DCL PUNDISP,CHAR,1,V
+
+PARSE MEM,CLASS,DISP,USER,LSTCLASS,LSTDISP,PUNCLASS,PUNDISP
+IF CLASS,EQ,''
+   SET CLASS,C
+IF DISP,EQ,''
+   SET DISP,D
+IF USER,EQ,''
+   SET USER,&SIBUSER
+IF LSTCLASS,EQ,''
+   SET LSTCLASS,A
+IF LSTDISP,EQ,''
+   SET LSTDISP,H
+IF PUNCLASS,EQ,''
+   SET PUNCLASS,A
+IF PUNDISP,EQ,''
+   SET PUNDISP,H
+IF MEM,EQ,$STACK
+   EXIT SV,'(BIPSUBMA) ** SUBMIT FROM $STACK IS NOT ALLOWED **'
+IFTHEN MEM,EQ,'/'
+  IF SIBSESSD,EQ,0
+     EXIT SV,'(BIPSUBMB) ** COMMAND REQUIRES A SESSION **'
+  IF SSDSZLN,EQ,0
+     EXIT SV,'(BIPSUBMC) ** SESSION HAS ZERO LINES **'
+  IF SSDTYPE EQ DI
+     GOTO L200
+  IF SSDTYPE EQ ED
+     GOTO L200
+  IF SSDTYPE EQ LI
+     GOTO L200
+  EXIT SV,'(BIPSUBMD) ** COMMAND REQUIRES A LIST, EDIT, OR DISPLAY SESSION **'
+ENDIF
+
+READ &MEM
+IF MEM EQ ''
+   SET MEM "&TXMLIB..&TXMMEM"
+IF XTREUSER NE ''
+   EXIT SV,'(BIPSUBME) ** MEMBER "&MEM" IS BEING EDITED **'
+IF TXMSZLN,EQ,0
+   EXIT SV,'(BIPSUBMF) ** MEMBER "&MEM" HAS ZERO LINES **'
+
+LIST &MEM
+SET PPDCOND,1
+EXAMINE '* $$ JOB',1-8
+IF SIBRETCD,NE,OK
+   EXIT SV,'(BIPSUBMG) ** MEMBER "&MEM" MISSING JOB CARD **'
+POS &SSDSZLN
+EXAMINE '* $$ EOJ',1-8
+IF SIBRETCD,NE,OK
+   EXIT SV,'(BIPSUBMH) ** MEMBER "&MEM" MISSING EOJ CARD **'
+SET PPDCOND,0
+
+LABEL L200
+TOP
+SET PPDCOND,1
+BYPASS
+LOCATE 'XDEST=' 1-72
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(BIPSUBMI) ** XDEST PARAMETER NOT ALLOWED -- USE PSUB/TSUB INSTEAD **'
+SET PPDCOND,0
+
+DCL  SAVEOBJ  CHAR 46 V
+SET  SAVEOBJ  "&SSDOBJ"
+
+BYPASS
+EDIT COMMON.SUBMITS
+POS  &SSDSZLN
+INS  "&OPSDATE &OPSTIME &SIBUSER SUBMIT FROM &SAVEOBJ"
+BYPASS
+SAVE
+
+SET PPDCOND 0
+TOP
+SUBMITF
+)INCL (SESS)
+++/*
+
+IFTHEN MEM NE '/'
+   BYPASS
+   END NOSAVE
+   READ &MEM
+ENDIF
+
+IF MMPSPOOL,EQ,S
+    GOTO L420
+LOGF
+## JOB "&PWRJNAME" SUBMITTED, JOB NUMBER = &PWRJNUM ##
+++/*
+EXIT OK,'## JOB "&PWRJNAME" SUBMITTED, JOB NUMBER = &PWRJNUM ##'
+
+LABEL L420
+LOGF
+## JOB "&PWRJNAME" SUBMITTED, SEQUENCE NUMBER = &PWRSEQNU ##
+++/*
+EXIT OK,'## JOB "&PWRJNAME" SUBMITTED, SEQUENCE NUMBER = &PWRSEQNU ##'

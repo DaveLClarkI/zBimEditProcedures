@@ -1,0 +1,91 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: CHANGED    Proc Created 11/09/2006   By Dave Clark        *
+;*                  Last Revised 01/04/2007                        *
+;*                                                                 *
+;*      This  procedure  identifies  changed  lines  in  a session *
+;* according to their "stamp" status.                              *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.  The following line  (without  the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and  the "NEWCOPY COMMANDS" command *
+;* issued:                                                         *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* CHANGED  CHANGED                                                *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+DCL  RC       CHAR   2 V M
+DCL  MSG      CHAR  82 V M
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(CHANGED) ** Command Requires a Session **'
+DCL  SAVE     NUM    6 V
+SET  SAVE     &SSDBASE&SIBSCRPM
+
+DCL  DATE     CHAR  10 V
+PARSE DATE
+
+IF DATE EQ ''
+   SETD DATE SIBLCSTR{1:10}
+
+DCL  JDATE    CHAR   7 V U GLOBAL
+GRG2JUL JDATE '&DATE'
+IFTHEN SIBRETCD NE OK
+  SETD MSG SIBRESP
+  SETD RC  MSG 1 2
+  SETD MSG MSG 3
+  EXIT &RC,'&MSG'
+ENDIF
+
+SET  PPDCOND  2
+BYPASS
+LOCATE '&DATE'
+SET  PPDCOND  0
+POS  &SAVE
+
+DCL  CDATE    CHAR   7 V U GLOBAL
+DCL  TYPE     CHAR   7 V
+DCL  CHGD     CHAR  10 V
+DCL  USER     CHAR   8 V
+
+BLOCK
+  IF SSDBASE&SIBSCRPM,EQ,&SSDSZLN
+     LEAVE
+  NEXT 1
+
+  SETD  PARMLIST XTRSTAMP
+  PARSE TYPE CHGD USER
+
+  IFTHEN TYPE NE ''
+    GRG2JUL CDATE '&CHGD'
+    IFTHEN SIBRETCD NE OK
+      SETD MSG SIBRESP
+      SETD RC  MSG 1 2
+      SETD MSG MSG 3
+      EXIT &RC,'&MSG'
+    ENDIF
+    IFTHEN CDATE GE &JDATE
+      IFTHEN TYPE EQ 'A'
+        SET  TYPE 'Added'
+      ELSE
+        SET  TYPE 'Changed'
+      ENDIF
+      EXIT OK,'(CHANGED) ## &TYPE by "&USER" on &CHGD.. ##'
+    ENDIF
+  ENDIF
+
+  LOOP
+ENDBLOCK
+
+POS  &SAVE
+EXIT OK,'(CHANGED) ## No lines matching criteria. ##'

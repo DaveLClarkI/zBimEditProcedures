@@ -1,0 +1,121 @@
+;"MODEL-LIBR" PROC HANDLES THE "LIBR" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+
+                                         ¬JCL     }- Sample LIBR JCL Statements
+  ¬ACCESS  }- Specify Target Sublibrary  ¬END     }- Librarian End of Session
+  ¬CONNECT }- Specify From/To Sublibs    ¬GOTO    }- Skip to Label
+                                         ¬ON      }- Set Global Condition
+  ¬CATALOG }- Create a Member
+  ¬DEFINE  }- Create a Lib or Sublib     ¬COMPARE }- Compare Libs/Sublibs/Membrs
+                                         ¬SEARCH  }- Search for Library Member
+  ¬COPY    }- Copy Lib, Sublib or Member
+  ¬DELETE  }- Delete Lib/Sublib/Member   ¬BACKUP  }- Backup Libs/Sublibs/Membrs
+  ¬MOVE    }- Move Lib, Sublib or Member ¬CHANGE  }- Change Sublib REUSE Attr
+  ¬PUNCH   }- Punch Member Content       ¬INPUT   }- Read from SYSIPT
+  ¬RENAME  }- Rename Sublib or Member    ¬LOCK    }- Lock a Member
+  ¬UPDATE  }- Alter Member Content       ¬RELEASE }- Release Unused Shared Space
+                                         ¬RESTORE }- Restore Libs/Sublibs/Membrs
+  ¬LIST    }- List Member Content        ¬TEST    }- Test Library Integrity
+  ¬LISTDIR }- List Lib/Sublib Directory  ¬UNLOCK  }- Unlock a Member
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,ACCESS
+   EXIT OK
+IF NAME,EQ,BACKUP
+   EXIT OK
+IF NAME,EQ,CATALOG
+   EXIT OK
+IF NAME,EQ,CHANGE
+   EXIT OK
+IF NAME,EQ,COMPARE
+   EXIT OK
+IF NAME,EQ,CONNECT
+   EXIT OK
+IF NAME,EQ,COPY
+   EXIT OK
+IF NAME,EQ,DEFINE
+   EXIT OK
+IF NAME,EQ,DELETE
+   EXIT OK
+IF NAME,EQ,END
+   EXIT OK
+IF NAME,EQ,GOTO
+   EXIT OK
+IF NAME,EQ,INPUT
+   EXIT OK
+IF NAME,EQ,JCL
+   EXIT OK
+IF NAME,EQ,LIST
+   EXIT OK
+IF NAME,EQ,LISTDIR
+   EXIT OK
+IF NAME,EQ,LOCK
+   EXIT OK
+IF NAME,EQ,MOVE
+   EXIT OK
+IF NAME,EQ,ON
+   EXIT OK
+IF NAME,EQ,PUNCH
+   EXIT OK
+IF NAME,EQ,RELEASE
+   EXIT OK
+IF NAME,EQ,RENAME
+   EXIT OK
+IF NAME,EQ,RESTORE
+   EXIT OK
+IF NAME,EQ,SEARCH
+   EXIT OK
+IF NAME,EQ,TEST
+   EXIT OK
+IF NAME,EQ,UNLOCK
+   EXIT OK
+IF NAME,EQ,UPDATE
+   EXIT OK
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME

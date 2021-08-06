@@ -1,0 +1,968 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: MACRO4     Proc Created 08/30/2006   By Dave Clark        *
+;*                  Last Revised 09/04/2006                        *
+;*                                                                 *
+;*      This procedure creates a refreshable BIM-EDIT display (DI) *
+;* session containing JCL to  execute  a user-selected function of *
+;* the MACRO4 DATABACK product.                                    *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svc. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.   The following line (without  the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and  the "NEWCOPY COMMANDS" command *
+;* issued:                                                         *
+;*                                                                 *
+;* |---+----1----+----2----+----3----+----4----+----5----+----|    *
+;* MACRO4   MACRO4              Build Jcl for Macro4 Functions     *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   1
+SET  PPDINCL  1
+SET  PPDTRAP  1
+SET  PPDLITDL '"'
+SET  PPDLITEX 1
+SET  PPDPFOPT 1
+SET  PPDSCRSZ D
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+IF SIBSESSD EQ 0             ;IF "REFRESH" COMMAND USED ON
+   GOTO CONTINUE
+IF SSDTYPE NE DI             ;A CURRENT DISPLAY SESSION FOR
+   GOTO CONTINUE
+IF SSDOBJ{1,16} NE "DISP  -> MACRO4 "   ;THIS PROCEDURE, THEN
+   GOTO CONTINUE
+END                          ;END THAT SESSION BEFORE BUILDING NEW ONE
+
+LABEL CONTINUE               ;TEST FOR ABILITY TO CREATE A NEW SESSION
+DISPLAYF "MACRO4 DATABACK Sample Job"
+++/*
+END
+
+DCL  S        CHAR   1 V U   ;MAPF FIELD
+DCL  DD(5)    CHAR   7 V U   ;MAPF FIELD
+DCL  DSN(5)   CHAR  35 V U   ;MAPF FIELD
+DCL  CATDD    CHAR   7 V U   ;MAPF FIELD
+DCL  CAT(5)   CHAR   7 V U   ;MAPF FIELD
+DCL  VOL(5)   CHAR   6 V U   ;MAPF FIELD
+DCL  NEW(5)   CHAR  35 V U   ;MAPF FIELD
+DCL  MEDIA    CHAR   1 V U INIT="D"
+DCL  MESG     CHAR  79 V M   ;MAPF FIELD
+;
+DCL  X        NUM    1 V     ;INDEX
+DCL  LEN      NUM    3 V     ;LENGTH
+DCL  POS      NUM    3 V     ;POSITION
+DCL  CHANGED  CHAR   1 V U
+DCL  DDNAME   CHAR  35 V U   ;FOR SUBROUTINES
+DCL  DSNAME   CHAR  35 V U   ;FOR SUBROUTINES
+DCL  CATDSN   CHAR  35 V U   ;FOR SUBROUTINES
+DCL  RC       CHAR   2 V U   ;TO HOLD SIBRETCD
+DCL  MSG      CHAR  82 V U   ;TO HOLD SIBRESP
+;
+DCL  FUNC     CHAR   8 V U   ;TO SUPPORT USE OF "REFRESH" COMMAND
+DCL  SAMPLE   CHAR   8 V U   ;TO SUPPORT USE OF "REFRESH" COMMAND
+DCL  JOB      CHAR   8 V U   ;TO SUPPORT USE OF "REFRESH" COMMAND
+PARSE FUNC SAMPLE JOB        ;TO SUPPORT USE OF "REFRESH" COMMAND
+
+SET  PPDCOND 2
+GOTO F&FUNC
+SET  PPDCOND 0
+;----------------------------------------------------------------------;
+;
+;                  SELECT MACRO4 FUNCTION
+;
+LABEL FUNCTION
+SET  PPDCOND 2
+READ &LSTMEM                 ;RESTORE THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+SET  FUNC   ""
+SET  S      ""
+SET  CATDD  ""
+SET  MEDIA  ""
+SET  X  1
+BLOCK
+  SET  DD(&X)   ""
+  SET  DSN(&X)  ""
+  SET  CAT(&X)  ""
+  SET  VOL(&X)  ""
+  SET  NEW(&X)  ""
+  ADD  X  1
+  IF X LE 5
+     LOOP
+ENDBLOCK
+
+LABEL DISPLAY
+MAPF
+}MACRO4                   ¬MACRO4 "DATABACK" Procedure              }&OPSDATE
+                               Function Selection                     }&OPSTIME
+
+
+}Please select one of the functions shown below¬==>!S}
+
+
+¬  1  }-  BACKUP one or more files to disk or tape
+
+¬  2  }-  RESTORE one or more files from disk or tape
+
+¬  3  }-  LIST dataset(s) in a backup file on disk or tape
+
+¬  4  }-  COMPARE two files on disk
+
+¬  5  }-  COPY one or more files
+
+¬  6  }-  MOVE one or more files
+
+
+
+
+}Press¬PF3}to terminate the MACRO4 procedure.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   GOTO EXIT
+IF PPDKEY,EQ,PF4
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO EXIT
+IF PPDKEY,EQ,PF16
+   GOTO EXIT
+
+IF S EQ "1"
+   SET  FUNC  "BACKUP"
+IF S EQ "2"
+   SET  FUNC  "RESTORE"
+IF S EQ "3"
+   SET  FUNC  "LIST"
+IF S EQ "4"
+   SET  FUNC  "COMPARE"
+IF S EQ "5"
+   SET  FUNC  "COPY"
+IF S EQ "6"
+   SET  FUNC  "MOVE"
+
+SET  PPDCOND 2
+GOTO F&FUNC
+SET  PPDCOND 0
+
+SET  MESG     "Invalid selection, try again..."
+SET  PPDALARM 1
+GOTO -DISPLAY
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Find associated DLBL Name based on DSName
+;
+LABEL GETDLBL
+SET  DDNAME  ""
+SETL LEN     DSNAME
+SET  TXMLIB  "VSAM.DEFINES"
+SET  TXMMEM  ""
+BLOCK
+  SET  PPDCOND 1             ;BYPASS ERRORS
+  BROWSE
+  IF SIBRETCD NE "OK"
+     LEAVE
+  SET  PPDCOND 0             ;DEFAULT ERROR HANDLING
+  IFD TXMTITLE{1,&LEN} NE DSNAME
+     LOOP
+ENDBLOCK
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+IFTHEN TXMTITLE{1,&LEN} EQ &DSNAME
+   SETD DDNAME  TXMMEM{1,7}
+   VTRUNC DDNAME
+   SET  CHANGED "Y"
+ENDIF
+RETURN
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Get Dataset Name from VSAM.DEFINES Member
+;
+LABEL GETDSN
+SET  DSNAME  ""
+SET  PPDCOND 2
+BYPASS
+LIST VSAM.DEFINES.&DDNAME
+IFTHEN SIBRETCD EQ OK
+  SET  PPDCOND 0
+  TOP
+  BYPASS
+  LOCATE "\NAME@ (@ @'%*@'@ )"
+  SET  POS     &SSDCOL1
+  BYPASS
+  UP   1
+  BYPASS
+  LOCATE "\NAME@ (@ @'*%@'@ )"
+  SET  LEN     &SSDCOL1
+  SUBT LEN     &POS
+  SET  PPDCOND 2
+  SET  DSNAME  &XTRSLINE{&POS,&LEN}
+  IFTHEN SIBRETCD NE OK
+    SET  PPDCOND 0
+    SUBT LEN     1
+    SET  DSNAME  &XTRSLINE{&POS,&LEN}
+  ENDIF
+  SET  PPDCOND 0
+  GOSUB GETCAT
+  BYPASS
+  END
+  SET  CHANGED  "Y"
+ENDIF
+SET  PPDCOND 0
+RETURN
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Get CATALOG Name from VSAM.DEFINES Member
+;
+LABEL GETCAT
+SET  CATDSN  ""
+TOP
+BYPASS
+LOCATE "\CATALOG@ (@ %*@ )"
+SET  POS     &SSDCOL1
+BYPASS
+UP   1
+BYPASS
+LOCATE "\CATALOG@ (@ *%@ )"
+SET  LEN     &SSDCOL1
+SUBT LEN     &POS
+SET  PPDCOND 2
+SET  CATDSN  &XTRSLINE{&POS,&LEN}
+IFTHEN SIBRETCD NE OK
+  SET  PPDCOND 0
+  SUBT LEN     1
+  SET  CATDSN  &XTRSLINE{&POS,&LEN}
+ENDIF
+SET  PPDCOND 0
+RETURN
+;----------------------------------------------------------------------;
+;
+;                  GET BACKUP PARMS
+;
+LABEL FBACKUP
+SET  PPDCOND 2
+READ &LSTMEM                 ;RESTORE THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+MAPF
+}MACRO4                   ¬MACRO4 "DATABACK" Procedure              }&OPSDATE
+                              BACKUP Specifications                   }&OPSTIME
+
+}Supply either entry... The other will be looked up in the VSAM.DEFINES library.
+
+  ¬DLBL Name ... 1:{DD(1)  }/¬DSN:{DSN(1)                                      }
+  ¬              2:{DD(2)  }/¬   :{DSN(2)                                      }
+  ¬              3:{DD(3)  }/¬   :{DSN(3)                                      }
+  ¬              4:{DD(4)  }/¬   :{DSN(4)                                      }
+  ¬              5:{DD(5)  }/¬   :{DSN(5)                                      }
+
+  ¬Backup catalog :{CATDD  }
+  ¬Backup to .... :{MEDIA}                 ('T'ape or 'D'isk)
+
+}If backing up from a single catalog,
+      then only the DSN is required;
+}When backing up from different catalogs,
+      leave the Backup catalog field empty,
+      and only the DLBL Name is then required.
+
+
+
+}Press¬PF3}to return to the previous panel or¬PF4}to terminate.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF4
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF16
+   GOTO EXIT
+
+IFTHEN DD(1) EQ ""
+  IFTHEN DSN(1) EQ ""
+    SET  MESG     "Must fill in at least the first DLBL Name or DSN."
+    SET  PPDCSFLD "DD(1)"
+    SET  PPDALARM 1
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -FBACKUP
+
+SET  CHANGED  "N"
+
+IF CATDD EQ ""
+   SET  CATDD  "*"
+
+SET  X  1
+BLOCK
+  IFTHEN DD(&X) NE ""
+    IFTHEN DSN(&X) EQ ""
+      SET  DDNAME  &DD(&X)
+      GOSUB -GETDSN
+      SET  DSN(&X) &DSNAME
+      IFTHEN DSN(&X) EQ ""
+        IFTHEN CATDD NE "*"
+          SET  MESG     "Failed to retrieve DSN based on DLBL Name.  Fill in yourself."
+          SET  PPDCSFLD "DSN(&X)"
+          SET  PPDALARM 1
+        ENDIF
+      ENDIF
+    ENDIF
+  ELSE
+    IFTHEN DSN(&X) NE ""
+      SET  DSNAME  &DSN(&X)
+      GOSUB -GETDLBL
+      SET  DD(&X)  &DDNAME
+      IFTHEN DD(&X) EQ ""
+        IFTHEN CATDD EQ "*"
+          SET  MESG     "Failed to retrieve DLBL Name based on DSN.  Fill in yourself."
+          SET  PPDCSFLD "DD(&X)"
+          SET  PPDALARM 1
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  ADD  X  1
+  IF X LE 5
+     LOOP
+ENDBLOCK
+IF PPDALARM EQ 1
+   GOTO -FBACKUP
+IF CHANGED EQ "Y"
+   SET  MESG  "Screen changed.  Press ENTER to continue..."
+IF CHANGED EQ "Y"
+   GOTO -FBACKUP
+
+IF MEDIA EQ "T"
+   GOTO GENERATE
+IF MEDIA EQ "D"
+   GOTO GENERATE
+SET  MESG     "Invalid MEDIA selection, try again..."
+SET  PPDCSFLD "MEDIA"
+SET  PPDALARM 1
+GOTO -FBACKUP
+;----------------------------------------------------------------------;
+;
+;                  GET RESTORE PARMS
+;
+LABEL FRESTORE
+SET  PPDCOND 2
+READ &LSTMEM                 ;RESTORE THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+MAPF
+}MACRO4                   ¬MACRO4 "DATABACK" Procedure              }&OPSDATE
+                             RESTORE Specifications                   }&OPSTIME
+
+}Supply either entry... The other will be looked up in the VSAM.DEFINES library.
+
+  ¬DLBL Name ... 1:{DD(1)  }/¬DSN:{DSN(1)                                      }
+  ¬              2:{DD(2)  }/¬   :{DSN(2)                                      }
+  ¬              3:{DD(3)  }/¬   :{DSN(3)                                      }
+  ¬              4:{DD(4)  }/¬   :{DSN(4)                                      }
+  ¬              5:{DD(5)  }/¬   :{DSN(5)                                      }
+
+  ¬Restore catalog:{CATDD  }
+  ¬Restore from . :{MEDIA}                 ('T'ape or 'D'isk)
+
+               ¬NewCat    NewVol   NewName
+               }-------   ------   --------------------------------------------
+  ¬Optional: 1:{CAT(1) }:{VOL(1)}:{NEW(1)                                      }
+  ¬          2:{CAT(2) }:{VOL(2)}:{NEW(2)                                      }
+  ¬          3:{CAT(3) }:{VOL(3)}:{NEW(3)                                      }
+  ¬          4:{CAT(4) }:{VOL(4)}:{NEW(4)                                      }
+  ¬          5:{CAT(5) }:{VOL(5)}:{NEW(5)                                      }
+
+}Press¬PF3}to return to the previous panel or¬PF4}to terminate.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF4
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF16
+   GOTO EXIT
+
+IFTHEN DD(1) EQ ""
+  IFTHEN DSN(1) EQ ""
+    SET  MESG     "Must fill in at least the first DLBL Name or DSN."
+    SET  PPDCSFLD "DD(1)"
+    SET  PPDALARM 1
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -FRESTORE
+
+SET  CHANGED  "N"
+
+IF CATDD EQ ""
+   SET  CATDD  "*"
+
+SET  X  1
+BLOCK
+  IFTHEN DD(&X) NE ""
+    IFTHEN DSN(&X) EQ ""
+      SET  DDNAME  &DD(&X)
+      GOSUB -GETDSN
+      SET  DSN(&X) &DSNAME
+      IFTHEN DSN(&X) EQ ""
+        IFTHEN CATDD NE "*"
+          SET  MESG     "Failed to retrieve DSN based on DLBL Name.  Fill in yourself."
+          SET  PPDCSFLD "DSN(&X)"
+          SET  PPDALARM 1
+        ENDIF
+      ENDIF
+    ENDIF
+  ELSE
+    IFTHEN DSN(&X) NE ""
+      SET  DSNAME  &DSN(&X)
+      GOSUB -GETDLBL
+      SET  DD(&X)  &DDNAME
+      IFTHEN DD(&X) EQ ""
+        IFTHEN CATDD EQ "*"
+          SET  MESG     "Failed to retrieve DLBL Name based on DSN.  Fill in yourself."
+          SET  PPDCSFLD "DD(&X)"
+          SET  PPDALARM 1
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  ADD  X  1
+  IF X LE 5
+     LOOP
+ENDBLOCK
+IF PPDALARM EQ 1
+   GOTO -FRESTORE
+IF CHANGED EQ "Y"
+   SET  MESG  "Screen changed.  Press ENTER to continue..."
+IF CHANGED EQ "Y"
+   GOTO -FRESTORE
+
+IF MEDIA EQ "T"
+   GOTO GENERATE
+IF MEDIA EQ "D"
+   GOTO GENERATE
+SET  MESG     "Invalid MEDIA selection, try again..."
+SET  PPDCSFLD "MEDIA"
+SET  PPDALARM 1
+GOTO -FRESTORE
+;----------------------------------------------------------------------;
+;
+;                  GET LIST PARMS
+;
+LABEL FLIST
+SET  PPDCOND 2
+READ &LSTMEM                 ;LIST THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+MAPF
+}MACRO4                   ¬MACRO4 "DATABACK" Procedure              }&OPSDATE
+                                LIST Specifications                   }&OPSTIME
+
+}List catalog may be an asterisk to list a generic backup:
+
+  ¬List catalog . :{CATDD  }
+  ¬List from .... :{MEDIA}                 ('T'ape or 'D'isk)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel or¬PF4}to terminate.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF4
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF16
+   GOTO EXIT
+
+IF CATDD EQ ""
+   SET  CATDD  "*"
+
+IF MEDIA EQ "T"
+   GOTO GENERATE
+IF MEDIA EQ "D"
+   GOTO GENERATE
+SET  MESG     "Invalid MEDIA selection, try again..."
+SET  PPDCSFLD "MEDIA"
+SET  PPDALARM 1
+GOTO -FLIST
+;----------------------------------------------------------------------;
+;
+;                  GET COMPARE PARMS
+;
+LABEL FCOMPARE
+SET  PPDCOND 2
+READ &LSTMEM                 ;COMPARE THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+SET  MEDIA   "D"
+SET  CATDD   "*"
+
+MAPF
+}MACRO4                   ¬MACRO4 "DATABACK" Procedure              }&OPSDATE
+                             COMPARE Specifications                   }&OPSTIME
+
+}Catalog and Dataset Name are required if DLBL Name is not known:
+
+              ¬Catalog    DLBL     Dataset Name
+              }-------   -------   --------------------------------------------
+  ¬Required 1:{CAT(1) }:{DD(1)  }:{DSN(1)                                      }
+  ¬         2:{CAT(2) }:{DD(2)  }:{DSN(2)                                      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel or¬PF4}to terminate.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF4
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF16
+   GOTO EXIT
+
+IFTHEN DD(1) EQ ""
+  IFTHEN DSN(1) EQ ""
+    SET  MESG     "Must fill in the first DLBL Name or DSN."
+    SET  PPDCSFLD "DD(1)"
+    SET  PPDALARM 1
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -FCOMPARE
+
+IFTHEN DD(2) EQ ""
+  IFTHEN DSN(2) EQ ""
+    SET  MESG     "Must fill in the second DLBL Name or DSN."
+    SET  PPDCSFLD "DD(2)"
+    SET  PPDALARM 1
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -FCOMPARE
+
+SET  CHANGED  "N"
+
+SET  X  1
+BLOCK
+  IFTHEN DD(&X) NE ""
+    IFTHEN DSN(&X) EQ ""
+      SET  DDNAME  &DD(&X)
+      GOSUB -GETDSN
+      SET  DSN(&X) &DSNAME
+    ENDIF
+  ELSE
+    IFTHEN DSN(&X) NE ""
+      SET  DSNAME  &DSN(&X)
+      GOSUB -GETDLBL
+      SET  DD(&X)  &DDNAME
+      IFTHEN DD(&X) EQ ""
+        IFTHEN CAT(&X) EQ ""
+          SET  MESG     "Failed to retrieve DLBL Name based on DSN.  Provide Catalog name."
+          SET  PPDCSFLD "CAT(&X)"
+          SET  PPDALARM 1
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  ADD  X  1
+  IF X LE 2
+     LOOP
+ENDBLOCK
+IF PPDALARM EQ 1
+   GOTO -FCOMPARE
+IF CHANGED EQ "Y"
+   SET  MESG  "Screen changed.  Press ENTER to continue..."
+IF CHANGED EQ "Y"
+   GOTO -FCOMPARE
+
+GOTO GENERATE
+;----------------------------------------------------------------------;
+;
+;                  GET COPY/MOVE PARMS
+;
+LABEL FCOPY
+LABEL FMOVE
+SET  PPDCOND 2
+READ &LSTMEM                 ;COPY THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+SET  MEDIA   "D"
+SET  CATDD   "*"
+
+MAPF
+}MACRO4                   ¬MACRO4 "DATABACK" Procedure              }&OPSDATE
+                            COPY/MOVE Specifications                  }&OPSTIME
+
+}Supply either entry... The other will be looked up in the VSAM.DEFINES library.
+
+  ¬DLBL Name ... 1:{DD(1)  }/¬DSN:{DSN(1)                                      }
+  ¬              2:{DD(2)  }/¬   :{DSN(2)                                      }
+  ¬              3:{DD(3)  }/¬   :{DSN(3)                                      }
+  ¬              4:{DD(4)  }/¬   :{DSN(4)                                      }
+  ¬              5:{DD(5)  }/¬   :{DSN(5)                                      }
+
+
+}Either NewCat/NewVol or NewName is required for each dataset specified above.
+
+               ¬NewCat    NewVol   NewName
+               }-------   ------   --------------------------------------------
+  ¬Required: 1:{CAT(1) }:{VOL(1)}:{NEW(1)                                      }
+  ¬          2:{CAT(2) }:{VOL(2)}:{NEW(2)                                      }
+  ¬          3:{CAT(3) }:{VOL(3)}:{NEW(3)                                      }
+  ¬          4:{CAT(4) }:{VOL(4)}:{NEW(4)                                      }
+  ¬          5:{CAT(5) }:{VOL(5)}:{NEW(5)                                      }
+
+}Press¬PF3}to return to the previous panel or¬PF4}to terminate.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ""
+SET  MESG     ""
+
+IF PPDKEY,EQ,PF3
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF4
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO -FUNCTION
+IF PPDKEY,EQ,PF16
+   GOTO EXIT
+
+IFTHEN DD(1) EQ ""
+  IFTHEN DSN(1) EQ ""
+    SET  MESG     "Must fill in at least the first DLBL Name or DSN."
+    SET  PPDCSFLD "DD(1)"
+    SET  PPDALARM 1
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -FCOPY
+
+SET  CHANGED  "N"
+
+SET  X  1
+BLOCK
+  IFTHEN DD(&X) NE ""
+    IFTHEN DSN(&X) EQ ""
+      SET  DDNAME  &DD(&X)
+      GOSUB -GETDSN
+      SET  DSN(&X) &DSNAME
+      IFTHEN DSN(&X) EQ ""
+        SET  MESG     "Failed to retrieve DSN based on DLBL Name.  Fill in yourself."
+        SET  PPDCSFLD "DSN(&X)"
+        SET  PPDALARM 1
+      ENDIF
+    ENDIF
+  ELSE
+    IFTHEN DSN(&X) NE ""
+      SET  DSNAME  &DSN(&X)
+      GOSUB -GETDLBL
+      SET  DD(&X)  &DDNAME
+      IFTHEN DD(&X) EQ ""
+        SET  MESG     "Failed to retrieve DLBL Name based on DSN.  Fill in yourself."
+        SET  PPDCSFLD "DD(&X)"
+        SET  PPDALARM 1
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  IFTHEN DD(&X) NE ""
+    IFTHEN CAT(&X) NE ""
+      IFTHEN VOL(&X) EQ ""
+        SET  MESG     "Either NewCat/NewVol or NewName is required..."
+        SET  PPDCSFLD "VOL(&X)"
+        SET  PPDALARM 1
+      ENDIF
+    ELSE
+      IFTHEN NEW(&X) EQ ""
+        SET  MESG     "Either NewCat/NewVol or NewName is required..."
+        SET  PPDCSFLD "CAT(&X)"
+        SET  PPDALARM 1
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  ADD  X  1
+  IF X LE 5
+     LOOP
+ENDBLOCK
+IF PPDALARM EQ 1
+   GOTO -FCOPY
+IF CHANGED EQ "Y"
+   SET  MESG  "Screen changed.  Press ENTER to continue..."
+IF CHANGED EQ "Y"
+   GOTO -FCOPY
+
+GOTO GENERATE
+;----------------------------------------------------------------------;
+;
+;                  GENERATE SAMPLE JOB
+;
+LABEL GENERATE
+SET  JOB  M4&FUNC{1,6}
+
+DISPLAYF "MACRO4 &FUNC Sample Job"
+++/*
+
+STACK OPT=CLEAR
+STACKI "* $$ JOB JNM=&JOB,DISP=D,CLASS=C         "
+STACKI "* $$ LST LST=SYSLST,DISP=D,CLASS=Z       "
+STACKI "// JOB    &JOB   MACRO4 &FUNC SAMPLE JOB "
+STACKI "// LIBDEF *,SEARCH=ESP.M4,TEMP           "
+
+IFTHEN MEDIA EQ "T"
+  IFTHEN CATDD EQ "*"
+    STACKI "// SETPARM LABEL='MACRO4.BACKUP'         "
+  ELSE
+    STACKI "// SETPARM LABEL='&CATDD..BACKUP'        "
+  ENDIF
+  STACKI "// TLBL   M4BKUP,'&LABEL'                "
+  STACKI "// ASSGN  SYS000,200              /* MAKE TAPE DRIVE ASSIGNMENT    */  "
+  STACKI "// ASSGN  SYS000,SYS000           /* DISPLAY ASSIGNMENT ON CONSOLE */  "
+  IFTHEN FUNC EQ "BACKUP"
+    STACKI "// PAUSE  MOUNT SCRATCH TAPE FOR '&LABEL' ON SYS000 "
+    STACKI "// MTC    REW,SYS000                     "
+  ELSE
+    STACKI "// PAUSE  MOUNT '&LABEL' INPUT TAPE ON SYS000       "
+    IFTHEN CATDD NE "*"
+      STACKI "// EXEC   REXX=TAPEPOSN,PARM='INPUT=SYS000,REW=YES,SYMBOL=LABEL',LABEL "
+    ENDIF
+  ENDIF
+ELSE
+  IFTHEN FUNC NE "COMPARE"
+    IFTHEN FUNC NE "COPY"
+      IFTHEN FUNC NE "MOVE"
+        IFTHEN CATDD EQ "*"
+          STACKI "// DLBL   M4BKUP,'%MACRO4.BACKUP',1,VSAM,DISP=(NEW,KEEP,DELETE),       X"
+          STACKI "               CAT=COPYCAT,RECORDS=(10000,10000),RECSIZE=18422          "
+        ELSE
+          STACKI "// DLBL   M4BKUP,'&CATDD..BACKUP',1,VSAM,DISP=(NEW,KEEP,DELETE),       X"
+          STACKI "               CAT=COPYCAT,RECORDS=(10000,10000),RECSIZE=18422          "
+        ENDIF
+      ELSE
+        STACKI "// EXEC   PGM=PUN4IPT,PARM='START'       "
+      ENDIF
+    ENDIF
+  ENDIF
+ENDIF
+
+STACKI "// EXEC   PGM=M4VBR,SIZE=AUTO            "
+
+IFTHEN MEDIA EQ "T"
+  IFTHEN FUNC EQ "BACKUP"
+    STACKI "   OPTION BUFSIZE=1024K NOINUSE LCOUNT=60 STOPERR=HIGH  "
+  ELSE
+    STACKI "   OPTION BUFSIZE=1024K LCOUNT=60 STOPERR=HIGH NOREWIND "
+  ENDIF
+ELSE
+  IFTHEN FUNC EQ "BACKUP"
+    STACKI "   OPTION NOINUSE LCOUNT=60 STOPERR=HIGH "
+  ELSE
+    STACKI "   OPTION LCOUNT=60 STOPERR=HIGH         "
+  ENDIF
+ENDIF
+
+IF FUNC EQ "BACKUP"
+   STACKI "   BACKUP ASSOC                       "
+IF FUNC EQ "RESTORE"
+   STACKI "   RESTORE ALIGN ASSOC DEFRAG DELETE DEFINE PURGE REPORT=BRIEF  "
+IF FUNC EQ "LIST"
+   STACKI "   LIST   NOATTR                      "
+IF FUNC EQ "COMPARE"
+   STACKI "   COMPARE DIFFERS=10                 "
+IF FUNC EQ "COPY"
+   STACKI "   COPY   ALIGN NOASSOC DEFRAG DEFINE NOPURGE REPORT=BRIEF  "
+IF FUNC EQ "MOVE"
+   STACKI "   COPY   ALIGN NOASSOC DELCMD DEFRAG DEFINE NOPURGE REPORT=BRIEF  "
+
+IFTHEN CATDD NE "*"
+  SET  DDNAME  &CATDD
+  GOSUB -GETDSN
+  STACKI "          CAT=&CATDSN  "
+ENDIF
+
+IFTHEN FUNC NE "LIST"
+  IFTHEN FUNC EQ "COMPARE"
+    IFTHEN CAT(1) NE ""
+      SET  DDNAME  &CAT(1)
+      GOSUB -GETDSN
+      STACKI "          CAT=&CATDSN              "
+      STACKI "          SEL=&DSN(1)              "
+    ELSE
+      STACKI "          IN1=&DD(1)               "
+    ENDIF
+    IFTHEN CAT(2) NE ""
+      SET  DDNAME  &CAT(2)
+      GOSUB -GETDSN
+      STACKI "          CAT=&CATDSN              "
+      STACKI "          SEL=&DSN(2)              "
+    ELSE
+      STACKI "          IN2=&DD(2)               "
+    ENDIF
+  ELSE
+    SET  X  1
+    BLOCK
+      IFTHEN DD(&X) NE ""
+        IFTHEN DD(&X) EQ "*"
+          STACKI "          SEL=&DSN(&X)         "
+        ELSE
+          STACKI "          SEL=DD=&DD(&X)       "
+        ENDIF
+        IFTHEN CAT(&X) NE ""
+          SET  DDNAME  &CAT(&X)
+          GOSUB -GETDSN
+          STACKI "          NEWCAT=&CATDSN       "
+        ENDIF
+        IFTHEN VOL(&X) NE ""
+          STACKI "          NEWVOL=&VOL(&X)      "
+        ENDIF
+        IFTHEN NEW(&X) NE ""
+          STACKI "          NEWNAME=&NEW(&X)     "
+        ENDIF
+      ENDIF
+      ADD  X  1
+      IF X LE 5
+         LOOP
+    ENDBLOCK
+  ENDIF
+ENDIF
+
+STACKI "   CHECK  COND=FAILURE ACTION=CANCEL     "
+STACKI "/* EOD                                   "
+STACKI "// IF     $RC > 4 THEN                   "
+STACKI "// GOTO   EXIT                           "
+STACKI "/*                                       "
+
+IFTHEN FUNC EQ "LIST"
+  STACKI "/* ATTR     INCLUDES IDCAMS DEFINE ATTRIBUTES IN THE LISTING  "
+ELSE
+  IFTHEN FUNC EQ "COMPARE"
+    STACKI "/* DIFFERS  THE NUMBER OF DIFFERENCES BEFORE COMPARE TERMINATES  "
+  ELSE
+    IFTHEN FUNC EQ "BACKUP"
+      STACKI "/* INUSE    BACKS UP A DATASET EVEN IF IT IS OPEN ELSEWHERE  "
+    ENDIF
+    STACKI "/* ASSOC    INCLUDES ASSOCIATED ALTERNATE INDEXES AND PATHS  "
+    IFTHEN FUNC NE "BACKUP"
+      STACKI "/* ALIGN    COMBINES RECORD ALLOCATIONS IN TRACKS & TRACKS IN CYLINDERS  "
+      IFTHEN FUNC EQ "MOVE"
+        STACKI "/* DELCMD   PUNCHES AN IDCAMS DELETE COMMAND FOR EACH INPUT DATASET  "
+      ENDIF
+      STACKI "/* DEFRAG   COMBINES MULTIPLE EXTENTS INTO A SINGLE EXTENT  "
+      STACKI "/* DEFINE   AUTOMATICALLY PERFORMS AN IDCAMS DEFINE         "
+      IFTHEN FUNC EQ "COPY"
+        STACKI "/* REPLACE  AUTOMATICALLY PERFORMS AN IDCAMS DELETE       "
+      ELSE
+        STACKI "/* DELETE   AUTOMATICALLY PERFORMS AN IDCAMS DELETE       "
+      ENDIF
+      STACKI "/* PURGE    INCLUDES ""PURGE"" PARAMETER IN IDCAMS DELETE   "
+    ENDIF
+  ENDIF
+ENDIF
+
+STACKI "/*                                       "
+
+IF MEDIA EQ "T"
+   STACKI "// MTC    RUN,SYS000                  "
+
+IFTHEN FUNC EQ "MOVE"
+  STACKI "// EXEC   PGM=PUN4IPT,PARM='SWITCH'    "
+  STACKI "// EXEC   PGM=IDCAMS,SIZE=AUTO         "
+  STACKI "/* EOD                                 "
+ENDIF
+
+STACKI "/. EXIT                                  "
+
+IFTHEN FUNC EQ "MOVE"
+  STACKI "// EXEC   PGM=PUN4IPT,PARM='STOP'      "
+ENDIF
+
+STACKI "/& EOJ                                   "
+STACKI "* $$ EOJ                                 "
+
+GET $STACK
+TOP
+
+SET  PPDCOND 2
+READ &LSTMEM                 ;RESTORE THE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0
+
+EXIT OK,"(MACRO4  ) ## Run content of session via "" SUBMIT / "" ##"
+;
+;                  Procedure EXIT
+;
+LABEL EXIT
+EXIT OK,"(MACRO4  ) ## Procedure terminated on user request. ##"

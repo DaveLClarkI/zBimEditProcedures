@@ -1,0 +1,77 @@
+;"STRIP2 " IS A QUICK WAY CHANGE MEMBER LIST INTO LIST WITH LIBRARY.
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDLITEX 1
+SET  PPDLPLMT 10000
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(STRIP2 ) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+IF SSDTYPE,NE,DI
+   EXIT SV,'(STRIP2 ) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+TOP
+SET  PPDCOND  1
+FIND '/CTL/M' 136
+IF SIBRETCD,NE,OK
+   EXIT SV,'(STRIP2 ) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+LABEL BEGIN
+TOP
+
+DCL  OLIB     CHAR  16 V
+DCL  OMEM     CHAR  16 V
+DCL  OTYP     CHAR   8 V
+DCL  OTTL     CHAR  40 V M
+
+SESS M
+GOTO CHECK
+
+LABEL STRIP2
+SET  PPDCOND  0
+
+SETD OLIB XTRSLINE 156 16
+VTRUNC OLIB
+SETD OMEM XTRSLINE   1 16
+VTRUNC OMEM
+SETD OTYP XTRSLINE  18  8
+VTRUNC OTYP
+SETD OTTL XTRSLINE  27 40
+VTRUNC OTTL
+
+BL   1-253
+OVLY 01 '&OLIB..&OMEM'
+OVLY 35 '-'
+OVLY 37 '&OTYP'
+OVLY 46 '-'
+OVLY 48 '&OTTL'
+
+SET  PPDCOND  1
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO EXIT
+
+LABEL CHECK
+IF SIBSIGNL,EQ,1
+   EXIT AT,'## USER INTERRUPTED VIA 3270 ATTENTION KEY ##'
+
+EXAM '_' 1-16
+IF SIBRETCD,EQ,OK
+   GOTO DELETE
+
+EXAM '/CTL/M' 136-141
+IF SIBRETCD,EQ,OK
+   GOTO -STRIP2
+
+LABEL DELETE
+DEL  1
+GOTO -CHECK
+
+LABEL EXIT
+TOP
+EXIT

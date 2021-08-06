@@ -1,0 +1,60 @@
+;"TOT2JUL" PROC CONVERTS TOTAL DAYS TO JULIAN DATE
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+;
+DCL N        NUM    6 V
+DCL TOTL     NUM    6 V
+DCL DAYS     NUM    3 F
+DCL YEAR     NUM    4 F
+;
+DCL OPER1    CHAR   8 V
+DCL OPER2    NUM    6 V
+PARSE OPER1 OPER2
+
+IF OPER1,EQ,''
+   EXIT SV,'(TOT2JUL ) ** GLOBAL VARIABLE NAME "OPER1" IS REQUIRED **'
+IF OPER2,EQ,0
+   EXIT SV,'(TOT2JUL ) ** TOTAL DAYS VALUE "OPER2" IS < 1 **'
+IF OPER2,GT,876582
+   EXIT SV,'(TOT2JUL ) ** TOTAL DAYS VALUE IS > 876,582 **'
+
+SETD TOTL OPER2
+
+SETD N TOTL
+DIVI N 146097
+SUBT TOTL &N
+SETD N TOTL
+DIVI N 36524
+ADD  TOTL &N
+SETD N TOTL
+DIVI N 1461
+SUBT TOTL &N
+SETD N TOTL
+SUBT N 1
+DIVI N 365
+SETD YEAR N
+
+MULT N 365
+SUBT OPER2 &N
+SETD N YEAR
+DIVI N 400
+SUBT OPER2 &N
+SETD N YEAR
+DIVI N 100
+ADD  OPER2 &N
+SETD N YEAR
+DIVI N 4
+SUBT OPER2 &N
+ADD  YEAR 1
+
+SETD DAYS OPER2
+
+SET  &OPER1 &YEAR.&DAYS
+
+EXIT OK

@@ -1,0 +1,300 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BLKSZ      Proc Created 09/05/2003   By Dave Clark        *
+;*                  Last Revised 02/17/2004                        *
+;*                                                                 *
+;*      This procedure uses a  full-screen input/display to accept *
+;* user input,  calculate the  associated  DASD track utilization, *
+;* and display the results.  Other statistics are also returned.   *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.   (Note:  This  procedure  also requires the *
+;* EVALUATE command.) The following  line (without the ruler line) *
+;* must be added to the $SIT.CTRL.COMMANDS member and the "NEWCOPY *
+;* COMMANDS" command issued:                                       *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* BLKSZ    BLKSZ                                                  *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+SET  PPDSCRSZ D
+SET  PPDPFOPT 1
+DCL  RC     CHAR  2 V
+DCL  MSG    CHAR 82 V
+
+DCL  R1     CHAR  7 V INIT='      0'
+DCL  B1     CHAR  7 V INIT='      0'
+DCL  V      CHAR  1 V INIT='Y'
+DCL  F1     CHAR  7 V INIT='      6'
+DCL  M1     CHAR  7 V INIT='    232'
+DCL  T1     CHAR  7 V INIT='   1729'
+DCL  Y1     CHAR  7 V INIT='  56664'
+DCL  N1     CHAR  7 V INIT='      0'
+DCL  X1     CHAR  7 V INIT='      0'
+DCL  Z1     CHAR  7 V INIT='      0'
+DCL  U1     CHAR 11 V INIT='      0.00%'
+DCL  VSM    CHAR 18 V
+
+DCL  R      NUM   7 V
+DCL  B      NUM   7 V
+DCL  F      NUM   7 V
+DCL  C      NUM   7 V INIT=10
+DCL  K      NUM   7 V INIT=0
+DCL  M      NUM   7 V
+DCL  T      NUM   7 V
+DCL  Y      NUM   7 V
+
+DCL  WRK1   NUM   7 Z
+DCL  WRK2   NUM   7 Z
+DCL  CHRVAR CHAR  8 V
+DCL  NUMVAR CHAR  8 V
+DCL  MESG   CHAR 78 V
+
+LABEL PROCESS
+;
+;                  Process Shared 24-bit Storage
+;
+MAPF
+}BLKSZ                    ¬CKD DASD Track Utilization               }&OPSDATE
+                                                                    }&OPSTIME
+¬Enter the block size and indicate if this is for a VSAM dataset:
+
+  }User Max Record Size  . . . . . . : {R1     }  bytes
+  }User Block (CI) Size  . . . . . . : {B1     }  bytes
+
+  }VSAM dataset? . . . . . . . . . . : {V}        'Y'es or 'N'o
+
+  }CKD DASD Overhead Bytes . . . . . : {F1     }  default is for 3390-0A
+  }CKD DASD Module Size  . . . . . . : {M1     }  default is for 3390-0A
+  }CKD DASD Max. User Data Cells . . : {T1     }  default is for 3390-0A
+  }CKD DASD Max. User Block Size . . : {Y1     }  default is for 3390-0A
+
+                                       ---------
+  }User Blocks per Track . . . . . . : ¬&N1}  &VSM
+  }User Records per Track  . . . . . : ¬&Z1
+  }User Data Bytes per Track . . . . : ¬&X1
+
+  }CKD DASD Track Utilization  . . . : ¬&U1
+
+}Press¬ENTER}to calculate/recalculate the result.
+¬PF3}= Exit
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'PF3'
+   EXIT
+
+IF T1 EQ ''
+   SET T1 1729
+IF M1 EQ ''
+   SET M1  232
+
+SET  CHRVAR 'R1'
+SET  NUMVAR 'R'
+GOSUB CHKNUM
+IF MESG NE ''
+   GOTO -PROCESS
+
+SET  CHRVAR 'B1'
+SET  NUMVAR 'B'
+GOSUB CHKNUM
+IF MESG NE ''
+   GOTO -PROCESS
+
+IFTHEN B GT 56664
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'B'
+  SET  MESG 'This value cannot be greater than 56664.'
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+IFTHEN B LT 1
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'B'
+  SET  MESG 'This value must be greater than zero.'
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+IFTHEN B LT &R
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'B'
+  SET  MESG 'This value cannot be less than record size.'
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+
+SET  PPDCOND 1
+VEXAM V '\Y|N'
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'V'
+  SET  MESG 'This value must be either "Y" for yes or "N" for no.'
+ENDIF
+SET  PPDCOND 0
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+
+SET  CHRVAR 'F1'
+SET  NUMVAR 'F'
+GOSUB CHKNUM
+IF MESG NE ''
+   GOTO -PROCESS
+
+SET  CHRVAR 'M1'
+SET  NUMVAR 'M'
+GOSUB CHKNUM
+IF MESG NE ''
+   GOTO -PROCESS
+
+SET  CHRVAR 'T1'
+SET  NUMVAR 'T'
+GOSUB CHKNUM
+IF MESG NE ''
+   GOTO -PROCESS
+
+SET  CHRVAR 'Y1'
+SET  NUMVAR 'Y'
+GOSUB CHKNUM
+IF MESG NE ''
+   GOTO -PROCESS
+
+SET  VSM  ''
+IFTHEN V EQ 'Y'
+  IFTHEN B EQ 14336
+    SET B  7168
+    SET  VSM  'VSAM BLKSZ=&B'
+  ENDIF
+  IFTHEN B EQ 20480
+    SET B 10240
+    SET  VSM  'VSAM BLKSZ=&B'
+  ENDIF
+  IFTHEN B EQ 22528
+    SET B  5632
+    SET  VSM  'VSAM BLKSZ=&B'
+  ENDIF
+  IFTHEN B EQ 28672
+    SET B  7168
+    SET  VSM  'VSAM BLKSZ=&B'
+  ENDIF
+  IFTHEN B EQ 30720
+    SET B 10240
+    SET  VSM  'VSAM BLKSZ=&B'
+  ENDIF
+  IFTHEN B EQ 32768
+    SET B 16384
+    SET  VSM  'VSAM BLKSZ=&B'
+  ENDIF
+ENDIF
+
+;The following command passes REXX statements to a REXX procedure for
+;interpretation.  The last argument is(are) the value(s) to pass back.
+;A maximum of 8 arguments may be passed.  Each argument may be up to
+;50 characters in length.  However, you are still limited to the total
+;BIM-EDIT line length of 253 characters for the entire command.
+
+EVALUATE 'B=&B;F=&F;' -
+         'X=Trunc(((F+B)/&M)+.999);' -
+         'D=Trunc(((F+B+(F*X))/34)+.999)+9;' -
+         'N=Trunc(&T/(&C+&K+D));' -
+         'U=(B*N)/&Y*100;' -
+         'N U'
+
+SETD MSG  SIBMSG
+IFTHEN MSG{1,2} NE 'OK'
+  SET  PPDALARM 1
+  SETD MESG   MSG{3}
+ELSE
+  SETD PARMLIST MSG{3}
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+PARSE N1 U1
+
+EVALUATE 'Format(&N1,7)'
+SETD MSG  SIBMSG
+IFTHEN MSG{1,2} NE 'OK'
+  SET  PPDALARM 1
+  SETD MESG   MSG{3}
+ELSE
+  SETD N1 MSG{3}
+  VTRUNC N1
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+
+EVALUATE 'Format(Trunc(&B/&R)*&N1,7)'
+SETD MSG  SIBMSG
+IFTHEN MSG{1,2} NE 'OK'
+  SET  PPDALARM 1
+  SETD MESG   MSG{3}
+ELSE
+  SETD Z1 MSG{3}
+  VTRUNC Z1
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+
+EVALUATE 'Format(&Z1*&R,7)'
+SETD MSG  SIBMSG
+IFTHEN MSG{1,2} NE 'OK'
+  SET  PPDALARM 1
+  SETD MESG   MSG{3}
+ELSE
+  SETD X1 MSG{3}
+  VTRUNC X1
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -PROCESS
+
+EVALUATE 'FORMAT(&U1,7,2)'
+SETD MSG  SIBMSG
+IFTHEN MSG{1,2} NE 'OK'
+  SET  PPDALARM 1
+  SETD MESG   MSG{3}
+ELSE
+  SETD U1 MSG{3}
+  VTRUNC U1
+  VAPPEND U1 '%'
+ENDIF
+
+GOTO -PROCESS
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL CHKNUM                 ;SUBROUTINE
+
+  SET  &NUMVAR  0
+  IF &CHRVAR  EQ ''
+    RETURN
+
+  SET  PPDCOND 2
+  SET  &NUMVAR  &&CHRVAR
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD '&CHRVAR'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+  SET  PPDCOND 0
+
+  IFTHEN PPDALARM EQ 0
+    SET  WRK1   &&NUMVAR
+    SETD &CHRVAR  WRK1
+  ENDIF
+
+RETURN
+

@@ -1,0 +1,26 @@
+;"CASE" SELECTIVELY COMBINES "ALTER CASE=" AND "SESS CASE=" COMMANDS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(CASE    ) ** COMMAND REQUIRES A SESSION **'
+
+DCL CASE CHAR 1 F
+PARSE CASE
+
+IF CASE,EQ,''
+   SET CASE '&SSDCASE.'
+
+IF SSDTYPE,EQ,ED
+   ALTER MEM=&SSDLIB..&SSDMEM,CASE=&CASE
+SESS CASE=&CASE
+
+IF CASE,EQ,M
+   EXIT OK,'## Case set to "MIXED" ##'
+EXIT OK,'## Case set to "UPPER" ##'

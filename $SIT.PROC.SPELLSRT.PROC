@@ -1,0 +1,274 @@
+;"SPELLSRT" SORTS THEN ELIMINATES DUPLICATE SPELLCHK DICTIONARY WORDS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+;
+DCL  ALPHABET CHAR  26 V U
+SET  ALPHABET 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+;
+DCL  C        CHAR   1 V
+DCL  L        NUM    3 V
+DCL  M        NUM    3 V
+DCL  N        NUM    3 V
+DCL  OLD      CHAR  36 V
+DCL  STR      CHAR  36 V
+DCL  SW       CHAR   1 V
+DCL  T        NUM    8 V
+DCL  W        NUM    5 Z
+DCL  X        NUM    5 V
+DCL  Y        NUM    5 Z
+DCL  Z        NUM    3 V
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(SPELLSRT) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+IF SSDTYPE,EQ,EE
+   GOTO EXECUTE
+IF SSDTYPE,NE,ED
+   EXIT SV,'(SPELLSRT) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+
+LABEL EXECUTE
+
+SET  Z        253
+IF SSDTYPE,EQ,EE
+   SET  Z        80
+SESS ZONE=1-&Z
+IF SSDTYPE,EQ,ED
+   ALT  &SSDLIB..&SSDMEM,ZONE=1-&Z
+
+SET  PPDCOND  1
+SET  PPDLPLMT 100000
+
+DCL  OPT      CHAR   1 V U
+PARSE OPT
+
+IF OPT,EQ,''
+   EXIT SV,'(SPELLSRT) ** PARM "OPT" MUST BE "*" TO SORT EVERYTHING **'
+IF OPT,EQ,'*'
+   SET  OPT      ''
+IF OPT,EQ,''
+   GOTO CONTINUE
+IF OPT,LT,'A'
+   EXIT SV,'(SPELLSRT) ** PARM "OPT" MUST BE ALPHABETIC **'
+IF OPT,GT,'Z'
+   EXIT SV,'(SPELLSRT) ** PARM "OPT" MUST BE ALPHABETIC **'
+GOTO RETRY
+
+LABEL CONTINUE
+TOP
+BYPASS
+LOC  "\~                                                      ",200-253
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSRT) ** INVALID MEMBER CONTENTS IN CC 38-253 **'
+BYPASS
+LOC  "\~                                                      ",146-199
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSRT) ** INVALID MEMBER CONTENTS IN CC 38-253 **'
+BYPASS
+LOC  "\~                                                      ",92-145
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSRT) ** INVALID MEMBER CONTENTS IN CC 38-253 **'
+BYPASS
+LOC  "\~                                                      ",38-91
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSRT) ** INVALID MEMBER CONTENTS IN CC 38-253 **'
+
+LABEL RETRY
+TOP
+SET  PPDCOND  2
+SET  PPDLPCTR 0
+SET  SW       ''
+SET  T        &SSDSZLN
+IF OPT,EQ,''
+   GOTO SORT
+FIND &OPT,1
+IF SIBRETCD,NE,OK
+   EXIT SV,'(SPELLSRT) ** PARM "OPT" VALUE ''&OPT'' NOT FOUND **'
+NEXT 1
+SETD X        SSDBASE&SIBSCRPM
+FIND "-----",3
+IF SIBRETCD,NE,OK
+   EXIT SV,'(SPELLSRT) ** MISSING "TOTAL" LABEL IN MASTER DICTIONARY **'
+SETD T        SSDBASE&SIBSCRPM
+SUBT T        &X
+POS  &X
+LABEL SORT
+BYPASS
+SORT 1-37,&T
+IF SIBRETCD,EQ,OK
+   GOTO ENDSORT
+SUBT T        100
+SET  SW       'X'
+GOTO -SORT
+LABEL ENDSORT
+SET  PPDCOND  1
+
+SET  T        &SSDSZLN
+IF SW,EQ,'X'
+   GOTO CHECK
+IF OPT,NE,''
+   GOTO CHECK
+BYPASS
+FIND "-----",3
+IF SIBRETCD,EQ,OK
+   DEL  *
+
+LABEL CHECK
+TOP
+NEXT 1
+IF OPT,NE,''
+   POS  &X
+SETD OLD      XTRSLINE 2 36
+VTRUNC OLD
+LABEL NEXT
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+SETD W        SSDBASE&SIBSCRPM
+LABEL RECHECK
+IF OPT,EQ,''
+   GOTO NOSTOP
+EXAM "-----",3-7
+IF SIBRETCD,EQ,OK
+   GOTO DONE
+LABEL NOSTOP
+SETD STR      XTRSLINE 2 36
+VTRUNC STR
+IFD STR,EQ,OLD
+   GOTO DELETE
+SETD OLD      STR
+GOTO -NEXT
+LABEL DELETE
+DEL  1
+IF W,GT,&SSDSZLN
+   GOTO DONE
+GOTO -RECHECK
+
+LABEL DONE
+IF SW,NE,'X'
+   GOTO CONTINUE
+IF T,GT,&SSDSZLN
+   GOTO -RETRY
+TOP
+FIND "-----",3
+EXIT SV,'(SPELLSRT) ** SESSION IS TOO LARGE TO SORT IN THE AVAILABLE MEMORY **'
+
+LABEL CONTINUE
+IF OPT,NE,''
+   GOTO UPDATE
+TOP
+SET  L        0
+SET  M        0
+SET  W        0
+LABEL LABEL
+ADD  L        1
+IF L,GT,26
+   GOTO DONE
+SETD C        ALPHABET &L 1
+FIND &C,2
+IF SIBRETCD,NE,OK
+   GOTO MEMORY
+SETD X        SSDBASE&SIBSCRPM
+SET  N        0
+LABEL NEXT
+ADD  N        1
+ADD  L        1
+IF L,GT,26
+   GOTO LAST
+SETD C        ALPHABET &L 1
+FIND &C,2
+IF SIBRETCD,NE,OK
+   GOTO -NEXT
+SETD Y        SSDBASE&SIBSCRPM
+POS  &X
+GOTO READY
+LABEL MEMORY
+ADD  M        1
+GOTO -LABEL
+LABEL LAST
+SETD Y        SSDSZLN
+ADD  Y        1
+LABEL READY
+SUBT Y        &X
+ADD  W        &Y
+SUBT L        &N
+UP   1
+LABEL LOOP
+SUBT L        &M
+SETD C        ALPHABET &L 1
+IF M,GT,0
+   INSERTI "&C -----     0"
+IF M,EQ,0
+   INSERTI "&C ----- &Y"
+ADD  L        &M
+IF M,EQ,0
+   GOTO -LABEL
+SUBT M        1
+GOTO -LOOP
+
+LABEL DONE
+IF M,EQ,0
+   GOTO EXIT
+POS  &SSDSZLN
+SUBT L        &M
+SETD C        ALPHABET &L 1
+INSI "&C -----     0"
+ADD  L        &M
+SUBT M        1
+GOTO -DONE
+
+LABEL UPDATE
+SET  PPDCOND  0
+TOP
+SET  L        0
+SET  M        0
+SET  W        0
+LABEL TOTAL
+ADD  L        1
+IF L,GT,26
+   GOTO EXIT
+SETD C        ALPHABET &L 1
+FIND &C,1
+IFD C,EQ,OPT
+   GOTO RECOUNT
+SETD PARMLIST XTRSLINE 9 6
+PARSE Y
+ADD  W        &Y
+GOTO -TOTAL
+LABEL RECOUNT
+NEXT 1
+SETD X        SSDBASE&SIBSCRPM
+ADD  L        1
+IF L,GT,26
+   GOTO GETLAST
+SETD C        ALPHABET &L 1
+SUBT L        1
+FIND &C,1
+SETD Y        SSDBASE&SIBSCRPM
+POS  &X
+GOTO GOTIT
+LABEL GETLAST
+SETD Y        SSDSZLN
+LABEL GOTIT
+UP   1
+SUBT Y        &X
+OVLY 9,"&Y "
+ADD  W        &Y
+GOTO -TOTAL
+
+LABEL EXIT
+POS  &SSDSZLN
+SET  PPDHEX   1
+IF OPT,NE,''
+   OVLY 9,"&W "
+IF OPT,EQ,''
+   INSERTI "@FF ----- &W"
+TOP
+IF OPT,EQ,''
+   NEXT 1
+IF OPT,NE,''
+   FIND &OPT,1

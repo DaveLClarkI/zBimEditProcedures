@@ -1,0 +1,404 @@
+;"MODEL-SYS" PROC HANDLES THE "CICS" CLASS OF MODELS FOR SYSTEMS' USE
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+
+
+
+}SYSTEM RESOURCES
+  ¬INQUIRE  (8)
+  ¬SET      (7)
+
+
+}VSE/POWER INTERFACE                   }USER EXITS
+  ¬SPOOLCLOSE                            ¬DISABLE  (2)
+  ¬SPOOLOPEN  (5)                        ¬ENABLE   (2)
+  ¬SPOOLREAD                             ¬EXTRACT  (2)
+  ¬SPOOLWRITE (2)                        ¬RESYNC
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,RESYNC
+   EXIT OK
+IF NAME,EQ,SPOOLCLOSE
+   EXIT OK
+IF NAME,EQ,SPOOLREAD
+   EXIT OK
+
+IF NAME,EQ,DISABLE
+   GOTO USEREXIT
+IF NAME,EQ,ENABLE
+   GOTO USEREXIT
+IF NAME,EQ,EXTRACT
+   GOTO USEREXIT
+IF NAME,EQ,INQUIRE
+   GOTO INQUIRE
+IF NAME,EQ,SET
+   GOTO SET
+IF NAME,EQ,SPOOLOPEN
+   GOTO SPLOPEN
+IF NAME,EQ,SPOOLWRITE
+   GOTO SPLWRITE
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME
+;
+;                  Process QUAL1 options
+;
+LABEL USEREXIT
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  GLOBAL    }-  Manage a global user exit
+
+¬  TASK      }-  Manage a task-related user exit
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,GLOBAL
+   EXIT OK
+IF QUAL1,EQ,TASK
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -USEREXIT
+;
+;                  Process QUAL1 options
+;
+LABEL INQUIRE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  CONNECTION  }-  Examine remote system information
+
+¬  DATASET     }-  Examine File Control Table information
+
+¬  MODENAME    }-  Examine remote connection mode information
+
+¬  PROGRAM     }-  Examine Program Processing Table information
+
+¬  SYSTEM      }-  Examine System Initialization Table information
+
+¬  TERMINAL
+  }/¬NETNAME   }-  Examine Terminal Control Table information
+
+¬  TRANSACTION }-  Examine Program Control Table information
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,CONNECTION
+   EXIT OK
+IF QUAL1,EQ,DATASET
+   EXIT OK
+IF QUAL1,EQ,MODENAME
+   EXIT OK
+IF QUAL1,EQ,NETNAME
+   EXIT OK
+IF QUAL1,EQ,PROGRAM
+   EXIT OK
+IF QUAL1,EQ,SYSTEM
+   EXIT OK
+IF QUAL1,EQ,TERMINAL
+   EXIT OK
+IF QUAL1,EQ,TRANSACTION
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -INQUIRE
+;
+;                  Process QUAL1 options
+;
+LABEL SET
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  CONNECTION  }-  Examine remote system information
+
+¬  DATASET     }-  Examine File Control Table information
+
+¬  MODENAME    }-  Examine remote connection mode information
+
+¬  PROGRAM     }-  Examine Program Processing Table information
+
+¬  SYSTEM      }-  Examine System Initialization Table information
+
+¬  TERMINAL    }-  Examine Terminal Control Table information
+
+¬  TRANSACTION }-  Examine Program Control Table information
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,CONNECTION
+   EXIT OK
+IF QUAL1,EQ,DATASET
+   EXIT OK
+IF QUAL1,EQ,MODENAME
+   EXIT OK
+IF QUAL1,EQ,PROGRAM
+   EXIT OK
+IF QUAL1,EQ,SYSTEM
+   EXIT OK
+IF QUAL1,EQ,TERMINAL
+   EXIT OK
+IF QUAL1,EQ,TRANSACTION
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -SET
+;
+;                  Process QUAL1 options
+;
+LABEL SPLOPEN
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  STANDARD }-  Open a STANDARD format spool report
+
+¬  ESCAPE   }-  Open a spool report formated for an ESCAPE program
+
+¬  JCL      }-  Open a spool report formated as batch JCL
+
+¬  MAP      }-  Open a spool report formated as a BMS MAP
+
+¬  PRINT    }-  Open a spool report formated for CICS printers
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,STANDARD
+   GOTO SPLOSET
+IF QUAL1,EQ,ESCAPE
+   EXIT OK
+IF QUAL1,EQ,JCL
+   EXIT OK
+IF QUAL1,EQ,MAP
+   EXIT OK
+IF QUAL1,EQ,PRINT
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -SPLOPEN
+LABEL SPLOSET
+SET QUAL1 ''
+EXIT OK
+;
+;                  Process QUAL1 options
+;
+LABEL SPLWRITE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  NOTMAP   }-  Write to any spool report not formated as a BMS MAP
+
+¬  MAP      }-  Write to a spool report formated as a BMS MAP
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,MAP
+   EXIT OK
+IF QUAL1,EQ,NOTMAP
+   GOTO SPLWSET
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -SPLWRITE
+LABEL SPLWSET
+SET QUAL1 ''
+EXIT OK

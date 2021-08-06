@@ -1,0 +1,94 @@
+;"SEQ" SELECTIVELY COMBINES "ALTER SEQ=" AND "SESS SEQ=" COMMANDS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(SEQ     ) ** COMMAND REQUIRES A SESSION **'
+IF SSDTYPE,EQ,LG
+   EXIT SV,'(SEQ     ) ** INVALID SESSION TYPE FOR SEQUENCING **'
+IF SSDTYPE,EQ,LP
+   EXIT SV,'(SEQ     ) ** INVALID SESSION TYPE FOR SEQUENCING **'
+IF SSDTYPE,EQ,ML
+   EXIT SV,'(SEQ     ) ** INVALID SESSION TYPE FOR SEQUENCING **'
+IF SSDTYPE,EQ,ST
+   EXIT SV,'(SEQ     ) ** INVALID SESSION TYPE FOR SEQUENCING **'
+
+DCL SEQ CHAR 7 V
+PARSE SEQ
+
+IF SEQ,NE,''
+   GOTO SKIP
+IF SSDSEQBS,EQ,0
+   GOTO DEFAULT
+
+SET SEQ '&SSDSEQBS.-&SSDSEQLM.'
+GOTO SKIP
+
+LABEL DEFAULT
+
+IF SSDTYPEM,EQ,AMAP
+   SET SEQ 73-80
+IF SSDTYPEM,EQ,ASM
+   SET SEQ 73-80
+IF SSDTYPEM,EQ,CASM
+   SET SEQ 73-80
+IF SSDTYPEM,EQ,MAP
+   SET SEQ 73-80
+
+IF SSDTYPEM,EQ,CBL
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,CBL2
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,CCBL
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,CCBL2
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,DLI
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,DLI2
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,CDLI
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,CDLI2
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,HDLI
+   SET SEQ 1-6
+IF SSDTYPEM,EQ,HDLI2
+   SET SEQ 1-6
+
+IF SSDTYPEM,EQ,DYL
+   SET SEQ 73-80
+
+IF SEQ,EQ,''
+   EXIT OK,'## Sequence is not currently set ##'
+
+LABEL SKIP
+
+IF SEQ,NE,'OFF'
+   GOTO OK
+IF SSDSEQBS,EQ,0
+   GOTO OK
+IF SSDTYPEM,EQ,'ASI'
+   GOTO OK
+
+TOP
+BLANK &SSDSEQBS.-&SSDSEQLM *
+
+LABEL OK
+
+IF SEQ,EQ,'OFF'
+   SET SEQ "''"
+
+IF SSDTYPE,EQ,ED
+   ALTER MEM=&SSDLIB..&SSDMEM,SEQ=&SEQ
+SESS SEQ=&SEQ
+
+IF SEQ,EQ,"''"
+   SET SEQ 'OFF'
+EXIT OK,'## Sequence set to "&SEQ" ##'

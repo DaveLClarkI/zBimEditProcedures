@@ -1,0 +1,48 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: REFRESH USER SESSIONS                                  *
+* Procedure..: BIPREFR                                                *
+* COMMAND....: REFRESH                                                *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* If a LIST or LISTD session, quit and re-list the member.            *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL,1
+DCL  MEM CHAR 35
+
+IFTHEN SSDTYPE EQ 'DI'
+  BYPASS
+  REFRESH &PARMLIST
+  EXIT OK
+ENDIF
+
+SET  PPDCOND  1
+VEXAM SSDTYPE '\LI|LD'
+IF SIBRETCD,EQ,NF
+   GOTO EXIT
+SET  PPDCOND  0
+
+IFTHEN SSDTYPE,EQ,LD
+  SET MEM &SSDLIBD..&SSDMEMD
+  BYPASS
+  QUIT
+  LISTD &MEM
+ELSE
+  SET MEM &SSDLIB..&SSDMEM
+  BYPASS
+  QUIT
+  LIST &MEM
+ENDIF
+
+LABEL EXIT
+EXIT OK

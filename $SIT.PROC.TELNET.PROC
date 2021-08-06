@@ -1,0 +1,2082 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: TELNET     Proc Created 11/04/2002   By Dave Clark        *
+;*                  Last Revised 02/18/2004                        *
+;*                                                                 *
+;*      This procedure manages all TELNET session definitions that *
+;* have a TN3270 or  TN3270E  client associated with them.   Other *
+;* TELNET definitions  may  be  included  in  the template members *
+;* discussed below.                                                *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.   (Note:  This procedure  also  requires  the EVALUATE *
+;* command.) The following line  (without  the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and  the "NEWCOPY COMMANDS" command *
+;* issued:                                                         *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* TELNET   TELNET                                                 *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc requires several  data  members to be defined in *
+;* the $SIT.CTRL library.  As supplied, the following is a list of *
+;* these required members:                                         *
+;*                                                                 *
+;* LIBRARY=$SIT.CTRL                                               *
+;* --------------------------------------------------------------- *
+;*      MEMBER        TYPE                  TITLE                  *
+;* ---------------- -------- ------------------------------------- *
+;* TELNET_COMP      DATA     TELNET COMPANY NUMBERS                *
+;* TELNET_DATA      DATA     TELNET SESSION DATA                   *
+;* TELNET_NETN      DATA     TELNET NETNAME PREFIXES               *
+;*                                                                 *
+;* TELNET_FJCL      DATA     TELNET JOB CONTROL TEMPLATE (FOOTER)  *
+;* TELNET_HJCL      DATA     TELNET JOB CONTROL TEMPLATE (HEADER)  *
+;* TELNETP_FDECK    DATA     TELNET SERVER DECK TEMPLATE (FOOTER)  *
+;* TELNETP_HDECK    DATA     TELNET SERVER DECK TEMPLATE (HEADER)  *
+;* TELNET1_FDECK    DATA     TELNET SERVER DECK TEMPLATE (FOOTER)  *
+;* TELNET1_HDECK    DATA     TELNET SERVER DECK TEMPLATE (HEADER)  *
+;* TELNET2_FDECK    DATA     TELNET SERVER DECK TEMPLATE (FOOTER)  *
+;* TELNET2_HDECK    DATA     TELNET SERVER DECK TEMPLATE (HEADER)  *
+;* TELNET3_FDECK    DATA     TELNET SERVER DECK TEMPLATE (FOOTER)  *
+;* TELNET3_HDECK    DATA     TELNET SERVER DECK TEMPLATE (HEADER)  *
+;* --------------------------------------------------------------- *
+;*                                                                 *
+;*      The first three contain  the  data  that either defines or *
+;* validates the TELNET  terminal  sessions  that this application *
+;* manages.   It  is  the  member  with  the  "_DATA"  suffix that *
+;* contains  the  actual  session  definitions.   This  member  is *
+;* automatically created the first  time this application is used. *
+;* The other two,  of course,  are  used  to validate new terminal *
+;* session definitions  so  that  they  conform  to an established *
+;* standard.                                                       *
+;*                                                                 *
+;*      The rest of the  data  members  are  used as templates for *
+;* wrapping around the  TELNET  session  definitions when they are *
+;* generated.   The first two,  of this group,  contain the actual *
+;* JCL that is used to  catalog  all of the appropriate VTAM books *
+;* and TELNET  server  definitions  that  this application creates *
+;* during the generation  process.   The  rest of the members,  in *
+;* this group,  contain  the  TELNET  server  definitions that are *
+;* wrapped  around  each  group   of  session  definitions  for  a *
+;* particular TELNET port.                                         *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+SET  PPDSCRSZ D
+SET  PPDPFOPT 1
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  TOT1     CHAR  4 F      ;MAPF FIELD
+DCL  TOT2     CHAR  4 F      ;MAPF FIELD
+DCL  TOT3     CHAR  4 F      ;MAPF FIELD
+DCL  TOT4     CHAR  4 F      ;MAPF FIELD
+DCL  ACTION   CHAR  1 V      ;MAPF FIELD
+DCL  LUNAME   CHAR  8 V      ;MAPF FIELD
+DCL  DEVTYP   CHAR  8 F      ;MAPF FIELD
+DCL  APPLIC   CHAR  8 F      ;MAPF FIELD
+DCL  PRT_TO   CHAR  8 V      ;MAPF FIELD
+DCL  PORT     CHAR  4 F      ;MAPF FIELD
+DCL  DESCRP   CHAR 40 V      ;MAPF FIELD
+DCL  MESG     CHAR 78 V      ;MAPF FIELD
+
+DCL  R#DATA   CHAR 81 V      ;RECORD DATA
+DCL  P#DATA   NUM   2 V,,,1  ;RECORD POSITION
+DCL  L#DATA   NUM   2 V,,,81 ;RECORD LENGTH
+
+DCL  P#LUNAME NUM   2 V,,,1  ;FIELD POSITN - IN RECORD
+DCL  P#DEVTYP NUM   2 V,,,10 ;FIELD POSITN - IN RECORD
+DCL  P#APPLIC NUM   2 V,,,19 ;FIELD POSITN - IN RECORD
+DCL  P#PRT_TO NUM   2 V,,,28 ;FIELD POSITN - IN RECORD
+DCL  P#PORT   NUM   2 V,,,37 ;FIELD POSITN - IN RECORD
+DCL  P#DESCRP NUM   2 V,,,42 ;FIELD POSITN - IN RECORD
+
+DCL  L#LUNAME NUM   2 V,,,8  ;FIELD LENGTH - IN RECORD
+DCL  L#DEVTYP NUM   2 V,,,8  ;FIELD LENGTH - IN RECORD
+DCL  L#APPLIC NUM   2 V,,,8  ;FIELD LENGTH - IN RECORD
+DCL  L#PRT_TO NUM   2 V,,,8  ;FIELD LENGTH - IN RECORD
+DCL  L#PORT   NUM   2 V,,,4  ;FIELD LENGTH - IN RECORD
+DCL  L#DESCRP NUM   2 V,,,40 ;FIELD LENGTH - IN RECORD
+
+DCL  RGN      NUM   1 V      ;REGION NUMBER
+DCL  S(10)    CHAR  1 V      ;MAPF FIELD (generate tables)
+DCL  IDX      NUM   3 V      ;ARRAY INDEX
+DCL  MAX      NUM   3 V,,,16 ;ARRAY ELEMENT MAX (trunc mode)
+DCL  MAXF     NUM   3 V,,,8  ;ARRAY ELEMENT MAX (fold mode)
+DCL  MAXL     NUM   3 V      ;ARRAY ELEMENT MAX (list mode)
+DCL  SRC(&MAX) CHAR 253 V    ;MAPF FIELD (list mode)
+DCL  POS      NUM   6 V      ;SESSION POSITION
+
+DCL  RESP     CHAR  1 V
+DCL  DSPA     CHAR  1 V
+DCL  FALSE    CHAR  1 V,,,0
+DCL  TRUE     CHAR  1 V,,,1
+DCL  D$PORT   CHAR  4 V,,,1023 ;DEFAULT PORT NUMBER FOR NEW SESSIONS
+DCL  SAVE     CHAR  4 V
+DCL  FOLD     CHAR  5 F,M,,'Fold' ;THIS IS OPPOSITE FROM DISPLAY RESULT
+DCL  STR      CHAR  5 V
+DCL  PFX      CHAR  5 V
+DCL  BREAK    CHAR  7 V
+DCL  CANCEL12 CHAR  8 V
+DCL  MEMNAME  CHAR  8 V
+DCL  USR      CHAR  8 V
+DCL  MODE     CHAR 48 V
+DCL  RC       CHAR  2 V
+DCL  MSG      CHAR 82 V
+
+* - - - - PRIMARY MASTER FILE  - - - - *
+SET  PPDCOND 1
+BYPASS
+READ $SIT.CTRL.TELNET_DATA
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDCOND 0
+  DEFINE $SIT.CTRL.TELNET_DATA,(DATA),'TELNET TERMINAL DATA'
+  BYPASS
+  EDIT
+  INSERTF
+--NAME-- --TYPE-- --APPL-- --PRTR-- ---- DELETE THIS ENTRY LATER                                                                       /CTL/TELNET/X/CREATE  /MM-DD-YYYY/CTL/  /GEN/          /GEN/
+++/*
+  BYPASS
+  SAVE
+ENDIF
+BYPASS
+EDIT
+SETD MSG SIBRESP
+IFTHEN MSG{1,2} NE 'OK'
+  SET  PPDCOND 0
+  SET  RC &MSG{1,2}
+  SETD MSG MSG{3,}
+  IFTHEN RC NE 'SC'
+    IFTHEN RC NE 'ED'
+      EXIT &RC,'&MSG'
+    ENDIF
+  ENDIF
+  IFTHEN RC EQ 'SC'
+    SET  MODE '** READ ONLY **'
+  ELSE
+    SET  USR &XTREUSER
+    SET  MODE '** READ ONLY **  ("&USR" IS IN UPDATE MODE)'
+  ENDIF
+  SETD MESG MODE
+  BYPASS
+  LIST
+ENDIF
+SET  PPDCOND 0
+DCL  S$DATA   NUM   2 V      ;SESSION NUMBER (MASTER FILE)
+SET  S$DATA &SIBSSNU&SIBSCRPM
+
+* - - - - SECONDARY MASTER FILE  - - - *
+IFTHEN MODE NE ''
+  BYPASS
+  LIST $SIT.CTRL.TELNET_COMP
+ELSE
+  BYPASS
+  EDIT $SIT.CTRL.TELNET_COMP
+ENDIF
+DCL  S$COMP   NUM   2 V      ;SESSION NUMBER (COMPANY NAMES)
+SET  S$COMP &SIBSSNU&SIBSCRPM
+
+* - - - - TERTIARY MASTER FILE - - - - *
+BYPASS
+LIST $SIT.CTRL.TELNET_NETN
+DCL  S$NETN   NUM   2 V      ;SESSION NUMBER (NETNAME PREFIXES)
+SET  S$NETN &SIBSSNU&SIBSCRPM
+
+* - - - -      CONTINUING      - - - - *
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+STACK OPT=CLEAR
+
+GOSUB SETCOUNT
+
+LABEL MAIN
+;
+;                  Main-line routine
+;
+IF CANCEL12 NE 'CANCEL12'
+   GOSUB DATA_IO
+
+;
+SET  PPDLPCTR  0
+MAPF
+}TELNET                   ¬Manage Session Definitions               }&OPSDATE
+}Total Sessions (by Port): 1023 =¬&TOT1}2023 =¬&TOT2}3023 =¬&TOT3        }&OPSTIME
+                          }9023 =¬&TOT4
+
+  }Action code . :{ACTION}  (Add, Change, Delete, Inquire, List, Next, or Previous)
+
+  }LU or Net name:{LUNAME  }   Print to Net name:{PRT_TO  }
+
+  }Description . :{DESCRP                                  }
+                       (desc. autofills for CO# lookups only)
+
+  }Device type . :{DEVTYP  }  (TERMINAL, TN3270E, PRINTER, or SCSPRT)
+
+  }Application . :{APPLIC  }  (CICSPROD - dedicated for CICS;
+                               BSTTUSSP - for USS emulation; or
+                               BSTTVNET - for printers)
+
+  }Port Number . :{PORT}      (2023/3023 for the WINL server partitions, 9023
+                               for printers, and 1023 for all other LU Names.
+                               Note: max. 1,000 terminals/printers per port.)
+
+}Press¬ENTER}to process field/record changes.
+¬PF3}= Save ¬PF4}= LU Pfx ¬PF5}= ListComp ¬PF6}= Save & Generate ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SETD MESG MODE
+
+IFTHEN PPDKEY EQ 'CLEAR'
+  IFTHEN CANCEL12 EQ 'CANCEL12'
+    GOTO SKIPSAVE
+  ENDIF
+  BYPASS
+  ROTATE &S$DATA
+  IFTHEN SSDUPD NE '1'
+    GOTO SKIPSAVE
+  ENDIF
+  SET  CANCEL12 'CANCEL12'
+  SET  PPDALARM 1
+  SET  MESG 'If you''re sure you wish to cancel all changes, press PF12 again.'
+  GOTO -MAIN
+ENDIF
+IFTHEN PPDKEY EQ 'PF12'
+  IFTHEN CANCEL12 EQ 'CANCEL12'
+    GOTO SKIPSAVE
+  ENDIF
+  BYPASS
+  ROTATE &S$DATA
+  IFTHEN SSDUPD NE '1'
+    GOTO SKIPSAVE
+  ENDIF
+  SET  CANCEL12 'CANCEL12'
+  SET  PPDALARM 1
+  SET  MESG 'If you''re sure you wish to cancel all changes, press PF12 again.'
+  GOTO -MAIN
+ENDIF
+SET  CANCEL12 ''
+IF PPDKEY EQ 'ENTER'
+   GOTO -MAIN
+IFTHEN PPDMSGF EQ '1'
+   SET MESG 'Pending change processed -- &PPDKEY ignored -- please retry.'
+   GOTO -MAIN
+ENDIF
+IFTHEN PPDKEY EQ 'PF9'
+  IF SIBUSER EQ 'DLC'
+    GOSUB CALCCOMP
+ENDIF
+IFTHEN PPDKEY EQ 'PF6'
+  IFTHEN MODE NE ''
+    SET  PPDALARM 1
+    SET  MESG 'Not allowed to Generate from Read-Only mode.'
+    GOTO -MAIN
+  ENDIF
+  GOTO GENERATE
+ENDIF
+IF PPDKEY EQ 'PF5'
+   GOTO LSTCOMP
+IF PPDKEY EQ 'PF4'
+   GOTO LSTPFX
+IFTHEN PPDKEY EQ 'PF3'
+  IFTHEN MODE NE ''
+    SET  PPDALARM 1
+    SET  MESG 'Not allowed to Save in Read-Only mode.'
+    GOTO -MAIN
+  ENDIF
+  GOTO SAVEDATA
+ENDIF
+
+SET PPDALARM 1
+SET MESG 'Function key not defined.'
+GOTO -MAIN
+;
+;                  Record Handling
+;
+LABEL DATA_IO     ;SUBROUTINE
+;
+;                  pre Edits
+;
+  SET  PPDCOND 1
+  IFTHEN ACTION NE ''        ;VALIDATE ENTERED ACTION CODE
+    VEXAMINE ACTION '\A|C|D|I|L|N|P'
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'ACTION'
+      SET  MESG 'Please specify one of the Actions shown.'
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IFTHEN ACTION NE ''        ;ENTERED ACTION CODES
+    IFTHEN LUNAME EQ ''      ;ALWAYS REQUIRE AN LUNAME
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'LUNAME'
+      SET  MESG 'This Action requires an LU Name be specified.'
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IF ACTION EQ 'L'           ;EXECUTE LIST SUBROUTINE
+     GOSUB LIST
+  IF MODE NE ''              ;NOT UPDATE MODE?
+     GOTO INQUIRY            ;  FORCE AN INQUIRY
+
+  IF SIBUSER EQ 'CMN'        ;CHECK USER ID
+     GOTO SELUSER            ;  ALLOW SELECTED USERS
+  IF TXUUSER NE &SIBUSER     ;INTERNAL SECURITY
+     READU &SIBUSER          ;  BY USER ID
+  IF TXUSECCM LT '4'         ;MUST HAVE 'ADM' AUTHORITY
+     GOTO INQUIRY            ;  ELSE INQUIRY ONLY
+LABEL SELUSER
+  IF ACTION EQ 'D'           ;GO PROCESS A DELETE
+     GOTO DELETE
+  IF ACTION EQ ''            ;DEFAULT TO INQUIRY
+     SET  ACTION 'I'
+  VEXAMINE ACTION '\I|N|P'   ;FOR INQUIRE/NEXT/PREVIOUS
+  IF SIBRETCD EQ 'OK'        ;  GO TO THE INQUIRY SECTION
+     GOTO INQUIRY
+;
+;                  EDIT FOR ADDS AND CHANGES
+;
+  SETL IDX LUNAME            ;GET THE LENGTH OF THE LU NAME
+  IFTHEN IDX LT 8            ;  IT MUST BE EIGHT
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LUNAME'
+    SET  MESG 'The LU Name must be exactly eight characters in length.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  BYPASS
+  ROTATE &S$NETN             ;SWITCH TO NET NAME PREFIXES
+  TOP
+  SET  PPDCOND 1
+  BYPASS
+  FIND &LUNAME{1,5} 1        ;MUST BE A VALID PREFIX
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LUNAME'
+    SET  MESG 'Invalid LU Name prefix.  Press PF4 for a list of known prefixes.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IFTHEN LUNAME{1,4} EQ 'WINL'
+    SET  STR &LUNAME{6,2}
+    VEXAMINE STR '\01|02'    ;FOR DAPSCO AND DISTRO COMPANY NUMBERS
+    IFTHEN SIBRETCD EQ 'OK'
+      IFTHEN STR EQ '01'
+        SET  STR 'DAP&LUNAME{5,1}'
+      ELSE
+        SET  STR 'DST&LUNAME{5,1}'
+      ENDIF
+      TOP
+      BYPASS
+      FIND '&STR' 1          ;BOTH THE REGION PREFIX MUST BE VALID
+      IFTHEN SIBRETCD NE 'OK'
+        SET  PPDCOND 0
+        SET  PPDALARM 1
+        SET  PPDCSFLD 'LUNAME'
+        SET  MESG 'Region not found in "$SIT.CTRL.TELNET_NETN" prefix file.'
+      ELSE                   ;AND THEY SHOULD NOT BE 'WINL' PREFIXES
+        SET  STR &XTRSLINE{1,5}
+        SET  PPDCOND 0
+        SET  PPDALARM 1
+        SET  PPDCSFLD 'LUNAME'
+        SET  MESG 'Invalid LU Name prefix for this company -- should be "&STR".'
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  VEXAMINE DEVTYP '\PRINTER|SCSPRT'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PRT_TO ''
+  ELSE
+    IFTHEN PRT_TO EQ ''
+      SET  PRT_TO &LUNAME{1,7}9
+    ELSE
+      VEXAMINE LUNAME '\DAP|DST'
+      IFTHEN SIBRETCD EQ 'OK'
+        IFTHEN PRT_TO{1,5} NE &LUNAME{1,5}
+          SET  PPDCOND 0
+          SET  PPDALARM 1
+          SET  PPDCSFLD 'PRT_TO'
+          SET  MESG 'The first 5 characters of the Print to Net name and the LU Name must match.'
+        ENDIF
+      ELSE
+        IFTHEN PRT_TO{1,7} NE &LUNAME{1,7}
+          SET  PPDCOND 0
+          SET  PPDALARM 1
+          SET  PPDCSFLD 'PRT_TO'
+          SET  MESG 'The first 7 characters of the Print to Net name and the LU Name must match.'
+        ENDIF
+      ENDIF
+    ENDIF
+    IFTHEN PPDALARM EQ 0
+      SETL IDX PRT_TO
+      IFTHEN IDX LT 8
+        SET  PPDCOND 0
+        SET  PPDALARM 1
+        SET  PPDCSFLD 'PRT_TO'
+        SET  MESG 'The Print to Net name must be exactly eight characters in length.'
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  SET  STR &LUNAME{5,3}
+  EVALUATE "DataType('&STR','WholeNumber')"
+  SETD RESP SIBMSG{3,1}
+  IFTHEN RESP EQ TRUE
+    BYPASS
+    ROTATE &S$COMP
+    TOP
+    BYPASS
+    FIND &STR 1
+    IFTHEN SIBRETCD EQ 'OK'
+      SETD DESCRP XTRSLINE{11,40}
+      IFTHEN XTRSLINE{61,4} GT ' '
+        SETD PORT XTRSLINE{61,4}
+      ELSE
+        IFTHEN LUNAME{1,4} EQ 'WINL'
+          SET PORT D$PORT
+        ENDIF
+        OVERLAY 61 "&PORT"
+      ENDIF
+    ELSE
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'LUNAME'
+      SET  MESG 'Company Number Lookup failed.  Press PF5 to list known companies.'
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IFTHEN DESCRP EQ ''
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'DESCRP'
+    SET  MESG 'A Desription is required to specify where the device is found.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+  VEXAMINE DESCRP '"'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'DESCRP'
+    SET  MESG 'The Desription may not contain the double-quote character.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IF DEVTYP EQ ''
+     SET  DEVTYP 'TERMINAL'
+
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E|PRINTER|SCSPRT '
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'DEVTYP'
+    SET  MESG 'Please specify one of the Device Types shown.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  VEXAMINE DEVTYP '\PRINTER|SCSPRT'
+  IF SIBRETCD EQ 'OK'
+     SET  APPLIC 'BSTTVNET'
+  IF APPLIC EQ ''
+     SET  APPLIC 'CICSPROD'
+
+  VEXAMINE APPLIC '\CICSPROD|BSTTUSSP|BSTTVNET' ;|TN$MENU'
+  SETD MSG SIBRESP
+  SETD RC  MSG{1,2}
+  SETD MSG MSG{3,}
+  IFTHEN RC NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'APPLIC'
+    SET  MESG 'Please specify one of the Applications shown. (&RC)'
+    LOGI '&RC &MSG'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E '
+  IFTHEN SIBRETCD EQ 'OK'
+    IFTHEN APPLIC EQ 'BSTTVNET'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'APPLIC'
+      SET  MESG 'That Application is only valid for printer sessions.'
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  VEXAMINE DEVTYP '\PRINTER|SCSPRT'
+  IF SIBRETCD EQ 'OK'
+     SET  PORT '9023'
+
+  VEXAMINE PORT '\1023|2023|3023|9023'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'PORT'
+    SET  MESG 'Please specify one of the Port Numbers shown.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E '
+  IFTHEN SIBRETCD EQ 'OK'
+    IFTHEN PORT EQ '9023'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'PORT'
+      SET  MESG 'That Port is only valid for printer sessions.'
+    ELSE
+      IFTHEN LUNAME{1,4} EQ 'WINL'
+        IFTHEN PORT EQ '1023'
+          SET  PPDCOND 0
+          SET  PPDALARM 1
+          SET  PPDCSFLD 'PORT'
+          SET  MESG 'Port 1023 may not be used with a WINL prefixed LU Name.'
+        ENDIF
+      ELSE
+        IFTHEN PORT NE '1023'
+          SET  PPDCOND 0
+          SET  PPDALARM 1
+          SET  PPDCSFLD 'PORT'
+          SET  MESG 'Port 1023 must be used with non-WINL prefixed LU Names.'
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IF ACTION EQ 'C'
+     GOTO CHANGE
+;
+;                  Add record
+;
+LABEL ADD
+  SET  PPDCOND 0
+
+  BYPASS
+  ROTATE &S$DATA
+  TOP
+  SET  PPDCOND 1
+  BYPASS
+  FIND &LUNAME 1
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LUNAME'
+    SET  MESG 'The specified LU Name already exists.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+  BYPASS
+  FIND &LUNAME{5,4} 5
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LUNAME'
+    SET  MESG 'The specified Terminal Id already exists.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  VEXAMINE DEVTYP '\PRINTER|SCSPRT'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    BYPASS
+    ROTATE &S$DATA
+    TOP
+    SET  PPDCOND 1
+    BYPASS
+    FIND &PRT_TO 1
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'PRT_TO'
+      SET  MESG 'The Print to Net name does not exist.'
+    ENDIF
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+  SET  PPDCOND 0
+
+  BYPASS
+  ROTATE &S$DATA
+  LADD 1
+  NEXT 1
+  OVERLAY &P#LUNAME "&LUNAME"
+  OVERLAY &P#DEVTYP "&DEVTYP"
+  OVERLAY &P#APPLIC "&APPLIC"
+  OVERLAY &P#PRT_TO "&PRT_TO"
+  OVERLAY &P#PORT   "&PORT"
+  OVERLAY &P#DESCRP "&DESCRP"
+  OVERLAY 136 "/CTL/TELNET/ /        /          /CTL/  /GEN/          /GEN/"
+  OVERLAY 148 "&ACTION"
+  OVERLAY 150 "&SIBUSER"
+  OVERLAY 159 "&SIBDATE"
+  CHANGE '/' '-' 1 159-168
+  TOP
+  SORT 1-8 *
+
+  SET  STR &LUNAME{5,3}
+  EVALUATE "DataType('&STR','WholeNumber')"
+  SETD RESP SIBMSG{3,1}
+  IFTHEN RESP EQ TRUE
+    GOSUB INCR_CNT                     ;ADD 1 TO LOCAL COMPANY SESSIONS
+  ELSE
+    SET  PPDCOND 1
+    VEXAMINE LUNAME '\DAP9|WINL'       ;LOOKING FOR DAP0-DAP7
+    IFTHEN SIBRETCD NE 'OK'            ;        AND DST0-DST7
+      SET  PPDCOND 0
+      BYPASS
+      ROTATE &S$NETN
+      TOP
+      SET  PPDCOND 1
+      BYPASS
+      FIND &LUNAME{1,4} 1
+      IFTHEN SIBRETCD EQ 'OK'
+        SET  PPDCOND 0
+        SET  STR &XTRSLINE{55,3}
+        GOSUB INCR_CNT                 ;ADD 1 TO DAPSCO/DISTRO SESSIONS
+      ELSE
+        SET  PPDCOND 0
+        BYPASS
+        ROTATE &S$DATA
+      ENDIF
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+
+  GOSUB SETCOUNT
+GOTO INQUIRY
+;
+;                  Change record
+;
+LABEL CHANGE
+  SET  PPDCOND 0
+
+  BYPASS
+  ROTATE &S$DATA
+  IFTHEN LUNAME NE &XTRSLINE{&P#LUNAME,&L#LUNAME}
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LUNAME'
+    SET  MESG 'Change not preceded by Inquiry or LU Name Changed.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  SET  PPDCOND 1
+  VEXAMINE DEVTYP '\PRINTER|SCSPRT'
+  IFTHEN SIBRETCD NE 'OK'
+    TOP
+    BYPASS
+    FIND &PRT_TO 1
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'PRT_TO'
+      SET  MESG 'The Print to Net name does not exist.'
+    ENDIF
+    SET  PPDCOND 0
+    TOP
+    BYPASS
+    FIND &LUNAME 1
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+  SET  PPDCOND 0
+
+  BLANK   &P#DEVTYP.-&L#DATA
+  OVERLAY &P#DEVTYP "&DEVTYP"
+  OVERLAY &P#APPLIC "&APPLIC"
+  OVERLAY &P#PRT_TO "&PRT_TO"
+  OVERLAY &P#PORT   "&PORT"
+  OVERLAY &P#DESCRP "&DESCRP"
+  BLANK   150-157
+  BLANK   159-168
+  BLANK   181-190
+  OVERLAY 148 "&ACTION"
+  OVERLAY 150 "&SIBUSER"
+  OVERLAY 159 "&SIBDATE"
+  CHANGE '/' '-' 1 159-168
+  TOP
+GOTO INQUIRY
+;
+;                  Delete record
+;
+LABEL DELETE
+  SET  PPDCOND 0
+
+  BYPASS
+  ROTATE &S$DATA
+  IFTHEN LUNAME NE &XTRSLINE{&P#LUNAME,&L#LUNAME}
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LUNAME'
+    SET  MESG 'Delete not preceded by Inquiry or LU Name Changed.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IFTHEN SSDSZLN EQ 1
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'ACTION'
+    SET  MESG 'Not allowed to Delete the last definition in the data file.'
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  DELETE 1
+
+  SET  STR &LUNAME{5,3}
+  EVALUATE "DataType('&STR','WholeNumber')"
+  SETD RESP SIBMSG{3,1}
+  IFTHEN RESP EQ TRUE
+    GOSUB DECR_CNT                     ;SUBTRACT 1 FROM LOCAL CO. SESS.
+  ELSE
+    SET  PPDCOND 1
+    VEXAMINE LUNAME '\DAP9|WINL'       ;LOOKING FOR DAP0-DAP7
+    IFTHEN SIBRETCD NE 'OK'            ;        AND DST0-DST7
+      SET  PPDCOND 0
+      BYPASS
+      ROTATE &S$NETN
+      TOP
+      SET  PPDCOND 1
+      BYPASS
+      FIND &LUNAME{1,4} 1
+      IFTHEN SIBRETCD EQ 'OK'
+        SET  PPDCOND 0
+        SET  STR &XTRSLINE{55,3}
+        GOSUB DECR_CNT                 ;SUBTRACT 1 FROM DAPSCO/DISTRO
+      ELSE
+        SET  PPDCOND 0
+        BYPASS
+        ROTATE &S$DATA
+      ENDIF
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+
+  GOSUB SETCOUNT
+  SET  DEVTYP ''
+  SET  APPLIC ''
+  SET  PRT_TO ''
+  SET  PORT   ''
+  SET  DESCRP ''
+RETURN
+;
+;                  Record inquiry
+;
+LABEL INQUIRY
+  SET  PPDCOND 0
+
+  BYPASS
+  ROTATE &S$DATA
+  IFTHEN LUNAME EQ ''
+    POS  1
+  ELSE
+    TOP
+    SET  PPDCOND 1
+    BYPASS
+    FIND &LUNAME 1
+    IFTHEN SIBRETCD NE 'OK'
+      VEXAMINE ACTION '\N|P'
+      IFTHEN SIBRETCD NE 'OK'
+        SET  ACTION 'I'
+      ENDIF
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'LUNAME'
+      SET  MESG 'The specified LU Name is not defined.'
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  IFTHEN ACTION EQ 'N'
+    SET  PPDCOND 1
+    DOWN 1
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'LUNAME'
+      SET  MESG 'This is the last LU Name defined.'
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+  IFTHEN ACTION EQ 'P'
+    SET  PPDCOND 1
+    UP   1
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'LUNAME'
+      SET  MESG 'This is the first LU Name defined.'
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+  IF PPDALARM NE 0
+     RETURN
+
+  SET  ACTION 'I'
+
+LABEL GETFLDS                ;(A SUB-SUBROUTINE)
+
+  SETD R#DATA XTRSLINE{&P#DATA,&L#DATA}
+  SET  LUNAME '&R#DATA{&P#LUNAME,&L#LUNAME}'
+  SET  DEVTYP '&R#DATA{&P#DEVTYP,&L#DEVTYP}'
+  SET  APPLIC '&R#DATA{&P#APPLIC,&L#APPLIC}'
+  SET  PRT_TO '&R#DATA{&P#PRT_TO,&L#PRT_TO}'
+  SET  PORT   '&R#DATA{&P#PORT,&L#PORT}'
+  SETD DESCRP   R#DATA{&P#DESCRP,&L#DESCRP}
+
+RETURN
+;
+;                  Increment session count per company
+;
+LABEL INCR_CNT               ;(A SUB-SUBROUTINE)
+  BYPASS
+  ROTATE &S$COMP
+  TOP
+  SET  PPDCOND 1
+  BYPASS
+  FIND &STR 1
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PPDCOND 0
+    SET  IDX &XTRSLINE{54,3}
+    ADD  IDX  1
+    EVALUATE 'Format(&IDX,3)'
+    OVERLAY 54 '&SIBMSG{3,3}'
+  ENDIF
+  SET  PPDCOND 0
+  BYPASS
+  ROTATE &S$DATA
+RETURN
+;
+;                  Decrement session count per company
+;
+LABEL DECR_CNT               ;(A SUB-SUBROUTINE)
+  BYPASS
+  ROTATE &S$COMP
+  TOP
+  SET  PPDCOND 1
+  BYPASS
+  FIND &STR 1
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PPDCOND 0
+    SET  IDX &XTRSLINE{54,3}
+    SUBT IDX  1
+    EVALUATE 'Format(&IDX,3)'
+    OVERLAY 54 '&SIBMSG{3,3}'
+  ENDIF
+  SET  PPDCOND 0
+  BYPASS
+  ROTATE &S$DATA
+RETURN
+;
+;                  Re-calculate number of sessions per port
+;
+LABEL SETCOUNT               ;(A SUB-SUBROUTINE)
+  BYPASS
+  ROTATE &S$DATA
+  SET  PPDCOND  1
+  BYPASS
+  QUAL ' 1023 '
+  IFTHEN SIBRETCD EQ OK
+    SET  TOT1 &SSDSZLN
+    BYPASS
+    END NOSAVE
+  ELSE
+    SET  TOT1 0
+  ENDIF
+  BYPASS
+  QUAL ' 2023 '
+  IFTHEN SIBRETCD EQ OK
+    SET  TOT2 &SSDSZLN
+    BYPASS
+    END NOSAVE
+  ELSE
+    SET  TOT2 0
+  ENDIF
+  BYPASS
+  QUAL ' 3023 '
+  IFTHEN SIBRETCD EQ OK
+    SET  TOT3 &SSDSZLN
+    BYPASS
+    END NOSAVE
+  ELSE
+    SET  TOT3 0
+  ENDIF
+  BYPASS
+  QUAL ' 9023 '
+  IFTHEN SIBRETCD EQ OK
+    SET  TOT4 &SSDSZLN
+    BYPASS
+    END NOSAVE
+  ELSE
+    SET  TOT4 0
+  ENDIF
+  SET  PPDCOND  0
+RETURN
+;
+;                  Re-calculate number of sessions per company
+;
+LABEL CALCCOMP               ;(A SUB-SUBROUTINE)
+BYPASS
+ROTATE &S$COMP
+TOP
+BLOCK
+  SET  PPDCOND 1
+  NEXT
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  SET  PPDCOND 0
+  SET  BREAK WINL&XTRSLINE{1,3}
+  BYPASS
+  ROTATE &S$DATA
+  SET  IDX  0
+  SET  PPDCOND 1
+  QUAL '&BREAK'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  IDX &SSDSZLN
+    BYPASS
+    END NOSAVE
+  ENDIF
+  SET  PPDCOND 0
+  BYPASS
+  ROTATE &S$COMP
+  EVALUATE 'Format(&IDX,3)'
+  OVERLAY 54 '&SIBMSG{3,3}'
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0
+RETURN
+;
+;                  List records
+;
+LABEL LIST
+  SET  PPDCOND 0
+  SET  ACTION ''
+  BYPASS
+  ROTATE &S$DATA
+  SET  POS  &SSDBASE&SIBSCRPM
+
+  IFTHEN FOLD EQ 'Fold'      ;THIS IS OPPOSITE FROM DISPLAY RESULT
+    SET  MAXL &MAX
+  ELSE
+    SET  MAXL &MAXF
+  ENDIF
+
+  IFTHEN PPDKEY EQ 'PF6'
+    SET  POS  1
+  ENDIF
+  IFTHEN PPDKEY EQ 'PF7'
+    IFTHEN POS GT &MAXL
+      SUBT POS &MAXL
+    ELSE
+      SET  POS  1
+      SET  MESG 'Top of the List.'
+    ENDIF
+  ENDIF
+
+  IFTHEN PPDKEY EQ 'PF8'
+    ADD  POS &MAXL
+    IFTHEN POS GT &SSDSZLN
+      SET  POS &SSDSZLN
+      SUBT POS &MAXL
+      ADD  POS 1
+      SET  MESG 'End of the List.'
+    ENDIF
+  ENDIF
+  IFTHEN PPDKEY EQ 'PF9'
+    SET  POS &SSDSZLN
+    SUBT POS &MAXL
+    ADD  POS 1
+  ENDIF
+
+  POS  &POS
+  SET  IDX  0
+  SET  PPDCOND 1
+  BLOCK
+    ADD  IDX  1
+    SETD SRC(&IDX) XTRSLINE
+    IFTHEN IDX EQ &MAXL
+      LEAVE
+    ENDIF
+    DOWN 1
+    IFTHEN SIBRETCD EQ 'OK'
+      LOOP
+    ELSE
+      SET  MESG 'End of the List.'
+    ENDIF
+  ENDBLOCK
+  SET  PPDCOND 0
+  POS  &POS
+
+  IFTHEN IDX LT &MAXL
+    BLOCK
+      ADD  IDX  1
+      SET  SRC(&IDX) ''
+      IFTHEN IDX LT &MAXL
+        LOOP
+      ENDIF
+    ENDBLOCK
+  ENDIF
+
+  SET  IDX  0
+  SET  PPDLPCTR  0
+  SET  PPDTRAP  1
+  MAPF
+}TELNET                  ¬Manage Terminal Definitions               }&OPSDATE
+                                  ¬List Mode                          }&OPSTIME
+{ACTION}
+}LU Name  Dev.Type Applictn Print To Port Description
+¬-------- -------- -------- -------- ---- -------------------------------------}
+)BLOCK
+)  ADD  IDX  1
+}&SRC(&IDX){1,78}
+)  IFTHEN FOLD NE 'Fold'     ;THIS IS OPPOSITE FROM DISPLAYED RESULT
+             }Tag:¬&SRC(&IDX){136,60}
+)  ENDIF
+)  IFTHEN IDX LT &MAXL
+)    LOOP
+)  ENDIF
+)ENDBLOCK
+
+¬PF4}= &FOLD    ¬PF6/7}= Top/Backward    ¬PF8/9}= Forward/End    ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+  SET  PPDTRAP  0
+
+  SET  PPDALARM 0
+  SET  PPDCSFLD ''
+  SETD MESG MODE
+
+  IF PPDKEY EQ 'ENTER'
+     GOTO -LIST
+  IF PPDKEY EQ 'CLEAR'
+     RETURN
+  IF PPDKEY EQ 'PF12'
+     RETURN
+  IF PPDKEY EQ 'PF9'
+     GOTO -LIST
+  IF PPDKEY EQ 'PF8'
+     GOTO -LIST
+  IF PPDKEY EQ 'PF7'
+     GOTO -LIST
+  IF PPDKEY EQ 'PF6'
+     GOTO -LIST
+  IFTHEN PPDKEY EQ 'PF4'
+    IFTHEN FOLD EQ 'Fold'    ;THIS IS OPPOSITE FROM DISPLAY RESULT
+      SET  FOLD "Trunc"
+    ELSE
+      SET  FOLD "Fold"
+    ENDIF
+    GOTO -LIST
+  ENDIF
+
+  SET PPDALARM 1
+  SET MESG 'Function key not defined.'
+GOTO -LIST
+;
+;                  List net name prefixes
+;
+LABEL LSTPFX
+
+SET  PPDCOND 0
+SET  ACTION ''
+BYPASS
+ROTATE &S$NETN
+IF PPDKEY EQ 'PF4'
+   POS  1
+
+SET  POS  &SSDBASE&SIBSCRPM
+IFTHEN PPDKEY EQ 'PF7'
+  IFTHEN POS GT &MAX
+    SUBT POS &MAX
+  ELSE
+    SET  POS  1
+    SET  MESG 'Top of the List.'
+  ENDIF
+ENDIF
+IFTHEN PPDKEY EQ 'PF8'
+  ADD  POS &MAX
+  IFTHEN POS GT &SSDSZLN
+    SET  POS &SSDSZLN
+    SUBT POS &MAX
+    ADD  POS 1
+    SET  MESG 'End of the List.'
+  ENDIF
+ENDIF
+
+POS  &POS
+SET  IDX  0
+SET  PPDCOND 1
+BLOCK
+  ADD  IDX  1
+  SETD SRC(&IDX) XTRSLINE{1,78}
+  DOWN 1
+  IFTHEN SIBRETCD EQ 'OK'
+    IFTHEN IDX LT &MAX
+      LOOP
+    ENDIF
+  ELSE
+    SET  MESG 'End of the List.'
+  ENDIF
+ENDBLOCK
+SET  PPDCOND 0
+POS  &POS
+
+IFTHEN IDX LT &MAX
+  BLOCK
+    ADD  IDX  1
+    SET  SRC(&IDX) ''
+    IFTHEN IDX LT &MAX
+      LOOP
+    ENDIF
+  ENDBLOCK
+ENDIF
+
+SET  IDX  0
+SET  PPDLPCTR  0
+SET  PPDTRAP  1
+MAPF
+}TELNET                  ¬Manage Terminal Definitions               }&OPSDATE
+                               ¬NetName Prefixes                      }&OPSTIME
+{ACTION}
+          }Prefix    Description                                 Co#
+          ¬------    ----------------------------------------    ---}
+)BLOCK
+)  ADD  IDX  1
+          }&SRC(&IDX)
+)  IFTHEN IDX LT &MAX
+)    LOOP
+)  ENDIF
+)ENDBLOCK
+
+¬                     ¬PF7}= Backward    ¬PF8}=Forward           ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+SET  PPDTRAP  0
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SETD MESG MODE
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -LSTPFX
+IF PPDKEY EQ 'CLEAR'
+   GOTO -MAIN
+IF PPDKEY EQ 'PF12'
+   GOTO -MAIN
+IF PPDKEY EQ 'PF8'
+   GOTO -LSTPFX
+IF PPDKEY EQ 'PF7'
+   GOTO -LSTPFX
+
+SET PPDALARM 1
+SET MESG 'Function key not defined.'
+GOTO -LSTPFX
+;
+;                  List company numbers
+;
+LABEL LSTCOMP
+
+SET  PPDCOND 0
+SET  ACTION ''
+BYPASS
+ROTATE &S$COMP
+IF PPDKEY EQ 'PF5'
+   POS  1
+
+SET  POS  &SSDBASE&SIBSCRPM
+IFTHEN PPDKEY EQ 'PF7'
+  IFTHEN POS GT &MAX
+    SUBT POS &MAX
+  ELSE
+    SET  POS  1
+    SET  MESG 'Top of the List.'
+  ENDIF
+ENDIF
+IFTHEN PPDKEY EQ 'PF8'
+  ADD  POS &MAX
+  IFTHEN POS GT &SSDSZLN
+    SET  POS &SSDSZLN
+    SUBT POS &MAX
+    ADD  POS 1
+    SET  MESG 'End of the List.'
+  ENDIF
+ENDIF
+
+POS  &POS
+SET  IDX  0
+SET  PPDCOND 1
+BLOCK
+  ADD  IDX  1
+  SETD SRC(&IDX) XTRSLINE{1,78}
+  DOWN 1
+  IFTHEN SIBRETCD EQ 'OK'
+    IFTHEN IDX LT &MAX
+      LOOP
+    ENDIF
+  ELSE
+    SET  MESG 'End of the List.'
+  ENDIF
+ENDBLOCK
+SET  PPDCOND 0
+POS  &POS
+
+IFTHEN IDX LT &MAX
+  BLOCK
+    ADD  IDX  1
+    SET  SRC(&IDX) ''
+    IFTHEN IDX LT &MAX
+      LOOP
+    ENDIF
+  ENDBLOCK
+ENDIF
+
+SET  IDX  0
+SET  PPDLPCTR  0
+SET  PPDTRAP  1
+MAPF
+}TELNET                  ¬Manage Terminal Definitions               }&OPSDATE
+                               ¬Company Numbers                       }&OPSTIME
+{ACTION}
+       }Co#       Description                                Ses    Port
+       ¬---       ----------------------------------------   ---    ----}
+)BLOCK
+)  ADD  IDX  1
+       }&SRC(&IDX)
+)  IFTHEN IDX LT &MAX
+)    LOOP
+)  ENDIF
+)ENDBLOCK
+
+¬                     ¬PF7}= Backward    ¬PF8}=Forward           ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+SET  PPDTRAP  0
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SETD MESG MODE
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -LSTCOMP
+IF PPDKEY EQ 'CLEAR'
+   GOTO -MAIN
+IF PPDKEY EQ 'PF12'
+   GOTO -MAIN
+IF PPDKEY EQ 'PF8'
+   GOTO -LSTCOMP
+IF PPDKEY EQ 'PF7'
+   GOTO -LSTCOMP
+
+SET PPDALARM 1
+SET MESG 'Function key not defined.'
+GOTO -LSTCOMP
+;
+;                  Select Tables to Generate
+;
+LABEL GENERATE
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+SET  IDX  0
+BLOCK
+  ADD  IDX  1
+  SET  S(&IDX) '_'
+  IF IDX LT 10
+     LOOP
+ENDBLOCK
+
+LABEL GENAGAIN
+SET  PPDLPCTR  0
+
+MAPF
+}TELNET                  ¬Manage Terminal Definitions               }&OPSDATE
+                               ¬Generate Tables                       }&OPSTIME
+
+  }Based on your changes, select which tables need to be generated:
+
+   {S(1)}Region 0  -  North Haven, CT
+   {S(2)}Region 1  -  Dayton, OH
+   {S(3)}Region 2  -  St. Louis, MO
+   {S(4)}Region 3  -  Denver, CO
+   {S(5)}Region 4  -  Phoenix, AZ
+   {S(6)}Region 5  -  Reno, NV
+   {S(7)}Region 6  -  Atlanta, GA
+   {S(8)}Region 7  -  Omaha, NE
+   {S(9)}Region 8  -  Newport News, VA
+   {S(10)}Region 9  -  3110 Kettering Blvd.
+
+
+
+
+
+
+
+                      ¬PF6}= Continue Generation                 ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG ''
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -GENAGAIN
+IF PPDKEY EQ 'CLEAR'
+   GOTO -MAIN
+IF PPDKEY EQ 'PF12'
+   GOTO -MAIN
+IF PPDKEY EQ 'PF6'
+   GOTO CONTINUE
+
+SET PPDALARM 1
+SET MESG 'Function key not defined.'
+GOTO -GENAGAIN
+
+LABEL PROGRESS
+MAPF
+}TELNET                  ¬Manage Terminal Definitions               }&OPSDATE
+                               ¬Generate Tables                       }&OPSTIME
+
+  }Based on your changes, select which tables need to be generated:
+
+   }&S(1) Region 0  -  North Haven, CT
+   }&S(2) Region 1  -  Dayton, OH
+   }&S(3) Region 2  -  St. Louis, MO
+   }&S(4) Region 3  -  Denver, CO
+   }&S(5) Region 4  -  Phoenix, AZ
+   }&S(6) Region 5  -  Reno, NV
+   }&S(7) Region 6  -  Atlanta, GA
+   }&S(8) Region 7  -  Omaha, NE
+   }&S(9) Region 8  -  Newport News, VA
+   }&S(10) Region 9  -  3110 Kettering Blvd.
+
+
+
+
+
+
+
+                      ¬PF6}= Continue Generation                 ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+RETURN
+;
+LABEL SUBMITIT
+SET  PPDCOND 1
+BYPASS
+PURGE INST.BSI.&MEMNAME OPT=NOPGCTL
+SET  PPDCOND 0
+DEFINE &TXMPATH,'TEXT','**USE ONLY TELNET CMD TO MODIFY MEMBER**'
+BYPASS
+EDIT &TXMPATH
+INSERTF
+/INCLUDE $STACK
+++/*
+BYPASS
+SAVE
+SUBMITF            ;Submit job
+/INCLUDE $STACK
+++/*
+RETURN
+;
+;                  Generate & Submit Tables
+;
+LABEL CONTINUE
+SET  PPDINCL   1
+SET  PPDTRAP   1
+
+SET MESG 'Generating VTAM ASL and APPL tables...'
+GOSUB -PROGRESS
+
+SET  IDX  0
+BLOCK
+  IF IDX EQ 10
+     LEAVE
+  ADD  IDX  1
+  IF S(&IDX) EQ ''
+     LOOP
+  IF S(&IDX) EQ '_'
+     LOOP
+  SUBT IDX 1
+  SET  RGN &IDX
+  ADD  IDX 1
+;             ---- ASL Table Processing ----
+  SET  PPDLPCTR  0
+  SET  PPDLPLMT  4000
+  STACK OPT=CLEAR
+  BYPASS
+  ROTATE &S$DATA
+  TOP
+  SET  BREAK ''
+  SET  POS  4
+  SET  STR  &RGN
+  SET  PPDCOND 1
+  BLOCK                      ;Loop on Detail
+    BYPASS
+    FIND &STR &POS
+    IFTHEN SIBRETCD NE 'OK'
+      IFTHEN POS EQ 1
+        LEAVE
+      ENDIF
+      SET  POS  1
+      SET  STR  WINL&RGN
+      LOOP
+    ENDIF
+    GOSUB -GETFLDS
+    IFTHEN SIBSTSIZ EQ 0
+      SET  MEMNAME 'TN$ASL&RGN'
+      STACKF                 ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+&MEMNAME  ASLTAB
+++/*
+    ENDIF
+    IFTHEN BREAK NE &LUNAME{1,7}
+      SET  BREAK &LUNAME{1,7}
+      STACKI "*"
+      STACKI "* &DESCRP"
+    ENDIF
+    VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+    IFTHEN SIBRETCD EQ 'OK'
+      SET  R#DATA "CICS&LUNAME{5,4} ASLENT"
+      VAPP R#DATA " PRINTER1=VSEA&PRT_TO{5,4}"
+      VAPP R#DATA ",PRINTER2=VSEA&LUNAME{5,4}"
+      STACKI "&R#DATA"
+    ENDIF
+    LOOP
+  ENDBLOCK
+  SET  PPDCOND 0
+
+  IFTHEN SIBSTSIZ GT 0
+    STACKF             ;Insert Footer
+*
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+    GOSUB -SUBMITIT          ;Submit job
+  ENDIF
+
+;             ---- APPL Table Processing ----
+  SET  PPDLPCTR  0
+  STACK OPT=CLEAR
+  BYPASS
+  ROTATE &S$DATA
+  TOP
+  SET  PFX  ''
+  SET  BREAK ''
+  SET  POS  4
+  SET  STR  &RGN
+  SET  PPDCOND 1
+  BLOCK                      ;Loop on Detail
+    BYPASS
+    FIND &STR &POS
+    IFTHEN SIBRETCD NE 'OK'
+      IFTHEN POS EQ 1
+        LEAVE
+      ENDIF
+      SET  POS  1
+      SET  STR  WINL&RGN
+      LOOP
+    ENDIF
+    GOSUB -GETFLDS
+    IFTHEN PFX NE &LUNAME{1,5}
+      SET  PPDCOND 0
+      IFTHEN PFX NE ''
+        STACKF               ;Insert Footer
+*
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+        GOSUB -SUBMITIT      ;Submit job
+      ENDIF
+      SET  PFX &LUNAME{1,5}
+      STACK OPT=CLEAR
+      SET  MEMNAME 'TN$&PFX'
+      STACKF                 ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+&MEMNAME VBUILD TYPE=APPL
+++/*
+      SET  PPDCOND 1
+    ENDIF
+    IFTHEN BREAK NE &LUNAME{1,7}
+      SET  BREAK &LUNAME{1,7}
+      STACKI "*"
+      STACKI "* &DESCRP"
+      STACKI "&BREAK  GROUP MODETAB=IESINCLM,DLOGMOD=SP3272QN,USSTAB=VTMUSSTT,      *"
+      IFTHEN POS EQ 1
+        STACKI "               MDLTAB=TN$MDL,MDLENT=VSE3278Q,ASLTAB=TN$ASL&RGN"
+      ELSE
+        STACKI "               MDLTAB=TN$MDL,MDLENT=VSE3278Q,ASLTAB=TN$ASL&RGN"
+      ENDIF
+    ENDIF
+    SET  R#DATA "&LUNAME APPL"
+    VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+    IFTHEN SIBRETCD EQ 'OK'
+      VAPP R#DATA "  AUTH=(ACQ),EAS=1,ASLENT=CICS&LUNAME{5,4}"
+    ELSE
+      VAPP R#DATA "  AUTH=(ACQ),EAS=1,DLOGMOD="
+      IFTHEN DEVTYP EQ 'PRINTER'
+        VAPP R#DATA "SPLU3PRT"
+      ELSE
+        VAPP R#DATA "SPSCSPRT"
+      ENDIF
+    ENDIF
+    STACKI "&R#DATA"
+    EXAMINE '          ' 181-190
+    IFTHEN SIBRETCD EQ 'OK'
+      OVERLAY 181 "&SIBDATE"
+      CHANGE '/' '-' 1 181-190
+    ENDIF
+    LOOP
+  ENDBLOCK
+  SET  PPDCOND 0
+
+  IFTHEN SIBSTSIZ GT 0
+    STACKF                   ;Insert Footer
+*
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+    GOSUB -SUBMITIT          ;Submit job
+  ENDIF
+;             ---- Processing Complete ----
+  LOOP
+ENDBLOCK
+
+;             ---- APPL Table Processing (for TELN) ----
+SET  PPDLPCTR  0
+BYPASS
+ROTATE &S$DATA
+TOP
+SET  PPDCOND 1
+BYPASS
+FIND 'TELN' 1
+IF SIBRETCD NE 'OK'
+   GOTO SKIPTELN
+
+SET MESG 'Generating special VTAM APPL table (for TELN pool)...'
+GOSUB -PROGRESS
+
+STACK OPT=CLEAR
+SET  MEMNAME 'TN$TELN'
+STACKF                       ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+&MEMNAME  VBUILD TYPE=APPL
+++/*
+GOSUB -GETFLDS
+SET  BREAK &LUNAME{1,4}
+STACKI "*"
+STACKI "* &DESCRP"
+STACKI "&BREAK     GROUP MODETAB=IESINCLM,DLOGMOD=SP3272QN,USSTAB=VTMUSSTT"
+STACKI "*"
+BLOCK                        ;Loop on Detail
+  STACKI "&LUNAME APPL  AUTH=(ACQ),EAS=1"
+  EXAMINE '          ' 181-190
+  IFTHEN SIBRETCD EQ 'OK'
+    OVERLAY 181 "&SIBDATE"
+    CHANGE '/' '-' 1 181-190
+  ENDIF
+  NEXT 1
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  GOSUB -GETFLDS
+  IF BREAK EQ &LUNAME{1,4}
+     LOOP
+ENDBLOCK
+SET  PPDCOND 0
+
+STACKF                       ;Insert Footer
+*
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+GOSUB -SUBMITIT              ;Submit job
+
+LABEL SKIPTELN
+
+;             ---- TELNET1 Table Processing ----
+SET MESG 'Generating TelNET Server 1 table...'
+GOSUB -PROGRESS
+
+STACK OPT=CLEAR
+BYPASS
+ROTATE &S$DATA
+TOP
+SET  PPDCOND  1
+BYPASS
+QUAL '1023' ZONE=37-40
+IF SIBRETCD NE OK
+   GOTO SKIP1023
+SET  PPDCOND  0
+POS  1
+SET  BREAK ''
+SET  PPDCOND 1
+BLOCK                        ;Loop on Detail
+  SET  PPDLPCTR  0
+  GOSUB -GETFLDS
+  IFTHEN SIBSTSIZ EQ 0
+    SET  MEMNAME 'BSITNET1'
+    STACKF                   ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+)INCL $SIT.CTRL.TELNET1_HDECK
+++/*
+  ENDIF
+  IFTHEN BREAK NE &LUNAME{1,7}
+    SET  BREAK &LUNAME{1,7}
+    STACKI "*"
+    STACKI "* &DESCRP"
+  ENDIF
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  R#DATA "&DEVTYP &LUNAME"
+    IFTHEN DESCRP EQ 'GENERIC'
+      VAPP R#DATA " GENERIC  &APPLIC DEDICATE"
+    ELSE
+      IFTHEN APPLIC EQ 'TN$MENU'
+        VAPP R#DATA " SPECIFIC"
+      ELSE
+        VAPP R#DATA " SPECIFIC &APPLIC DEDICATE"
+      ENDIF
+    ENDIF
+  ELSE
+    SET  R#DATA "PRINTER  &LUNAME &APPLIC"
+    IFTHEN DEVTYP EQ 'SCSPRT'
+      VAPP R#DATA " SCS"
+    ENDIF
+  ENDIF
+  STACKI "&R#DATA"
+  NEXT 1
+  IFTHEN SIBRETCD NE 'OK'
+    LEAVE
+  ENDIF
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0
+BYPASS
+END
+
+IFTHEN SIBSTSIZ GT 0
+  SET  PPDCOND 0
+  STACKF                   ;Insert Footer
+)INCL $SIT.CTRL.TELNET1_FDECK
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+  GOSUB -SUBMITIT          ;Submit job
+ENDIF
+
+LABEL SKIP1023
+SET  PPDCOND  0
+
+;             ---- TELNET2 Table Processing ----
+SET MESG 'Generating TelNET Server 2 table...'
+GOSUB -PROGRESS
+
+STACK OPT=CLEAR
+BYPASS
+ROTATE &S$DATA
+TOP
+SET  PPDCOND  1
+BYPASS
+QUAL '2023' ZONE=37-40
+IF SIBRETCD NE OK
+   GOTO SKIP2023
+SET  PPDCOND  0
+POS  1
+SET  BREAK ''
+SET  PPDCOND 1
+BLOCK                        ;Loop on Detail
+  SET  PPDLPCTR  0
+  GOSUB -GETFLDS
+  IFTHEN SIBSTSIZ EQ 0
+    SET  MEMNAME 'BSITNET2'
+    STACKF                   ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+)INCL $SIT.CTRL.TELNET2_HDECK
+++/*
+  ENDIF
+  IFTHEN BREAK NE &LUNAME{1,7}
+    SET  BREAK &LUNAME{1,7}
+    STACKI "*"
+    STACKI "* &DESCRP"
+  ENDIF
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  R#DATA "&DEVTYP &LUNAME"
+    IFTHEN DESCRP EQ 'GENERIC'
+      VAPP R#DATA " GENERIC  &APPLIC DEDICATE"
+    ELSE
+      IFTHEN APPLIC EQ 'TN$MENU'
+        VAPP R#DATA " SPECIFIC"
+      ELSE
+        VAPP R#DATA " SPECIFIC &APPLIC DEDICATE"
+      ENDIF
+    ENDIF
+  ELSE
+    SET  R#DATA "PRINTER  &LUNAME &APPLIC"
+    IFTHEN DEVTYP EQ 'SCSPRT'
+      VAPP R#DATA " SCS"
+    ENDIF
+  ENDIF
+  STACKI "&R#DATA"
+  NEXT 1
+  IFTHEN SIBRETCD NE 'OK'
+    LEAVE
+  ENDIF
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0
+BYPASS
+END
+
+IFTHEN SIBSTSIZ GT 0
+  SET  PPDCOND 0
+  STACKF                   ;Insert Footer
+)INCL $SIT.CTRL.TELNET2_FDECK
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+  GOSUB -SUBMITIT          ;Submit job
+ENDIF
+
+LABEL SKIP2023
+SET  PPDCOND  0
+
+;             ---- TELNET3 Table Processing ----
+SET MESG 'Generating TelNET Server 3 table...'
+GOSUB -PROGRESS
+
+STACK OPT=CLEAR
+BYPASS
+ROTATE &S$DATA
+TOP
+SET  PPDCOND  1
+BYPASS
+QUAL '3023' ZONE=37-40
+IF SIBRETCD NE OK
+   GOTO SKIP3023
+SET  PPDCOND  0
+POS  1
+SET  BREAK ''
+SET  PPDCOND 1
+BLOCK                        ;Loop on Detail
+  SET  PPDLPCTR  0
+  GOSUB -GETFLDS
+  IFTHEN SIBSTSIZ EQ 0
+    SET  MEMNAME 'BSITNET3'
+    STACKF                   ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+)INCL $SIT.CTRL.TELNET3_HDECK
+++/*
+  ENDIF
+  IFTHEN BREAK NE &LUNAME{1,7}
+    SET  BREAK &LUNAME{1,7}
+    STACKI "*"
+    STACKI "* &DESCRP"
+  ENDIF
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  R#DATA "&DEVTYP &LUNAME"
+    IFTHEN DESCRP EQ 'GENERIC'
+      VAPP R#DATA " GENERIC  &APPLIC DEDICATE"
+    ELSE
+      IFTHEN APPLIC EQ 'TN$MENU'
+        VAPP R#DATA " SPECIFIC"
+      ELSE
+        VAPP R#DATA " SPECIFIC &APPLIC DEDICATE"
+      ENDIF
+    ENDIF
+  ELSE
+    SET  R#DATA "PRINTER  &LUNAME &APPLIC"
+    IFTHEN DEVTYP EQ 'SCSPRT'
+      VAPP R#DATA " SCS"
+    ENDIF
+  ENDIF
+  STACKI "&R#DATA"
+  NEXT 1
+  IFTHEN SIBRETCD NE 'OK'
+    LEAVE
+  ENDIF
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0
+BYPASS
+END
+
+IFTHEN SIBSTSIZ GT 0
+  SET  PPDCOND 0
+  STACKF                   ;Insert Footer
+)INCL $SIT.CTRL.TELNET3_FDECK
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+  GOSUB -SUBMITIT          ;Submit job
+ENDIF
+
+LABEL SKIP3023
+SET  PPDCOND  0
+
+;             ---- TELNETP Table Processing ----
+SET MESG 'Generating TelNET Print Server table...'
+GOSUB -PROGRESS
+
+STACK OPT=CLEAR
+BYPASS
+ROTATE &S$DATA
+TOP
+SET  PPDCOND  1
+BYPASS
+QUAL '9023' ZONE=37-40
+IF SIBRETCD NE OK
+   GOTO SKIP9023
+SET  PPDCOND  0
+POS  1
+SET  BREAK ''
+SET  PPDCOND 1
+BLOCK                        ;Loop on Detail
+  SET  PPDLPCTR  0
+  GOSUB -GETFLDS
+  IFTHEN SIBSTSIZ EQ 0
+    SET  MEMNAME 'BSITNPRT'
+    STACKF                   ;Insert Header
+)INCL $SIT.CTRL.TELNET_HJCL
+)INCL $SIT.CTRL.TELNETP_HDECK
+++/*
+  ENDIF
+  IFTHEN BREAK NE &LUNAME{1,7}
+    SET  BREAK &LUNAME{1,7}
+    STACKI "*"
+    STACKI "* &DESCRP"
+  ENDIF
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  R#DATA "&DEVTYP &LUNAME"
+    IFTHEN DESCRP EQ 'GENERIC'
+      VAPP R#DATA " GENERIC  &APPLIC DEDICATE"
+    ELSE
+      IFTHEN APPLIC EQ 'TN$MENU'
+        VAPP R#DATA " SPECIFIC"
+      ELSE
+        VAPP R#DATA " SPECIFIC &APPLIC DEDICATE"
+      ENDIF
+    ENDIF
+  ELSE
+    SET  R#DATA "PRINTER  &LUNAME &APPLIC"
+    IFTHEN DEVTYP EQ 'SCSPRT'
+      VAPP R#DATA " SCS"
+    ENDIF
+  ENDIF
+  STACKI "&R#DATA"
+  NEXT 1
+  IFTHEN SIBRETCD NE 'OK'
+    LEAVE
+  ENDIF
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0
+BYPASS
+END
+
+IFTHEN SIBSTSIZ GT 0
+  SET  PPDCOND 0
+  STACKF                   ;Insert Footer
+)INCL $SIT.CTRL.TELNETP_FDECK
+)INCL $SIT.CTRL.TELNET_FJCL
+++/*
+  GOSUB -SUBMITIT          ;Submit job
+ENDIF
+
+LABEL SKIP9023
+SET  PPDCOND  0
+
+SET  PPDINCL 0
+SET  PPDTRAP 0
+
+;             ---- TCT Table Processing ----
+SET MESG 'Generating terminal entries for TCT table...'
+GOSUB -PROGRESS
+
+SET  PPDLPCTR  0
+STACK OPT=CLEAR
+BYPASS
+ROTATE &S$DATA
+TOP
+POS  1
+SET  PFX ''
+SET  BREAK ''
+SET  PPDCOND 1
+BLOCK                        ;Loop on Detail
+  NEXT 1
+  IFTHEN SIBRETCD NE 'OK'
+    LEAVE
+  ENDIF
+  SET  PPDLPCTR  0
+  GOSUB -GETFLDS
+  IFTHEN PFX NE &LUNAME{1,4}
+    SET  PFX &LUNAME{1,4}
+    IFTHEN DESCRP EQ 'GENERIC'
+      IFTHEN BREAK NE 'GENERIC'
+        SET  BREAK 'GENERIC'
+        STACKI "***********************************************************************"
+        STACKI "* TCT ENTRIES FOR OLD CSI TELNET CONNECTIONS                          *"
+        STACKI "***********************************************************************"
+      ENDIF
+    ELSE
+      IFTHEN BREAK NE 'SPECIFIC'
+        SET  BREAK 'SPECIFIC'
+        STACKI "***********************************************************************"
+        STACKI "* TCT ENTRIES FOR BSI TELNET PRINTERS                                 *"
+        STACKI "***********************************************************************"
+      ENDIF
+    ENDIF
+    SET  R#DATA "&PFX     DAPVLIN &PFX,"
+    IFTHEN DESCRP EQ 'GENERIC'
+      VAPP R#DATA "NONSNA"
+    ELSE
+      VAPP R#DATA "SNA"
+    ENDIF
+    STACKI "&R#DATA"
+    SET  DSPA 'Y'
+  ENDIF
+  VEXAMINE DEVTYP '\TERMINAL|TN3270E'
+  IFTHEN SIBRETCD EQ 'OK'
+    IFTHEN DESCRP EQ 'GENERIC'
+      SET  R#DATA "&LUNAME{5,4}     DAPVTRM CRT"
+    ELSE
+      LOOP
+    ENDIF
+  ELSE
+    SET  R#DATA "&LUNAME{5,4}     DAPVTRM PRT"
+  ENDIF
+  IFTHEN DSPA EQ 'Y'
+    SET  DSPA 'N'
+    VAPP R#DATA ",CA=DSPA      &DESCRP{1,36}"
+  ELSE
+    VAPP R#DATA "              &DESCRP{1,36}"
+  ENDIF
+  STACKI "&R#DATA"
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0
+
+IFTHEN SIBSTSIZ GT 0
+  BYPASS
+  EDIT INST.CICS23.DFHTCTP1
+  IF SIBRETCD NE 'OK'
+    GOTO OUTBIGIF
+  BYPASS
+  LOCATE $STACK
+  IF SIBRETCD NE 'OK'
+    GOTO ENDBIGIF
+  NEXT 1
+  IF SIBRETCD NE 'OK'
+    GOTO ENDBIGIF
+  DELETE $STACK
+  IF SIBRETCD NE 'OK'
+    GOTO ENDBIGIF
+  UP 1
+  IF SIBRETCD NE 'OK'
+    GOTO ENDBIGIF
+  GET $STACK
+  IF SIBRETCD NE 'OK'
+    GOTO ENDBIGIF
+  BYPASS
+  SAVE
+  IF SIBRETCD NE 'OK'
+    GOTO ENDBIGIF
+  BYPASS
+  STACK OPT=CLEAR
+  SET  PPDCOND 0
+  COMPILE INST.CICS23.DFHTCTP1
+  GOTO OUTBIGIF
+LABEL ENDBIGIF
+  BYPASS
+  END NOSAVE
+LABEL OUTBIGIF
+ENDIF
+
+SET MESG 'Generation complete.'
+GOSUB -PROGRESS
+;
+;                  Save Variable Data
+;
+LABEL SAVEDATA
+SET  SAVE 'SAVE'
+;
+;                  Close Members
+;
+LABEL SKIPSAVE
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+BYPASS
+ROTATE &S$NETN
+BYPASS
+END
+
+BYPASS
+ROTATE &S$COMP
+IFTHEN SAVE EQ ''
+  BYPASS
+  END NOSAVE
+ELSE
+  BYPASS
+  SAVE
+ENDIF
+
+BYPASS
+ROTATE &S$DATA
+IFTHEN SAVE EQ ''
+  BYPASS
+  END NOSAVE
+ELSE
+  BYPASS
+  SAVE
+ENDIF
+;
+;                  End of Procedure
+;
+LABEL EXITPROC
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+SETKEYS
+
+IF SIBSTSIZ GT 0
+   EXIT SV,'** TELNET data saved.  Edit "INST.CICS23.DFHTCTP1" to insert the $STACK! **'
+IF SAVE,EQ,''
+   EXIT OK,'## TELNET procedure terminated without saving any data ##'
+EXIT OK,'## TELNET procedure terminated after saving all data ##'

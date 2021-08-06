@@ -1,0 +1,168 @@
+* -------------------------------------------------------------------- *
+* PROCEDURE: FTP
+* TITLE....: TRANSFER A MEMBER TO THE NETWORK
+* AUTHOR...: DAVE L CLARK                     CREATED: 09/05/2018
+* -------------------------------------------------------------------- *
+SET  PPDVBL   1              ;PERFORM VARIABLE SUBSTITUTION
+SET  PPDPFOPT 1
+SET  PPDSCRSZ D
+
+DCL  LEN     NUM   3 V       ;WORKING VARIABLE DEFINITIONS
+DCL  TYPE    CHAR  8 V
+DCL  TMP     CHAR 60 V
+DCL  FN      CHAR 60 V
+DCL  FT      CHAR  8 V M INIT='txt'
+DCL  DEFPTH  CHAR 60 V M INIT='\MFdownloads'
+DCL  MESG    CHAR 78 V U
+
+DCL  MEM     CHAR 33 V       ;PARAMETER VARIABLE DEFINITIONS
+DCL  PATH    CHAR 60 V M
+PARSE MEM PATH
+
+IFTHEN MEM,EQ,'/'
+   SET  PPDCOND  1
+   VEXAM SSDTYPE '\ED|LI|DI'
+   IF SIBRETCD,NE,OK
+      EXIT ER,'(FTP) ** CANNOT FTP &SSDTYPE TYPE SESSION **'
+   SET  PPDCOND  0
+   SET  MEM &SSDLIB..&SSDMEM
+ENDIF
+
+IF PATH,LE,' '
+   GOTO PROMPT
+IF MEM,GT,' '
+   GOTO CHKMEM
+
+* -------------------------------------------------------------------- *
+LABEL PROMPT
+* -------------------------------------------------------------------- *
+
+IF MEM,LE,' '
+   SET  MEM  '&TXMPATH'
+IF PATH,LE,' '
+   SET  PATH '&DEFPTH'
+
+MAPF
+}FTP                 ¬Transfer BIM-EDIT Member to Network           }&OPSDATE
+                                                                    }&OPSTIME
+
+¬Fill in the required parameter values. }(Note that if the member library name
+     }is omitted, then the currently attached library is assumed.)
+
+
+  }Member name:{MEM                              }  (library optional)
+
+  }Destination:{PATH                                                        }
+
+
+
+
+
+
+
+
+
+
+
+}Press¬ENTER}to begin processing.
+¬PF3}= Exit
+¬&MESG
+++/*
+
+IF PPDKEY EQ 'CLEAR'
+   EXIT OK,'(FTP) ** OPERATION CANCELLED **'
+IF PPDKEY EQ 'PF3'
+   EXIT OK,'(FTP) ** OPERATION CANCELLED **'
+
+* -------------------------------------------------------------------- *
+LABEL CHKPATH
+* -------------------------------------------------------------------- *
+
+IFTHEN PATH,LE,' '           ;validate path
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'PATH'
+  SET  MESG     'Destination path is required.'
+  SET  PATH     '&DEFPTH'
+ELSE
+  VTRUNC PATH                ;truncate spaces
+ENDIF
+
+* -------------------------------------------------------------------- *
+LABEL CHKMEM
+* -------------------------------------------------------------------- *
+
+IFTHEN MEM,LE,' '            ;validate member name
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'MEM'
+  SET  MESG     'Member name is required.'
+ELSE
+  SET  PPDCOND,1             ;ALLOW PROCEDURE TO DO ERROR CHECKING
+  READ &MEM                  ;GET MEMBER ATTRIBUTES -- IF EXISTS
+  IFTHEN SIBRETCD,NE,OK
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'MEM'
+    SET  MESG     'Member not found or invalid.'
+  ELSE
+    VTRUNC MEM               ;truncate spaces
+  ENDIF
+  SET  PPDCOND,0             ;PERFORM DEFAULT ERROR HANDLING
+ENDIF
+
+IF PPDALARM,NE,0             ;if errors
+   GOTO -PROMPT              ;repeat process
+
+* -------------------------------------------------------------------- *
+LABEL PROCESS
+* -------------------------------------------------------------------- *
+
+SET  FN    &TXMLIB..&TXMMEM  ;SET NETWORK FILE NAME
+SET  TYPE  &TXMTYPE
+
+SET  PPDCOND  1              ;SLASHES WON'T WORK ON NETWORK
+VEXAM TYPE '\/|\\'
+IFTHEN SIBRETCD,EQ,OK
+  SET  PPDCOND  0
+  SET  TYPE  'TEXT'
+ENDIF
+SET  PPDCOND  0
+
+IFTHEN TYPE,EQ,''            ;BLANK FILE TYPE NOT ALLOWED
+  SET  TYPE  'TEXT'
+ENDIF
+
+SET  FN  &FN._&TYPE          ;ADD TO NETWORK FILE NAME
+
+BLOCK                        ;CONVERT DASHES AND PERIODS TO UNDERSCORES
+  SET  PPDCOND  1
+  VEXAM FN '\-|.'
+  IF SIBRETCD,NE,OK          ;EXIT IF NO DASHES OR PERIODS IN TXMMEME
+    LEAVE
+  SET  PPDCOND  0
+  SET  LEN  &PPDCOL
+  SUBT LEN  1
+  SET  TMP  &FN{1,&LEN}_
+  ADD  LEN  2
+  SET  TMP  &TMP.&FN{&LEN,}
+  SET  FN   &TMP             ;KEEP MEMBER ATTRIBUTES IN SYNC
+  LOOP
+ENDBLOCK
+
+SUBMITF                      ;SUBMIT FTP JOB
+* $$ JOB JNM=BIMFTP,CLASS=0,DISP=D,USER=&SIBUSER
+* $$ LST LST=SYSLST,CLASS=Z,DISP=D
+// JOB    BIMFTP   &SIBUSER   &TXMLIB..&TXMMEM
+// LIBDEF *,SEARCH=(PRD2.CONFIG,ESP.BSI),TEMP
+// EXEC   PGM=BSTTFTPC,SIZE=(*,512K)
+* $$ SLI MEM=DAPFTP.B,S=PRD2.CONFIG
+TYPE A
+CRLF ON
+CWD &PATH
+INPUT EXIT BSTTBEAM BIMEDIT $BAT BATCH &TXMLIB &TXMMEM
+STOR &FN..&FT
+QUIT
+/* EOD
+/& EOJ
+* $$ EOJ
+++/*
+
+EXIT OK,'(FTP) ** &TXMLIB..&TXMMEM SENT TO NETWORK **'

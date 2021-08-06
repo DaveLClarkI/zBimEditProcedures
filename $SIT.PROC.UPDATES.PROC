@@ -1,0 +1,210 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: UPDATES    Proc Created 10/16/2007   by Dave Clark        *
+;*                  Last Revised 10/16/2007                        *
+;*                                                                 *
+;*      This procedure locates and lists  all members updated by a *
+;* specified user during the  last  two  weeks  which ended on the *
+;* current date.   A LIBRARY  member  display  session is used for *
+;* this procedure's output.  Meaning, the normal line command area *
+;* (LCA) commands for working  with  members are available for use *
+;* with this output.                                               *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svcs *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.   The following lines (without the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and  the "NEWCOPY COMMANDS" command *
+;* issued:                                                         *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* UPD      UPDATES                                                *
+;* UPDATE   UPDATES                                                *
+;* UPDATES  UPDATES                                                *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+SET  PPDPFOPT 1
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  EDIT     NUM   7 Z
+DCL  DYS      NUM   3 Z
+DCL  TOTSZLN  NUM   7 V,,,0
+DCL  TOTAULN  NUM   7 V,,,0
+DCL  CDATE    CHAR  7 V U GLOBAL
+DCL  JDATE    CHAR  7 V U GLOBAL
+DCL  GDATE    CHAR 10 V U GLOBAL
+DCL  CUSER    CHAR  8 V
+DCL  CTYPE    CHAR  8 V
+DCL  RC       CHAR  2 V M
+DCL  MSG      CHAR 82 V M
+
+DCL USER,CHAR,8,V,U
+DCL DATE,CHAR,10,V,U
+DCL TYPE,CHAR,8,V,U
+PARSE USER DATE TYPE
+
+IF USER,EQ,''
+  SET USER '&SIBUSER'
+IFTHEN DATE,NE,''
+  GRG2JUL JDATE '&DATE'
+  IFTHEN SIBRETCD NE OK
+    SETD MSG SIBRESP
+    SETD RC  MSG 1 2
+    SETD MSG MSG 3
+    EXIT &RC,'&MSG'
+  ENDIF
+ELSE
+  GRG2JUL JDATE '&OPSDATE'
+  IFTHEN SIBRETCD NE OK
+    SETD MSG SIBRESP
+    SETD RC  MSG 1 2
+    SETD MSG MSG 3
+    EXIT &RC,'&MSG'
+  ENDIF
+  IFTHEN JDATE{5,3} LE '014'
+    SET  TOTSZLN &JDATE{1,4}
+    SUBT TOTSZLN 1
+    SET  DYS   365
+    ADD  DYS   &JDATE{5,3}
+    SET  JDATE '&TOTSZLN&DYS'
+  ENDIF
+  SET  TOTSZLN &JDATE
+  SUBT TOTSZLN 14
+  SET  JDATE   &TOTSZLN
+  SET  TOTSZLN 0
+ENDIF
+IF TYPE,EQ,''
+  SET TYPE '*'
+
+JUL2GRG GDATE '&JDATE'
+IFTHEN SIBRETCD NE OK
+  SETD MSG SIBRESP
+  SETD RC  MSG 1 2
+  SETD MSG MSG 3
+  EXIT &RC,'&MSG'
+ENDIF
+
+IF   SIBSESSD EQ 0
+     GOTO CONTINUE
+IF   SSDTYPE NE 'DI'
+     GOTO CONTINUE
+IF   SSDOBJ  NE 'DISP  -> UPDATES USER=&USER'
+     GOTO CONTINUE
+BYPASS
+END  NOSAVE
+
+LABEL CONTINUE
+SET  PPDLITEX  1
+
+OUTPUTF 'UPDATES USER=&USER DATE=&GDATE'
+Updates for User=&USER, Since &GDATE
+---------------------------------------------------------------------------------------------------------------------------------------
+     Member        Type     Attr   --- Lines --- ------- Date --------  Aud Stm  Create   Update                 Title
+                                    Text  Audit    Create     Update    Sts Sts   User     User
+---------------- -------- -------- ------ ------ ---------- ----------  --- --- -------- -------- -------------------------------------
+++/*
+SCR  ALT
+SESS CASE=M
+POS  1
+OVLY 41 '(descending sort by last update date)'
+POS  &SSDSZLN
+
+SET  PPDCOND  1
+SET  PPDLPLMT 99999999
+SET  TXLLIB   ''
+BLOCK
+  BROWSEL
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  SET  TXMLIB   '&TXLLIB'
+  SET  TXMMEM   ''
+  BLOCK
+    BROWSE
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    SET  CTYPE '&TYPE'
+    IF CTYPE EQ '*'
+       SET  CTYPE '&TXMTYPE'
+    IF CTYPE NE '&TXMTYPE'
+       LOOP
+    SET  CUSER ''
+    IFTHEN TXMUPUSR EQ '&USER'
+      SET  CUSER '&TXMUPUSR'
+    ELSE
+      IFTHEN TXMUSER EQ '&USER'
+        SET  CUSER '&TXMUSER'
+      ENDIF
+    ENDIF
+    IF CUSER NE '&USER'
+       LOOP
+    IFTHEN TXMDTUPD EQ '00/00/0000'
+      GRG2JUL CDATE '&TXMDTCRE'
+    ELSE
+      GRG2JUL CDATE '&TXMDTUPD'
+    ENDIF
+    IF CDATE LT '&JDATE'
+       LOOP
+    LADD
+    POS  &SSDSZLN
+    OVLY  1  '&TXMMEM'
+    OVLY 18  '&TXMTYPE'
+    OVLY 27  '&TXMATTR'
+    ADD  TOTSZLN &TXMSZLN
+    SET  EDIT &TXMSZLN
+    OVLY 35  '&EDIT'
+    ADD  TOTAULN &TXMAULN
+    SET  EDIT &TXMAULN
+    OVLY 42  '&EDIT'
+    OVLY 50  '&TXMDTCRE'
+    OVLY 61  '&TXMDTUPD'
+    IFTHEN TXMAUDIT EQ '1'
+      OVLY 73  'ON '
+    ELSE
+      OVLY 73  'OFF'
+    ENDIF
+    IFTHEN TXMSTAMP EQ '1'
+      OVLY 77  'ON '
+    ELSE
+      OVLY 77  'OFF'
+    ENDIF
+    OVLY 81  '&TXMUSER'
+    OVLY 90  '&TXMUPUSR'
+    OVLY 99  '&TXMTITLE'
+    OVLY 136 '/CTL/M-FULL-1/     /                /CTL/'
+    OVLY 156 '&TXMLIB'
+    LOOP
+  ENDBLOCK
+  LOOP
+ENDBLOCK
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IFTHEN SSDSZLN GT 6
+  POS  6
+  SORT '67-70-D,61-65-D,56-59-D,50-54-D,1-34-A,156-171-A' *
+ENDIF
+
+POS  &SSDSZLN
+INSERTF
+                                   ------ ------
+
+++/*
+POS  &SSDSZLN
+SET  EDIT &TOTSZLN
+OVLY 35  '&EDIT'
+SET  EDIT &TOTAULN
+OVLY 42  '&EDIT'
+
+TOP
+EXIT OK

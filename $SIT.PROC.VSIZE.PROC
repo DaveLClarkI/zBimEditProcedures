@@ -1,0 +1,1032 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: VSIZE      Proc Created 05/03/2002   By Dave Clark        *
+;*                  Last Revised 02/18/2004                        *
+;*                                                                 *
+;*      This procedure is a  fully-functional modelling tool which *
+;* will accurately  calculate,  based  on  user  input,  the total *
+;* amount of virtual  storage  which  is  required  to run a given *
+;* VSE/ESA system.   It will also  calculate the related number of *
+;* 3390-0A CKD cylinders required  to  encompass a Page Dataset to *
+;* hold the resulting  calculated  amount  of virtual storage plus *
+;* any optional VIO area.                                          *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.   (Note:  This  procedure  also requires the *
+;* EVALUATE command.) The following  line (without the ruler line) *
+;* must be added to the $SIT.CTRL.COMMANDS member and the "NEWCOPY *
+;* COMMANDS" command issued:                                       *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* VSIZE    VSIZE                                                  *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      IMPORTANT!  The  first  time  that  this  procedure's SAVE *
+;* operation is used,  this procedure  will require the ability to *
+;* define a  data  member  in  the  $SIT.CTRL library.   This data *
+;* member will contain the saved values previously entered on this *
+;* procedure's data entry panels.   As supplied,  the following is *
+;* how this procedure defines this required member:                *
+;*                                                                 *
+;* LIBRARY=$SIT.CTRL                                               *
+;* --------------------------------------------------------------- *
+;*      MEMBER        TYPE                  TITLE                  *
+;* ---------------- -------- ------------------------------------- *
+;* VSIZE            DATA     DATA FOR VSIZE PROCEDURE              *
+;*                                                                 *
+;*      It is to be expected  that  this member will not exist the *
+;* first  time  that  this  procedure  is  used.   As  such,  this *
+;* procedure will  happily  continue  on  its  merry  way -- while *
+;* supplying zeroes for all  related  entry fields.   When it does *
+;* exist,  it must have valid contents  -- as created only by this *
+;* application -- and any  other  content  (or  no content at all) *
+;* will cause errors in this procedure.                            *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   1
+SET  PPDINCL  1
+SET  PPDTRAP  1
+SET  PPDSCRSZ D
+SET  PPDPFOPT 1
+
+DCL  A      NUM   2 F
+DCL  Z      CHAR  2 V
+DCL  DYNLST CHAR 12 F,,,'HIJKLMQRTVWX' ;DYNAMIC CLASS VARIABLE LIST
+DCL  PIDLST CHAR 24 F,,,'BGF1F2F3F4F5F6F7F8F9FAFB' ;PARTITION ID LIST
+DCL  RC     CHAR  2 V
+DCL  MSG    CHAR 82 V
+DCL  LSTMEM CHAR 33 V        ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+SET  PPDCOND 1
+INCL $SIT.CTRL.VSIZE         ;PREVIOUSLY SAVED VARIABLES AND VALUES
+IF SIBRETCD EQ 'SC'          ;  EXIT FOR SECURITY ERRORS
+   EXIT &SIBRETCD,'&SIBMSG'
+IFTHEN SIBRETCD EQ 'NF'      ;DEFAULTS WHEN NO PREVIOUS VALUES EXIST
+  DCL  SUP    NUM   7,F      ;Supervisor Size
+  DCL  SDA    NUM   7,F      ;SDAIDS Buffer
+  DCL  VLA24  NUM   7,F      ;Virtual Library Area (24-bit)
+  DCL  SGV24  NUM   7,F      ;System GETVIS (24-bit)
+  DCL  VPL    NUM   7,F      ;Virtual Pool
+  DCL  SPA    NUM   7,F      ;Shared Partition Area
+  SET  A      1
+  BLOCK
+    SETD Z      PIDLST{&A,2}
+    DCL  S&Z    NUM   7,F    ;&Z Static Partition K-bytes
+    DCL  U&Z    NUM   7,F    ;&Z Static Partition Unused Amount
+    ADD  A      2
+    IF A GT 24
+         LEAVE
+    LOOP
+  ENDBLOCK
+  SET  A      0
+  BLOCK
+    ADD  A      1
+    IF A GT 12
+         LEAVE
+    SETD Z      DYNLST{&A,1}
+    DCL  &Z      CHAR  1,F    ;Dynamic Partition Class
+    DCL  DA&Z    NUM   7,F    ;Dynamic Partition Allocation
+    DCL  DM&Z    NUM   2,F    ;Dynamic Partition Max-Count
+    LOOP
+  ENDBLOCK
+  DCL  VLA31  NUM   7,F      ;Virtual Library Area (31-bit)
+  DCL  SGV31  NUM   7,F      ;System GETVIS (31-bit)
+  DCL  PMT    NUM   7,F      ;Page Management Table @ 4K/M of VSIZE
+  DCL  VDK    NUM   7,F      ;Virtual Disk @ 512B/BLK of FBA disk
+  DCL  DSP    NUM   7,F      ;Data Space (non-VDISK)
+  DCL  VSIZE  NUM   7,F      ;Virtual Storage Size
+  DCL  VIO    NUM   7,F      ;Virtual I/O Area
+ENDIF
+SET  PPDCOND 0
+
+DCL  KSUP   CHAR  7 V        ;Supervisor Size
+DCL  MSUP   CHAR  7 V
+DCL  KSDA   CHAR  7 V        ;SDAIDS Buffer
+DCL  MSDA   CHAR  7 V
+DCL  KVLA24 CHAR  7 V        ;Virtual Library Area (24-bit)
+DCL  MVLA24 CHAR  7 V
+DCL  KSGV24 CHAR  7 V        ;System GETVIS (24-bit)
+DCL  MSGV24 CHAR  7 V
+DCL  KVPL   CHAR  7 V        ;Virtual Pool
+DCL  MVPL   CHAR  7 V
+DCL  KSPA   CHAR  7 V        ;Shared Partition Area
+DCL  MSPA   CHAR  7 V
+SET  A      1
+BLOCK
+  SETD Z      PIDLST{&A,2}
+  DCL  KS&Z  CHAR  7 V        ;&Z Static Partition K-bytes
+  DCL  MS&Z  CHAR  7 V        ;&Z Static Partition M-bytes
+  DCL  KU&Z  CHAR  7 V        ;&Z Static Partition Unused
+  ADD  A      2
+  IF A GT 24
+       LEAVE
+  LOOP
+ENDBLOCK
+SET  A      0
+BLOCK
+  ADD  A      1
+  IF A GT 12
+       LEAVE
+  SETD Z      DYNLST{&A,1}
+  DCL  KDA&Z CHAR  7 V        ;Dynamic Partition Kbytes
+  DCL  MDA&Z CHAR  7 V        ;Dynamic Partition Mbytes
+  DCL  XM&Z  CHAR  2 V        ;Dynamic Partition MaxCount
+  LOOP
+ENDBLOCK
+DCL  KVLA31 CHAR  7 V        ;Virtual Library Area (31-bit)
+DCL  MVLA31 CHAR  7 V
+DCL  KSGV31 CHAR  7 V        ;System GETVIS (31-bit)
+DCL  MSGV31 CHAR  7 V
+DCL  KPMT   CHAR  7 V        ;Page Management Table @ 4K/M of VSIZE
+DCL  MPMT   CHAR  7 V
+DCL  KVDK   CHAR  7 V        ;Virtual Disk @ 512B/BLK of FBA disk
+DCL  MVDK   CHAR  7 V
+DCL  KDSP   CHAR  7 V        ;Data Space
+DCL  MDSP   CHAR  7 V
+DCL  MVSIZE CHAR  7 V        ;Virtual Storage Size
+DCL  MVIO   CHAR  7 V        ;Virtual I/O Area
+
+DCL  KUNU24 CHAR  7 V        ;Unused
+DCL  KTOT24 CHAR  7 V        ;Total 24-bit Area
+DCL  KTOTPA CHAR  7 V        ;Total Private Area
+DCL  KTOTDA CHAR  7 V        ;Total Dynamic Area
+DCL  KTOT31 CHAR  7 V        ;Total 31-bit Area
+DCL  KTOTAL CHAR  7 V        ;Total Virtual Storage
+DCL  MUNU24 CHAR 11 V        ;Unused
+DCL  MTOT24 CHAR 11 V        ;Total 24-bit Area
+DCL  MTOTPA CHAR 11 V        ;Total Private Area
+DCL  MTOTDA CHAR 11 V        ;Total Dynamic Area
+DCL  MTOT31 CHAR 11 V        ;Total 31-bit Area
+DCL  MTOTAL CHAR 11 V        ;Total Virtual Storage
+DCL  CPGDST CHAR 11 V        ;Page Dataset Cylinders
+
+DCL  MAXDP  NUM   3 Z        ;Total # of Dynamic Partitions
+DCL  TOTDP  CHAR  3 V        ;Total # of Dynamic Partitions
+DCL  SAVE   CHAR  4 V
+DCL  VAR    CHAR  5 V
+DCL  KVAR   CHAR  6 V
+DCL  MVAR   CHAR  6 V
+DCL  WRK1   NUMS  7 Z
+DCL  WRK2   NUMS  7 Z
+DCL  WRK3   NUMS  7 Z
+DCL  MESG   CHAR 78 V
+
+LABEL LOWSTOR
+;
+;                  Process Shared 24-bit Storage
+;
+SET  PPDLPCTR 0
+GOSUB LOWCALC
+;
+MAPF
+}VSIZE                      ¬Shared 24-bit Storage                  }&OPSDATE
+                                                                    }&OPSTIME
+¬Except as noted, refer to the console 'MAP VIRTUAL' command.       }Page 1/5
+
+                          ¬(keyword)}   K-bytes   M-bytes
+  }Supervisor Size ........(SUP).....: {KSUP   } {MSUP   }  (less SDSIZE)
+
+  }SDAIDS Trace Area ......(SDSIZE)..: {KSDA   } {MSDA   }  see $IPLESA proc
+
+  }Shared Virtual Area ....(SVA-24)
+    }Virtual Library Area .(V-SIZE)..: {KVLA24 } {MVLA24 }
+    }System GETVIS ........(GETVIS)..: {KSGV24 } {MSGV24 }  (less VPOOL)
+    }Unused .........................: ¬&KUNU24} ¬&MUNU24}
+
+  }Virtual Pool ...........(VPOOL)...: {KVPL   } {MVPL   }  see $IPLESA proc
+
+  }Shared Partition Area ..(SPSIZE)..: {KSPA   } {MSPA   }  see $IPLESA proc
+                                       --------- ---------
+  }Total Shared 24-bit Storage ......: ¬&KTOT24} ¬&MTOT24}
+
+                                                 ¬*}decimal fraction not shown
+}Press¬ENTER}to calculate/recalculate the total.
+¬PF3}= Save & Exit                           ¬PF8}= Next Page    ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -LOWSTOR
+IF PPDKEY EQ 'PF12'
+   GOTO EXITPROC
+IF PPDMSGF EQ '1'
+   SET MESG 'Pending change processed -- &PPDKEY ignored -- please retry.'
+IF PPDMSGF EQ '1'
+   GOTO -LOWSTOR
+IF PPDKEY EQ 'PF8'
+   GOTO PRIVSTOR
+IF PPDKEY EQ 'PF3'
+   GOTO SAVEDATA
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -LOWSTOR
+
+LABEL PRIVSTOR
+;
+;                  Process Private Storage
+;
+SET  PPDLPCTR 0
+GOSUB PRIVCALC
+;
+MAPF
+}VSIZE                         ¬Private Storage                     }&OPSDATE
+                                                                    }&OPSTIME
+¬See the ALLOC proc.  Refer to 'MAP VIRTUAL' command for UNUSED.    }Page 2/5
+
+                          ¬(keyword)}   K-bytes   M-bytes  UNUSED-K
+)SET  A      1
+)BLOCK
+)  SETD Z      PIDLST{&A,2}
+  }&Z Static Partition ....(ALLOC &Z): {KS&Z    } {MS&Z    } {KU&Z    }
+)  ADD  A      2
+)  IF A GT 24
+)       LEAVE
+)  LOOP
+)ENDBLOCK
+                                       --------- ---------
+  }Total Private Storage ............: ¬&KTOTPA} ¬&MTOTPA}
+
+                                                 ¬*}decimal fraction not shown
+}Press¬ENTER}to calculate/recalculate the total.
+¬PF3}= Save & Exit    ¬PF7}= Previous Page   ¬PF8}= Next Page    ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -PRIVSTOR
+IF PPDKEY,EQ,'PF12'
+   GOTO EXITPROC
+IF PPDMSGF EQ '1'
+   SET MESG 'Pending change processed -- &PPDKEY ignored -- please retry.'
+IF PPDMSGF EQ '1'
+   GOTO -PRIVSTOR
+IF PPDKEY,EQ,'PF8'
+   GOTO DYNASTOR
+IF PPDKEY,EQ,'PF7'
+   GOTO -LOWSTOR
+IF PPDKEY,EQ,'PF3'
+   GOTO SAVEDATA
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -PRIVSTOR
+
+LABEL DYNASTOR
+;
+;                  Process Dynamic Storage
+;
+SET  PPDLPCTR 0
+GOSUB DYNACALC
+;
+MAPF
+}VSIZE                         ¬Dynamic Storage                     }&OPSDATE
+                                                                    }&OPSTIME
+¬Refer to the contents of the DTR$DYN1.Z member.                    }Page 3/5
+
+                                 CLASS  K-bytes     ALLOC   MAX-P
+)SET  A      0
+)BLOCK
+)  ADD  A      1
+)  IF A GT 12
+)       LEAVE
+)  SETD Z      DYNLST{&A,1}
+  }Dynamic Partition Class #&A ...{&Z}: {KDA&Z   } {MDA&Z   } ×{XM&Z}
+)  LOOP
+)ENDBLOCK
+                                       --------- ---------  ----
+  }Total Dynamic Storage ............: ¬&KTOTDA} ¬&MTOTDA} ¬&TOTDP}
+
+                                                 ¬*}decimal fraction not shown
+}Press¬ENTER}to calculate/recalculate the total.
+¬PF3}= Save & Exit    ¬PF7}= Previous Page   ¬PF8}= Next Page    ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -DYNASTOR
+IF PPDKEY,EQ,'PF12'
+   GOTO EXITPROC
+IF PPDMSGF EQ '1'
+   SET MESG 'Pending change processed -- &PPDKEY ignored -- please retry.'
+IF PPDMSGF EQ '1'
+   GOTO -DYNASTOR
+IF PPDKEY,EQ,'PF8'
+   GOTO HIGHSTOR
+IF PPDKEY,EQ,'PF7'
+   GOTO -PRIVSTOR
+IF PPDKEY,EQ,'PF3'
+   GOTO SAVEDATA
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -DYNASTOR
+
+LABEL HIGHSTOR
+;
+;                  Process Shared 31-bit Storage
+;
+SET  PPDLPCTR 0
+GOSUB HIGHCALC
+;
+MAPF
+}VSIZE                      ¬Shared 31-bit Storage                  }&OPSDATE
+                                                                    }&OPSTIME
+¬Except as noted, refer to the console 'MAP VIRTUAL' command.       }Page 4/5
+
+                          ¬(keyword)}   K-bytes   M-bytes
+  }Shared Virtual Area ....(SVA-31)
+    }Virtual Library Area .(V-SIZE)..: {KVLA31 } {MVLA31 }
+    }System GETVIS ........(GETVIS)..: {KSGV31 } {MSGV31 }
+
+  }Page Management Table ..(SYSTEM)..: {KPMT   } {MPMT   }  (calc'd on page 5)
+
+  }Non-VDISK Data Space ...(SYSDEF)..: {KDSP   } {MDSP   }  see ALLOC or $0JCL
+     Note: Subtract VDISK from total
+     DSPACE/DSIZE alloc. in the proc.
+
+  }Virtual Disk Data Space (VDISK)...: {KVDK   } {MVDK   }  see ALLOC or $0JCL
+
+                                       --------- ---------
+  }Total Shared 31-bit Storage ......: ¬&KTOT31} ¬&MTOT31}
+
+                                                 ¬*}decimal fraction not shown
+}Press¬ENTER}to calculate/recalculate the total.
+¬PF3}= Save & Exit    ¬PF7}= Previous Page   ¬PF8}= Next Page    ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -HIGHSTOR
+IF PPDKEY,EQ,'PF12'
+   GOTO EXITPROC
+IF PPDMSGF EQ '1'
+   SET MESG 'Pending change processed -- &PPDKEY ignored -- please retry.'
+IF PPDMSGF EQ '1'
+   GOTO -HIGHSTOR
+IF PPDKEY,EQ,'PF8'
+   GOTO TOTLSTOR
+IF PPDKEY,EQ,'PF7'
+   GOTO -DYNASTOR
+IF PPDKEY,EQ,'PF3'
+   GOTO SAVEDATA
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -HIGHSTOR
+
+LABEL TOTLSTOR
+;
+;                  Process Total Virtual Storage
+;
+SET  PPDLPCTR 0
+GOSUB TOTLCALC
+;
+MAPF
+}VSIZE                      ¬Total Virtual Storage                  }&OPSDATE
+                                                                    }&OPSTIME
+¬VSE/ESA Virtual Storage (VSIZE) requirements:                      }Page 5/5
+
+                          ¬(keyword)}   K-bytes   M-bytes
+                                      }--------- ---------
+  }Total Shared 24-bit Storage ......: ¬&KTOT24} ¬&MTOT24}
+  }Total Private Storage ............: ¬&KTOTPA} ¬&MTOTPA}
+  }Total Dynamic Storage ............: ¬&KTOTDA} ¬&MTOTDA}
+  }Total Shared 31-bit Storage ......: ¬&KTOT31} ¬&MTOT31}
+                                       ========= =========
+  }Calculated Total Virtual Storage .: ¬&KTOTAL} ¬&MTOTAL}
+
+                                          Convert M-bytes to Cylinders:
+                                                 ---------
+  }Current specification ..(VSIZE)...:           {MVSIZE }  see $IPLESA proc
+  }Virtual I/O Area .......(VIO).....:          +{MVIO   }  see $IPLESA proc
+                                                 =========
+  }PDS 3390 Cylinders .....(DPD).....:           ¬&CPGDST}  see $IPLESA proc
+
+
+}Press¬ENTER}to calculate/recalculate the total.
+¬PF3}= Save & Exit    ¬PF7}= Previous Page                       ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'ENTER'
+   GOTO -TOTLSTOR
+IF PPDKEY,EQ,'PF12'
+   GOTO EXITPROC
+IF PPDMSGF EQ '1'
+   SET MESG 'Pending change processed -- &PPDKEY ignored -- please retry.'
+IF PPDMSGF EQ '1'
+   GOTO -TOTLSTOR
+IF PPDKEY,EQ,'PF7'
+   GOTO -HIGHSTOR
+IF PPDKEY,EQ,'PF3'
+   GOTO SAVEDATA
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -TOTLSTOR
+;
+;                  Save Variable Data
+;
+LABEL SAVEDATA
+SET  PPDCOND 1
+BYPASS
+READ $SIT.CTRL.VSIZE
+IFTHEN SIBRETCD EQ 'NF'
+     SET  PPDCOND 0
+     DEFINE $SIT.CTRL.VSIZE,(DATA),'DATA FOR VSIZE PROCEDURE'
+ENDIF
+SET  PPDCOND 0
+
+BYPASS
+EDIT $SIT.CTRL.VSIZE
+DELETE *
+INSERTF
+DCL  SUP    NUM   7,F,,,&SUP  ;Supervisor Size
+DCL  SDA    NUM   7,F,,,&SDA  ;SDAIDS Buffer
+DCL  VLA24  NUM   7,F,,,&VLA24  ;Virtual Library Area (24-bit)
+DCL  SGV24  NUM   7,F,,,&SGV24  ;System GETVIS (24-bit)
+DCL  VPL    NUM   7,F,,,&VPL  ;Virtual Pool
+DCL  SPA    NUM   7,F,,,&SPA  ;Shared Partition Area
+)SET  A      1
+)BLOCK
+)  SETD Z      PIDLST{&A,2}
+DCL  S&Z    NUM   7,F,,,&S&Z  ;&Z Static Partition K-bytes
+DCL  U&Z    NUM   7,F,,,&U&Z  ;&Z Static Partition Unused Amount
+)  ADD  A      2
+)  IF A GT 24
+)       LEAVE
+)  LOOP
+)ENDBLOCK
+)SET  A      0
+)BLOCK
+)  ADD  A      1
+)  IF A GT 12
+)       LEAVE
+)  SETD Z      DYNLST{&A,1}
+DCL  &Z      CHAR  1,F,,,'&&Z'      ;Dynamic Partition Class
+DCL  DA&Z    NUM   7,F,,,&DA&Z  ;Dynamic Partition Allocation
+DCL  DM&Z    NUM   2,F,,,&DM&Z       ;Dynamic Partition Max-Count
+)  LOOP
+)ENDBLOCK
+DCL  VLA31  NUM   7,F,,,&VLA31  ;Virtual Library Area (31-bit)
+DCL  SGV31  NUM   7,F,,,&SGV31  ;System GETVIS (31-bit)
+DCL  PMT    NUM   7,F,,,&PMT  ;Page Management Table @ 4K/M of VSIZE
+DCL  VDK    NUM   7,F,,,&VDK  ;Virtual Disk @ 512B/BLK of FBA disk
+DCL  DSP    NUM   7,F,,,&DSP  ;Data Space (non-VDISK)
+DCL  VSIZE  NUM   7,F,,,&VSIZE  ;Virtual Storage Size
+DCL  VIO    NUM   7,F,,,&VIO  ;Virtual I/O Area
+++/*
+SAVE
+SET  SAVE 'SAVE'
+;
+;                  End of Procedure
+;
+LABEL EXITPROC
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IF SAVE,EQ,''
+   EXIT OK,'## VSIZE procedure terminated without saving any data ##'
+EXIT OK,'## VSIZE procedure terminated after saving all data ##'
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL CHECK1                 ;SUBROUTINE
+
+  IFTHEN &KVAR  NE ''
+    SET  PPDCOND 2
+    SET  &VAR  &&KVAR
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&KVAR'
+      SET  MESG 'Unable to interpret expected numeric specification.'
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+  IF PPDALARM EQ 1
+     RETURN
+
+  SET  WRK1   &&VAR
+  SETD &KVAR  WRK1
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL CHECK2                 ;SUBROUTINE
+
+  IFTHEN &MVAR  NE ''
+    IF &MVAR.{1,1} EQ '*'
+      SET  &MVAR.{1,1} ' '
+    SET  PPDCOND 2
+    SET  WRK1  &&MVAR
+    IFTHEN SIBRETCD EQ 'OK'
+      SET  PPDCOND 0
+      MULT WRK1  1024
+      IFTHEN WRK1 GE 0
+        IFTHEN &KVAR EQ ''
+          SET  &VAR   &WRK1
+          SET  WRK1   &&VAR
+          SETD &KVAR  WRK1
+        ENDIF
+      ENDIF
+    ELSE
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&MVAR'
+      SET  MESG 'Unable to interpret expected numeric specification.'
+    ENDIF
+  ENDIF
+
+  IF PPDALARM NE 1
+     GOSUB -CHECK1
+  IF PPDALARM EQ 1
+     RETURN
+
+  SET  WRK1    &&VAR
+  DIV  WRK1    1024
+  SETD &MVAR   WRK1
+
+  SET  WRK1   &&KVAR
+  SET  WRK2   &&MVAR
+  MULT WRK2   1024
+  IFD WRK1 GT WRK2
+       SET  &MVAR.{1,1} '*'
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL DYNCLASS               ;SUBROUTINE
+
+  IFTHEN &VAR   NE ''
+    SET  PPDCOND 1
+    VEXAMINE &VAR '\C|D|E|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z'
+    IFTHEN SIBRETCD EQ 'OK'
+      SET  PPDCOND 0
+    ELSE
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&VAR'
+      SET  MESG 'Dynamic Classes may only be C-E and G-Z.'
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     RETURN
+
+  IFTHEN &VAR   GT ' '
+    IFTHEN &KVAR LT 1
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'KDA&VAR'
+      SET  MESG 'Dynamic Class specified without a Dynamic Class Allocation.'
+    ELSE
+      IFTHEN &MVAR LT 1
+        SET  PPDALARM 1
+        SET  PPDCSFLD 'XM&VAR'
+        SET  MESG 'Dynamic Class specified without a Dynamic Class Maximum.'
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     RETURN
+
+  IFTHEN &KVAR  GT 0
+    IFTHEN &VAR  LT 'C'
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&VAR'
+      SET  MESG 'Dynamic Class Allocation specified without a Dynamic Class.'
+    ELSE
+      IFTHEN &MVAR LT 1
+        SET  PPDALARM 1
+        SET  PPDCSFLD 'XM&VAR'
+        SET  MESG 'Dynamic Class Allocation specified without a Dynamic Class Maximum.'
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     RETURN
+
+  IFTHEN &MVAR  GT 0
+    IFTHEN &VAR  LT 'C'
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&VAR'
+      SET  MESG 'Dynamic Class Maximum specified without a Dynamic Class.'
+    ELSE
+      IFTHEN &KVAR LT 1
+        SET  PPDALARM 1
+        SET  PPDCSFLD 'KDA&VAR'
+        SET  MESG 'Dynamic Class Maximum specified without a Dynamic Class Allocation.'
+      ENDIF
+    ENDIF
+  ENDIF
+  IF PPDALARM EQ 1
+     RETURN
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL LOWCALC               ;SUBROUTINE
+
+;Supervisor Size............: SUP    KSUP    MSUP
+
+  SET  VAR    'SUP'
+  SET  KVAR   'KSUP'
+  SET  MVAR   'MSUP'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;SDAIDS Trace Area..........: SDA    KSDA    MSDA
+
+  SET  VAR    'SDA'
+  SET  KVAR   'KSDA'
+  SET  MVAR   'MSDA'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Virtual Library Area.......: VLA24  KVLA24  MVLA24
+
+  SET  VAR    'VLA24'
+  SET  KVAR   'KVLA24'
+  SET  MVAR   'MVLA24'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;System GETVIS..............: SGV24  KSGV24  MSGV24
+
+  SET  VAR    'SGV24'
+  SET  KVAR   'KSGV24'
+  SET  MVAR   'MSGV24'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Virtual Pool...............: VPL    KVPL    MVPL
+
+  SET  VAR    'VPL'
+  SET  KVAR   'KVPL'
+  SET  MVAR   'MVPL'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Shared Partition Area......: SPA    KSPA    MSPA
+
+  SET  VAR    'SPA'
+  SET  KVAR   'KSPA'
+  SET  MVAR   'MSPA'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Total Shared 24-bit Storage:        KTOT24  MTOT24
+
+  SET  WRK2   &SUP
+  SET  WRK1   &SDA
+  ADD  WRK2   &WRK1
+  SET  WRK1   &VLA24
+  ADD  WRK2   &WRK1
+  SET  WRK1   &SGV24
+  ADD  WRK2   &WRK1
+  SET  WRK1   &VPL
+  ADD  WRK2   &WRK1
+  SET  WRK1   &SPA
+  ADD  WRK2   &WRK1
+
+;Unused.....................:        KUNU24  MUNU24
+
+  SET  WRK1   &WRK2
+  DIV  WRK1   1024   WRK3
+  IFTHEN WRK3 NE 0
+       SET  WRK1 1024
+       SUBT WRK1 &WRK3
+  ELSE
+       SET  WRK1 0
+  ENDIF
+  SETD KUNU24 WRK1
+  EVALUATE 'Format(&WRK1/1024,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD MUNU24 MSG{3}
+       VTRUNC MUNU24
+  ENDIF
+  ADD  WRK2   &WRK1
+
+;Total Shared 24-bit Storage:        KTOT24  MTOT24
+
+  SETD KTOT24 WRK2
+  EVALUATE 'Format(&WRK2/1024,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD MTOT24 MSG{3}
+       VTRUNC MTOT24
+  ENDIF
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL PRIVCALC               ;SUBROUTINE
+
+  SET  A      1
+  BLOCK
+    SETD Z      PIDLST{&A,2}
+
+;?? Partition...............: S??    KS??    MS??    U??     KU??
+
+    SET  VAR    'S&Z'
+    SET  KVAR   'KS&Z'
+    SET  MVAR   'MS&Z'
+    GOSUB -CHECK2
+    IF MESG NE ''
+         LEAVE
+
+    SET  VAR    'U&Z'
+    SET  KVAR   'KU&Z'
+    GOSUB -CHECK1
+    IF MESG NE ''
+         LEAVE
+
+    ADD  A      2
+    IF A GT 24
+         LEAVE
+    LOOP
+  ENDBLOCK
+
+  IF MESG NE ''
+       RETURN
+
+;Total Private Storage......:        KTOTPA  MTOTPA
+
+  SET  WRK2   0
+  SET  A      1
+  BLOCK
+    SETD Z      PIDLST{&A,2}
+    SET  WRK1   &S&Z
+    ADD  WRK2   &WRK1
+    SET  WRK1   &U&Z
+    ADD  WRK2   &WRK1
+    ADD  A      2
+    IF A GT 24
+         LEAVE
+    LOOP
+  ENDBLOCK
+
+  SETD KTOTPA WRK2
+
+  EVALUATE 'Format(&WRK2/1024,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD MTOTPA MSG{3}
+       VTRUNC MTOTPA
+  ENDIF
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL DYNACALC               ;SUBROUTINE
+
+  SET  A      0
+  BLOCK
+    ADD  A      1
+    IF A GT 12
+         LEAVE
+    SETD Z      DYNLST{&A,1}
+
+;???? Dynamic Partition..{?}: DA?     KDA?    MDA?    DM?     XM?
+
+    SET  VAR    'DA&Z'
+    SET  KVAR   'KDA&Z'
+    SET  MVAR   'MDA&Z'
+    GOSUB -CHECK2
+    IF MESG NE ''
+         LEAVE
+
+    SET  VAR    'DM&Z'
+    SET  KVAR   'XM&Z'
+    GOSUB -CHECK1
+    IF MESG NE ''
+         LEAVE
+    SETD &KVAR  WRK1 6 2
+
+    SET  VAR    '&Z'
+    SET  KVAR   'DA&Z'
+    SET  MVAR   'DM&Z'
+    GOSUB -DYNCLASS
+    IF MESG NE ''
+         LEAVE
+
+    LOOP
+  ENDBLOCK
+
+  IF MESG NE ''
+       RETURN
+
+;Total Dynamic Storage......:         KTOTDA  MTOTDA  MAX-P
+
+  SET  MAXDP  0
+  SET  WRK2   0
+  SET  A      0
+  BLOCK
+    ADD  A      1
+    IF A GT 12
+         LEAVE
+    SETD Z      DYNLST{&A,1}
+    SET  WRK1   &DA&Z
+    MULT WRK1   &DM&Z
+    ADD  WRK2   &WRK1
+    ADD  MAXDP  &DM&Z
+    LOOP
+  ENDBLOCK
+
+  SETD KTOTDA WRK2
+
+  EVALUATE 'Format(&WRK2/1024,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD MTOTDA MSG{3}
+       VTRUNC MTOTDA
+  ENDIF
+
+  SETD TOTDP  MAXDP
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL HIGHCALC               ;SUBROUTINE
+
+;Virtual Library Area.......: VLA31  KVLA31  MVLA31
+
+  SET  VAR    'VLA31'
+  SET  KVAR   'KVLA31'
+  SET  MVAR   'MVLA31'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;System GETVIS..............: SGV31  KSGV31  MSGV31
+
+  SET  VAR    'SGV31'
+  SET  KVAR   'KSGV31'
+  SET  MVAR   'MSGV31'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Page Management Table......: PMT    KPMT    MPMT
+
+  SET  VAR    'PMT'
+  SET  KVAR   'KPMT'
+  SET  MVAR   'MPMT'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Non-VDISK Data Space.......: DSP    KDSP    MDSP
+
+  SET  VAR    'DSP'
+  SET  KVAR   'KDSP'
+  SET  MVAR   'MDSP'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Virtual Disk Data Space....: VDK    KVDK    MVDK
+
+  SET  VAR    'VDK'
+  SET  KVAR   'KVDK'
+  SET  MVAR   'MVDK'
+  GOSUB -CHECK2
+  IF MESG NE ''
+       RETURN
+
+;Total Shared 31-bit Storage:        KTOT31  MTOT31
+
+  SET  WRK2   &VLA31
+  SET  WRK1   &SGV31
+  ADD  WRK2   &WRK1
+  SET  WRK1   &PMT
+  ADD  WRK2   &WRK1
+  SET  WRK1   &VDK
+  ADD  WRK2   &WRK1
+  SET  WRK1   &DSP
+  ADD  WRK2   &WRK1
+  SETD KTOT31 WRK2
+
+  EVALUATE 'Format(&WRK2/1024,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD MTOT31 MSG{3}
+       VTRUNC MTOT31
+  ENDIF
+
+RETURN
+
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+LABEL TOTLCALC               ;SUBROUTINE
+
+;Total Virtual Storage......: VSIZE          MVSIZE
+
+  SET  VAR    'VSIZE'
+  SET  KVAR   'MVSIZE'
+  GOSUB -CHECK1
+  IF MESG NE ''
+       RETURN
+
+  EVALUATE 'Format(Trunc(&VSIZE/16+0.99)*16*4,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SET  PMT    &MSG{3}
+       SET  KPMT   ''
+       SET  MPMT   ''
+       GOSUB -HIGHCALC
+  ENDIF
+
+;Virtual I/O Area...........: VIO            MVIO
+
+  SET  VAR    'VIO'
+  SET  KVAR   'MVIO'
+  GOSUB -CHECK1
+  IF MESG NE ''
+       RETURN
+
+;Total Virtual Storage......:        KTOTAL  MTOTAL
+
+  SET  WRK2   &KTOT24
+  SET  WRK1   &KTOTPA
+  ADD  WRK2   &WRK1
+  SET  WRK1   &KTOTDA
+  ADD  WRK2   &WRK1
+  SET  WRK1   &KTOT31
+  ADD  WRK2   &WRK1
+  SETD KTOTAL WRK2
+
+  EVALUATE 'Format(&WRK2/1024,7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD MTOTAL MSG{3}
+       VTRUNC MTOTAL
+  ENDIF
+
+;PDS 3390 Cylinders.........:                CPGDST
+
+  SET  WRK2   &VSIZE
+  SET  WRK1   &VIO
+  ADD  WRK2   &WRK1
+  MULT WRK2   256   ;CHANGE MEG TO 4K PAGES
+
+  EVALUATE 'Format(Trunc(&WRK2/180+0.99),7)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+       SETD MESG   MSG{3}
+  ELSE
+       SETD CPGDST MSG{3}
+       VTRUNC CPGDST
+  ENDIF
+
+RETURN

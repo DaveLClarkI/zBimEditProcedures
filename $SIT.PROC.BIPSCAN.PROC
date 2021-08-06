@@ -1,0 +1,59 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPSCAN    Proc Created 10/30/2001   By Dave Clark        *
+;*                  Last Revised 08/27/2009                        *
+;*                                                                 *
+;*      Among other  things,  this  procedure  front-ends the SCAN *
+;* command for the purpose of  issuing  the SETKEYS command in the *
+;* new session.                                                    *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  Then add the following line(s), without the *
+;* ruler line and  in  sorted sequence,  to the $SIT.CTRL.COMMANDS *
+;* member and issue the "NEWCOPY COMMANDS" command:                *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* SCAN     BIPSCAN                                                *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL,1
+
+BYPASS
+SCAN &PARMLIST
+
+IF SIBTRMID EQ '$BAT'
+   EXIT OK
+
+SET PPDCOND 1
+BYPASS
+FIND "/CTL/M-CHCK-1/" 136
+IF SIBRETCD EQ 'OK'
+   GOTO CHECKIT
+BYPASS
+FIND "/CTL/M-DETL-1/" 136
+IF SIBRETCD EQ 'OK'
+   GOTO CHECKIT
+BYPASS
+FIND "/CTL/M-FULL-1/" 136
+IF SIBRETCD NE 'OK'
+   GOTO CONTINUE
+SET PPDCOND 0
+
+LABEL CHECKIT
+
+IF SSDSCRSZ,EQ,'D'
+   SCREEN ALT
+
+LABEL CONTINUE
+TOP
+SET PPDCOND 0
+SETKEYS
+EXIT OK

@@ -1,0 +1,261 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: CISZ       Proc Created 10/13/2003   By Dave Clark        *
+;*                  Last Revised 02/17/2004                        *
+;*                                                                 *
+;*      This procedure uses a  full-screen input/display to accept *
+;* a user-specified  record  size,  calculate  the associated VSAM *
+;* Control-Interval utilization,  and display the results.   Other *
+;* statistics are also returned.                                   *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.   (Note:  This  procedure  also requires the *
+;* EVALUATE command.) The following  line (without the ruler line) *
+;* must be added to the $SIT.CTRL.COMMANDS member and the "NEWCOPY *
+;* COMMANDS" command issued:                                       *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* CISZ     CISZ                                                   *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+SET  PPDSCRSZ D
+SET  PPDPFOPT 1
+DCL  RC     CHAR  2 V
+DCL  MSG    CHAR 82 V
+
+DCL  R1     CHAR  5 V INIT='    0'
+DCL  R2     CHAR  5 V INIT='    0'
+DCL  T(21)  CHAR  5 V
+DCL  P(21)  CHAR  5 V
+DCL  Q(21)  CHAR  5 V
+DCL  MESG   CHAR 78 V
+
+DCL  S(21)  CHAR  5 V
+SET  S(1)  '00512'
+SET  S(2)  '01024'
+SET  S(3)  '01536'
+SET  S(4)  '02048'
+SET  S(5)  '02560'
+SET  S(6)  '03072'
+SET  S(7)  '03584'
+SET  S(8)  '04096'
+SET  S(9)  '04608'
+SET  S(10) '05120'
+SET  S(11) '05632'
+SET  S(12) '06144'
+SET  S(13) '06656'
+SET  S(14) '07168'
+SET  S(15) '07680'
+SET  S(16) '08192'
+SET  S(17) '10240'
+SET  S(18) '12288'
+SET  S(19) '16384'
+SET  S(20) '18432'
+SET  S(21) '26624'
+
+DCL  Z(21)  CHAR  2 V
+SET  Z(1)  '49'
+SET  Z(2)  '33'
+SET  Z(3)  '26'
+SET  Z(4)  '21'
+SET  Z(5)  '17'
+SET  Z(6)  '15'
+SET  Z(7)  '13'
+SET  Z(8)  '12'
+SET  Z(9)  '10'
+SET  Z(10) '09'
+SET  Z(11) '09'
+SET  Z(12) '08'
+SET  Z(13) '07'
+SET  Z(14) '07'
+SET  Z(15) '06'
+SET  Z(16) '06'
+SET  Z(17) '05'
+SET  Z(18) '04'
+SET  Z(19) '03'
+SET  Z(20) '03'
+SET  Z(21) '02'
+
+DCL  N1     NUM   5 V
+DCL  N2     NUM   5 V
+DCL  CHRVAR CHAR  8 V
+DCL  NUMVAR CHAR  8 V
+DCL  NUMLEN NUM   2 V
+DCL  NUMPAD CHAR  1 V
+DCL  B      NUM   5 V
+DCL  C      NUM   5 V
+DCL  D      NUM   5 V
+DCL  R      NUM   5 V
+DCL  X      NUM   2 V
+
+LABEL PROCESS
+MAPF
+}CISZ                                                               }&OPSDATE
+                            VSAM Utilization by¬CI Size  Track%  B/Trk   CI%  S}
+                                               ¬    512}  44.28  &T(1)  &P(1) &Q(1)
+   User Avg Record Size:{R2   }                ¬  1,024}  59.64  &T(2)  &P(2) &Q(2)
+   User Max Record Size:{R1   }            in  ¬  1,536}  70.48  &T(3)  &P(3) &Q(3)
+                                          CICS ¬  2,048}  75.90  &T(4)  &P(4) &Q(4)
+                                          ---- ¬  2,560}  76.80  &T(5)  &P(5) &Q(5)
+   Note:  For the purposes of this             ¬  3,072}  81.32  &T(6)  &P(6) &Q(6)
+   modelling tool, the average record          ¬  3,584}  82.23  &T(7)  &P(7) &Q(7)
+   size will be used in all calcula-       --> ¬  4,096}  86.74  &T(8)  &P(8) &Q(8)
+   tions.  Effectively, this will also         ¬  4,608}  81.32  &T(9)  &P(9) &Q(9)
+   yield an average utilization.  The          ¬  5,120}  81.32  &T(10)  &P(10) &Q(10)
+   maximum record size is used to              ¬  5,632}  89.45  &T(11)  &P(11) &Q(11)
+   determine two things:  #1 whether           ¬  6,144}  86.74  &T(12)  &P(12) &Q(12)
+   to calculate for fixed-length or            ¬  6,656}  82.23  &T(13)  &P(13) &Q(13)
+   variable-length records, and #2             ¬  7,168}  88.55  &T(14)  &P(14) &Q(14)
+   whether spanned-record calculation          ¬  7,680}  81.32  &T(15)  &P(15) &Q(15)
+   must be considered for the smaller      --> ¬  8,192}  86.74  &T(16)  &P(16) &Q(16)
+   CI sizes that may be possible.              ¬ 10,240}  90.36  &T(17)  &P(17) &Q(17)
+                                           --> ¬ 12,288}  86.74  &T(18)  &P(18) &Q(18)
+                                               ¬ 16,384}  86.74  &T(19)  &P(19) &Q(19)
+}Press¬ENTER}to calculate/recalculate.     --> ¬ 18,432}  97.59  &T(20)  &P(20) &Q(20)
+¬PF3}= Exit                                    ¬ 26,624}  93.97  &T(21)  &P(21) &Q(21)
+¬&MESG                                                                         }
+++/*
+
+SET PPDALARM 0
+SET PPDCSFLD ''
+SET MESG ''
+
+IF PPDKEY EQ 'PF3'
+   EXIT
+
+SET  CHRVAR 'R1'
+SET  NUMVAR 'N1'
+SET  NUMLEN  5
+GOSUB CHKNUM
+IF PPDALARM NE 0
+   GOTO -PROCESS
+IFTHEN N1 EQ 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'N1'
+  SET  MESG 'The maximum record length cannot be zero.'
+ENDIF
+IF PPDALARM NE 0
+   GOTO -PROCESS
+
+SET  CHRVAR 'R2'
+SET  NUMVAR 'N2'
+SET  NUMLEN  5
+GOSUB CHKNUM
+IF PPDALARM NE 0
+   GOTO -PROCESS
+IFTHEN N2 EQ 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'N2'
+  SET  MESG 'The average record length cannot be zero.'
+ENDIF
+IF PPDALARM NE 0
+   GOTO -PROCESS
+IFTHEN N2 GT &N1
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'N2'
+  SET  MESG 'The average record length cannot be greater than the maximum record length.'
+ENDIF
+IF PPDALARM NE 0
+   GOTO -PROCESS
+
+SET  X  0
+BLOCK
+  ADD  X  1
+  IF X GT 21
+    LEAVE
+  SET  T(&X) ' '
+  SET  P(&X) ' '
+  SET  Q(&X) ' '
+  SET  B  &S(&X)
+  SET  R  &N2
+  SUBT B  4                  ;SUBTRACT 4-BYTE CIDF FROM CI SIZE
+  IFTHEN N1 EQ &N2
+    SUBT B  6                ;SUBTRACT 6-BYTE RDF LENGTH+COUNT FIELD
+    IF B LT &R               ;IF AVERAGE REC SIZE WON'T FIT
+      ADD  B  3              ;  NO 3-BYTE RDF COUNT FIELD NEEDED
+  ELSE
+    ADD  R  3                ;ADD 3-BYTE RDF LENGTH FIELD FOR EACH REC
+    IFTHEN B LT &N1          ;IF BLOCK TOO SMALL FOR MAXIMUM REC SIZE
+      SUBT B  6              ;  SUBTRACT 6-BYTE RDF FOR SPANNED RECORDS
+      IF R LE &B
+        SET  Q(&X) 'S'       ;  AND INDICATE SPANNED RECORD
+    ENDIF
+  ENDIF
+  IF R GT &B
+    LOOP
+  SET  C  &B                 ;COMPUTE RECORD COUNT PER BLOCK
+  DIV  C  &R                 ;  AS BLKSZ / RECSZ
+  SET  D  &C                 ;Save Record Count per Block
+  MULT C  &N2                ;CI BYTES USED IS COUNT * ORIGINAL RECSZ
+  SET  B  &S(&X)             ;RESET ORIGINAL BLKSZ FOR COMPUTATION
+  SET  R  &N2                ;RESET ORIGINAL RECSZ FOR COMPUTATION
+  EVALUATE 'Format(&R*&D*&Z(&X),5)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+    SET  PPDALARM 1
+    SETD MESG  MSG{3}
+  ELSE
+    SETD T(&X) MSG{3}
+    VTRUNC T(&X)
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  EVALUATE 'Format((&C/&B)*100,,2)'
+  SETD MSG  SIBMSG
+  IFTHEN MSG{1,2} NE 'OK'
+    SET  PPDALARM 1
+    SETD MESG  MSG{3}
+  ELSE
+    SETD P(&X) MSG{3}
+    VTRUNC P(&X)
+  ENDIF
+  IF PPDALARM EQ 1
+     LEAVE
+  LOOP
+ENDBLOCK
+
+GOTO -PROCESS
+;
+; CHECK NUMERIC SUBROUTINE (ALSO FORMATS)
+;
+LABEL CHKNUM                      ;SUBROUTINE
+  SET  &NUMVAR  0
+  IF &CHRVAR  EQ ''
+    RETURN
+  SET  NUMLEN   &NUMLEN
+  SET  PPDCOND 2
+  SET  &NUMVAR  &&CHRVAR
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD '&CHRVAR'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+  SET  PPDCOND 0
+  IFTHEN PPDALARM EQ 0
+    IFTHEN NUMPAD EQ '0'
+      EVALUATE 'Right("&&NUMVAR",&NUMLEN,"0")'
+      SETD MSG  SIBMSG
+    ELSE
+      EVALUATE 'Format(&&NUMVAR,&NUMLEN)'
+      SETD MSG  SIBMSG
+    ENDIF
+    IFTHEN MSG{1,2} NE 'OK'
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&CHRVAR'
+      SETD MESG  MSG{3}
+    ELSE
+      SETD &CHRVAR  MSG{3}
+    ENDIF
+  ENDIF
+RETURN

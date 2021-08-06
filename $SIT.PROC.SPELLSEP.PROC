@@ -1,0 +1,126 @@
+;"SPELLSEP" SEPARATES SPELLCHK DICTIONARIES DOWN TO SOMETHING EDITABLE
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+;
+DCL  M        NUM    3 V
+DCL  P        NUM    3 V
+DCL  STR      CHAR  40 V U
+DCL  X        NUM    5 V
+DCL  Z        NUM    3 V
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(SPELLSEP) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+IF SSDTYPE,EQ,EE
+   GOTO EXECUTE
+IF SSDTYPE,NE,ED
+   EXIT SV,'(SPELLSEP) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+
+LABEL EXECUTE
+
+DCL  OPT      CHAR   1 V U
+PARSE OPT
+
+IF OPT,EQ,''
+   EXIT SV,'(SPELLSEP) ** PARM "OPT" MUST BE "*" TO SEPARATE EVERYTHING **'
+IF OPT,EQ,'*'
+   SET  OPT      ''
+IF OPT,EQ,''
+   GOTO BEGIN
+IF OPT,LT,'A'
+   EXIT SV,'(SPELLSEP) ** PARM "OPT" MUST BE ALPHABETIC **'
+IF OPT,GT,'Z'
+   EXIT SV,'(SPELLSEP) ** PARM "OPT" MUST BE ALPHABETIC **'
+
+LABEL BEGIN
+
+SET  Z        253
+IF SSDTYPE,EQ,EE
+   SET  Z        80
+SESS ZONE=1-&Z
+IF SSDTYPE,EQ,ED
+   ALT  &SSDLIB..&SSDMEM,ZONE=1-&Z
+
+SET  PPDCOND  1
+
+TOP
+LABEL WHERE
+SETD M        Z
+SUBT M        19
+BYPASS
+LOC  "\~                    ",&M-&Z
+IF SIBRETCD,EQ,OK
+   GOTO HERE
+SUBT Z        20
+GOTO -WHERE
+
+LABEL HERE
+TOP
+IF OPT,EQ,''
+   GOTO SEPARATE
+FIND &OPT,1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+GOTO GO
+
+LABEL SEPARATE
+FIND "-----",3
+IF SIBRETCD,NE,OK
+   GOTO DONE
+LABEL GO
+SETD PARMLIST XTRSLINE 9 6
+PARSE X
+IF X,EQ,0
+   GOTO -SEPARATE
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+SETD M        Z
+LABEL SMALLER
+BYPASS
+SEP  2-&M
+SUBT M        10
+IF M,GT,60
+   GOTO -SMALLER
+
+LABEL SPLIT
+SETD STR      XTRSLINE 2 40
+VTRUN STR
+VEXAM STR," "
+IF SIBRETCD,NE,OK
+   GOTO NEXT
+SETD P        PPDCOL
+ADD  P        2
+BYPASS
+SPLIT &P
+DOWN 1
+BYPASS
+SHIFT +1,1,1-&Z
+GOTO -SPLIT
+
+LABEL NEXT
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+SET  PPDLPCTR 0
+SETD STR      XTRSLINE 3 5
+IF STR,EQ,"-----"
+   GOTO CHECK
+GOTO -SPLIT
+
+LABEL CHECK
+UP   1
+IF OPT,EQ,''
+   GOTO -SEPARATE
+
+LABEL DONE
+TOP
+IF OPT,EQ,''
+   NEXT 1
+IF OPT,NE,''
+   FIND &OPT 1

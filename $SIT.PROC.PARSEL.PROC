@@ -1,0 +1,59 @@
+;"PARSEL" PROC WILL PARSE PARM CONTAINING "LIB.MEM" OR "LIB\MEM" INFO
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* No warranty is expressed or implied.      Written by Dave L Clark *
+;* Neither the author nor the company is     WinWholesale Group Svcs *
+;* responsible for any loss or damage        3110 Kettering Blvd.    *
+;* resulting from the use of this code.      Dayton, OH  45439       *
+;* Source is provided on an as-is basis.     Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+DCL  C        NUM    2 V
+DCL  L        NUM    2 V
+DCL  P        NUM    2 V
+DCL  X        CHAR   1 V
+;
+DCL  LIB      CHAR  16 V
+DCL  MEM      CHAR  33 V
+;
+DCL  STR      CHAR  33 V
+PARSE STR
+IF STR EQ ''
+   GOTO ERROR
+SETL L        STR
+
+SET  PPDCOND  2
+SET  P        1
+LABEL CHKLOOP
+VEXAM STR '\.|\\' &P-&L
+IF SIBRETCD NE OK
+   GOTO CHECK
+ADD  C        1
+SET  P        &PPDCOL
+ADD  P        1
+GOTO -CHKLOOP
+
+LABEL CHECK
+SET  PPDCOND  0
+IF C GT 0
+   GOTO EXTRACT
+IF L GT 16
+   GOTO ERROR
+SETD MEM      STR
+GOTO EXIT
+
+LABEL EXTRACT
+SUBT P        2
+IF P GT 16
+   GOTO ERROR
+SETD LIB      STR{1,&P}
+ADD  P        2
+SETD MEM      STR{&P}
+SETL L        MEM
+IF L GT 16
+   GOTO ERROR
+
+LABEL EXIT
+EXIT OK,'&LIB,&MEM'
+
+LABEL ERROR
+EXIT SV,''

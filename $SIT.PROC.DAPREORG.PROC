@@ -1,0 +1,886 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: DAPREORG   Proc Created 12/14/2004   By Dave Clark        *
+;*                  Last Revised 03/20/2006                        *
+;*                                                                 *
+;*      This procedure assists in  the semi-automation of a single *
+;* VSAM dataset tuning and  reorg process.   The jobs submitted by *
+;* this procedure  use  MACRO4's  VSAMTUNE  and DATABACK products. *
+;* Note  that  this  procedure  supports  both  batch  and on-line *
+;* execution in either real-time or delayed execution modes.       *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.   The following line (without  the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and  the "NEWCOPY COMMANDS" command *
+;* issued:                                                         *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* DAPREORG DAPREORG                                               *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   2
+SET  PPDINCL  2
+SET  PPDTRAP  2
+SET  PPDSCRSZ D
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  DD       CHAR  7 V      ;MAPF FIELD - FOR REORG
+DCL  PROC     CHAR  8 V      ;MAPF FIELD
+DCL  DEL      CHAR  4 V      ;MAPF FIELD
+DCL  CLIST    CHAR 47 V      ;MAPF FIELD
+DCL  MESG     CHAR 78 V      ;MAPF FIELD
+
+DCL  DSN      CHAR 44 V      ;MAPF FIELD - FOR TUNING
+DCL  CAT      CHAR 44 V      ;MAPF FIELD
+DCL  CDSZ     CHAR  5 V      ;MAPF FIELD
+DCL  CISZ     CHAR  5 V      ;MAPF FIELD
+DCL  ASSOC    CHAR  3 V      ;MAPF FIELD
+DCL  BIAS     CHAR  3 V      ;MAPF FIELD
+DCL  LSRCI    CHAR  3 V      ;MAPF FIELD
+DCL  IMBD     CHAR  4 V      ;MAPF FIELD
+DCL  SPAN     CHAR  4 V      ;MAPF FIELD
+DCL  ICISZ(2) CHAR  5 V      ;MAPF FIELD
+DCL  DCISZ(2) CHAR  5 V      ;MAPF FIELD
+
+DCL  CATAL    CHAR  3 V
+DCL  CLS      CHAR  1 V
+DCL  CLO(6)   CHAR  7 V
+DCL  X        NUM   2 V
+DCL  POS      NUM   3 V
+DCL  LEN      NUM   3 V
+DCL  WRK      NUM   5 Z
+DCL  DECKB    NUM   7 V
+DCL  DECKL    NUM   7 V
+DCL  PRI      CHAR  6 V
+DCL  VAR      CHAR  8 V
+
+PARSE DD PROC DEL CLIST
+
+IF DEL EQ ''                 ;DELETE OPTION MISSING?
+   SET  DEL 'YES'            ;SET DEFAULT
+
+IF SIBDIALG NE 'T'           ;IF NOT A TERMINAL
+   GOTO STAGE2               ;  SKIP GUI INTERFACE
+
+IF CLIST EQ ''               ;CLOSE LIST MISSING?
+   SET  CLIST 'NO'           ;SET DEFAULT
+IF CLIST EQ '.'              ;CLOSE LIST PLACEHOLDER?
+   SET  CLIST ''             ;CLEAR IT
+
+LABEL MAIN
+SET  PPDLPCTR 0
+;
+;                  Main-line routine
+;
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+MAPF
+}DAPREORG                ¬DAPSCO Semi-Automated Reorg               }&OPSDATE
+                              Dataset Definition                    }&OPSTIME
+
+  }This procedure assists in the semi-automation of a single VSAM dataset
+   tuning and reorg process.  Note that the DLBL name specified must also
+   be a procedure member name in the VSAM.DEFINES library in BIM-EDIT.
+
+
+  ¬DLBL Name  . . :{DD     }/¬DSN:{DSN                                         }
+
+  ¬Additional PROC:{PROC    }          (for AIX's and PATH's)
+
+  ¬Purge work file:{DEL }              (Yes, No, or Tape)
+
+  ¬CICS Close list:{CLIST                                          }
+
+                    The "DLBL Name" will be closed to CICS unless you specify
+                    "No" for the CICS Close list.  Otherwise, you may specify
+                    up to six space-delimited AIX and PATH names to be closed
+                   ¬in addition}to the DLBL Name (which is closed by default).
+
+}Press¬ENTER}to submit stage 1 tune/reorg.     ¬PF9 }= Submit IDCAMS SYNCHK job
+¬PF3}= Exit  ¬PF6}= Submit stage 2 tune/reorg  ¬PF10}= Tune  ¬PF11}= Reorg only
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG ''
+
+IF PPDKEY EQ 'PF3'           ;PF3 KEY PRESSED?
+   EXIT OK,'(DAPREORG) ## Procedure terminated on user request. ##'
+
+IFTHEN DSN NE ''
+  GOSUB GETDLBL
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'DD'
+  IFTHEN DSN EQ ''           ;DDNAME FOUND?
+    SET  MESG 'The associated "DLBL Name" was retrieved successfully.'
+    GOSUB GETPROC
+  ELSE
+    SET  MESG 'The "DSN" was not found in the VSAM.DEFINES library.'
+  ENDIF
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -MAIN                ;YES, GET INPUT AGAIN
+
+IFTHEN DD EQ ''              ;DDNAME MISSING?
+   SET  PPDALARM 1
+   SET  PPDCSFLD 'DD'
+   SET  MESG 'The "DLBL Name" is required.'
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -MAIN                ;YES, GET INPUT AGAIN
+SET PPDCOND 1
+READ VSAM.DEFINES.&DD
+IFTHEN SIBRETCD NE 'OK'      ;DDNAME NOT FOUND?
+   SET  PPDALARM 1
+   SET  PPDCSFLD 'DD'
+   SET  MESG 'The "DLBL Name" is not in the VSAM.DEFINES library.'
+ENDIF
+SET  PPDCOND 0
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -MAIN                ;YES, GET INPUT AGAIN
+
+IFTHEN PROC EQ ''
+  GOSUB GETPROC              ;CHECK FOR ASSOCIATED PROCEDURES
+ENDIF
+
+IFTHEN PROC NE ''            ;PROCNAME SPECIFIED?
+   SET PPDCOND 1
+   READ VSAM.DEFINES.&PROC
+   IFTHEN SIBRETCD NE 'OK'   ;PROCNAME NOT FOUND?
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'DD'
+      SET  MESG 'The "PROC Name" is not in the VSAM.DEFINES library.'
+   ENDIF
+   SET  PPDCOND 0
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -MAIN                ;YES, GET INPUT AGAIN
+
+GOSUB GTDECKLN               ;GET IDCAMS DECK LENGTH
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IF PPDKEY EQ 'PF6'           ;PF06 KEY PRESSED?
+   GOTO STAGE2               ;YES, GO SUBMIT STAGE 2 REORG
+IF PPDKEY EQ 'PF9'           ;PF09 KEY PRESSED?
+   GOTO SYNCHK               ;YES, GO SUBMIT SYNCHK JOB
+IF PPDKEY EQ 'PF10'          ;PF10 KEY PRESSED?
+   GOTO TUNE                 ;YES, GO SUBMIT TUNE JOB
+IF PPDKEY EQ 'PF11'          ;PF11 KEY PRESSED?
+   GOTO REORG                ;YES, GO SUBMIT REORG JOB
+
+IFTHEN PPDKEY EQ 'ENTER'     ;ENTER KEY PRESSED?
+;  GOTO STAGE1               ;YES, GO SUBMIT STAGE 1 REORG
+  SET MESG 'Stage 1 submit disabled due to cross-LPAR environment.'
+ELSE
+  SET MESG 'That Program Function key is not shown, and serves no purpos on this screen.'
+ENDIF
+
+SET PPDALARM 1
+GOTO -MAIN
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Find associated DLBL Name based on DSName
+;
+LABEL GETDLBL
+SETL LEN    DSN
+SET  TXMLIB 'VSAM.DEFINES'
+SET  TXMMEM ''
+BLOCK
+  SET  PPDCOND 1             ;BYPASS ERRORS
+  BROWSE
+  IF SIBRETCD NE 'OK'
+    LEAVE
+  SET  PPDCOND 0             ;DEFAULT ERROR HANDLING
+  IF TXMTITLE{1,&LEN} EQ "&DSN"
+    LEAVE
+  LOOP
+ENDBLOCK
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IFTHEN TXMTITLE{1,&LEN} EQ "&DSN"
+  SET  DD  "&TXMMEM"
+  SET  DSN ""
+ENDIF
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+RETURN
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Get Associated PROC to Build AIXs & Path
+;
+LABEL GETPROC
+SET  PPDVBL   1
+INCL $SIT.CTRL.DAPREORG_AIXS
+SET  PPDVBL   2
+RETURN
+;
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Get IDCAMS deck length
+;
+LABEL GTDECKLN
+  DISPLAYF 'VSAM.DEFINES.&DD'
+)INCL VSAM.DEFINES.&DD
+++/*
+  SET  PPDCOND 1
+  BYPASS
+  FIND '/*' 1
+  IFTHEN SIBRETCD EQ OK
+    SET  DECKL &SSDBASE&SIBSCRPM
+  ELSE
+    SET  DECKL &TXMSZLN
+    SUBT DECKL 1
+  ENDIF
+  BYPASS
+  TOP
+  BYPASS
+  LOCATE 'DELETE'
+  IFTHEN SIBRETCD EQ OK
+    SET  DECKB &SSDBASE&SIBSCRPM
+  ELSE
+    SET  DECKB 3
+  ENDIF
+  SET  PPDCOND 0
+  SUBT DECKL &DECKB
+  BYPASS
+  END NOSAVE
+RETURN
+;----------------------------------------------------------------------;
+;
+;                  Submit syntax-check job
+;
+LABEL SYNCHK
+SUBMITF
+* $$ JOB JNM=DAPSYNCK,DISP=D,CLASS=C,USER='&DD &VAR'
+* $$ LST LST=SYSLST,DISP=L,CLASS=Z
+// JOB    DAPSYNCK   SEMI-AUTOMATED VSAM FILE REORG (SYNCHK)
+// EXEC   PGM=IDCAMS,SIZE=AUTO
+   PARM   SYNCHK
+)INCLUDE VSAM.DEFINES.&DD BASE=&DECKB DEPTH=&DECKL
+/* EOD
+/& EOJ
+* $$ EOJ
+++/*
+SET  MESG 'SYNCHK job submitted.'
+GOTO -MAIN
+;----------------------------------------------------------------------;
+;
+;                  Submit Tune job to batch
+;
+LABEL TUNE
+BYPASS
+LIST VSAM.DEFINES.&DD
+
+; extract catalog name
+BYPASS
+LOCATE "\CATALOG@ (@ %*@ )"
+SET  POS &SSDCOL1
+BYPASS
+UP   1
+BYPASS
+LOCATE "\CATALOG@ (@ *%@ )"
+SET  LEN &SSDCOL1
+SUBT LEN &POS
+SET  CAT &XTRSLINE{&POS,&LEN}
+BYPASS
+TOP
+
+; extract dataset name
+BYPASS
+LOCATE "\NAME@ (@ @'%*@'@ )"
+SET  POS &SSDCOL1
+BYPASS
+UP   1
+BYPASS
+LOCATE "\NAME@ (@ @'*%@'@ )"
+SET  LEN &SSDCOL1
+SUBT LEN &POS
+SET  PPDCOND  2
+SET  DSN &XTRSLINE{&POS,&LEN}
+IF SIBRETCD NE OK
+   SUBT LEN 1
+SET  PPDCOND  0
+SET  DSN &XTRSLINE{&POS,&LEN}
+
+; extract data ci size
+BYPASS
+LOCATE "\CISZ@ (@ %*@ )"
+SET  POS &SSDCOL1
+BYPASS
+UP   1
+BYPASS
+LOCATE "\CISZ@ (@ *%@ )"
+SET  LEN &SSDCOL1
+SUBT LEN &POS
+SET  WRK &XTRSLINE{&POS,&LEN}
+SETD CDSZ WRK
+
+; extract index ci size
+SET  PPDCOND  1
+BYPASS
+LOCATE "\CISZ@ (@ %*@ )"
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  CISZ '*NONE'
+ELSE
+  SET  PPDCOND  0
+  SET  POS &SSDCOL1
+  BYPASS
+  UP   1
+  BYPASS
+  LOCATE "\CISZ@ (@ *%@ )"
+  SET  LEN &SSDCOL1
+  SUBT LEN &POS
+  SET  WRK &XTRSLINE{&POS,&LEN}
+  SETD CISZ WRK
+ENDIF
+
+BYPASS
+END NOSAVE
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+SET  ASSOC    'NO'
+SET  BIAS     'NO'
+IFTHEN CDSZ LT '18432'
+  SET  LSRCI    'YES'
+ELSE
+  SET  LSRCI    'NO'
+ENDIF
+SET  IMBD     'NO'
+SET  SPAN     'NO'
+SET  ICISZ(1) '  512'
+SET  ICISZ(2) ' 4096'
+IFTHEN CDSZ LT '12288'
+  SET  DCISZ(1) ' 8192'
+ELSE
+  IFTHEN CDSZ LT '16384'
+    SET  DCISZ(1) '12288'
+  ELSE
+    IFTHEN CDSZ EQ '16384'
+      SET  DCISZ(1) '16384'
+    ELSE
+      SET  DCISZ(1) '18432'
+    ENDIF
+  ENDIF
+ENDIF
+SET  DCISZ(2) '26624'
+
+IFTHEN DSN EQ 'DAPSCO.EDI.INBOUND'
+  SET  DCISZ(1) ' 8192'
+  SET  DCISZ(2) ' 8192'
+ENDIF
+IFTHEN DSN EQ 'DAPSCO.EDI.OUTBOUND'
+  SET  DCISZ(1) ' 8192'
+  SET  DCISZ(2) ' 8192'
+ENDIF
+IFTHEN DSN EQ 'DAPSCO.PC36.IMPORT1'
+  SET  DCISZ(1) ' 8192'
+  SET  DCISZ(2) ' 8192'
+ENDIF
+IFTHEN DSN EQ 'DAPSCO.WISE.IMPORT1'
+  SET  DCISZ(1) ' 8192'
+  SET  DCISZ(2) ' 8192'
+ENDIF
+
+LABEL DISPLAY
+MAPF
+}DAPREORG                ¬DAPSCO Semi-Automated Reorg               }&OPSDATE
+                               Tuning Definition                    }&OPSTIME
+
+  ¬Dataset Name . :{DSN                                         }
+  ¬Catalog Name . :{CAT                                         }
+  ¬Current:
+    ¬Data CI Size :}&CDSZ
+    ¬Index CI Size:}&CISZ
+
+  ¬Associatd files:{ASSOC}               (Yes or No)
+  ¬Bias for CICS  :{BIAS}               (Yes or No)
+  ¬LSR CISZ Rules :{LSRCI}               (Yes or No)
+  ¬Imbed Sequ. Set:{IMBD}              (No, Yes, or ASIS)
+  ¬Spanned records:{SPAN}              (No, Yes, or ASIS)
+
+  ¬Indx CISZ range:{ICISZ(1)}             Valid LSR buffer sizes are:
+              thru:{ICISZ(2)}                  512       4096
+                                           1024       8192
+  ¬Data CISZ range:{DCISZ(1)}                 2048      12288
+              thru:{DCISZ(2)}                 4096      16384
+
+}Press¬ENTER}to check your changes.
+¬PF3}= Return    ¬PF6}= Submit
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG ''
+
+IF PPDKEY EQ 'PF3'           ;PF3 KEY PRESSED?
+   GOTO -MAIN
+
+IFTHEN DSN EQ ''             ;DSNAME MISSING?
+   SET  PPDALARM 1
+   SET  PPDCSFLD 'DSN'
+   SET  MESG 'The "Dataset Name" is required.'
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN CAT EQ ''             ;CATNAME MISSING?
+   SET  PPDALARM 1
+   SET  PPDCSFLD 'CAT'
+   SET  MESG 'The "Catalog Name" is required.'
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN ASSOC EQ ''
+  SET  ASSOC    'NO'
+ELSE
+  SET  PPDCOND 1
+  VEXAMINE ASSOC '\YES|NO'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'ASSOC'
+    SET  MESG 'Please specify YES or NO.'
+  ENDIF
+  SET  PPDCOND 0
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN BIAS  EQ ''
+  SET  BIAS     'NO'
+ELSE
+  SET  PPDCOND 1
+  VEXAMINE BIAS  '\YES|NO'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'BIAS'
+    SET  MESG 'Please specify YES or NO.'
+  ENDIF
+  SET  PPDCOND 0
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN LSRCI EQ ''
+  SET  LSRCI    'YES'
+ELSE
+  SET  PPDCOND 1
+  VEXAMINE LSRCI '\YES|NO'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'LSRCI'
+    SET  MESG 'Please specify YES or NO.'
+  ENDIF
+  SET  PPDCOND 0
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN IMBD  EQ ''
+  SET  IMBD     'NO'
+ELSE
+  SET  PPDCOND 1
+  VEXAMINE IMBD  '\NO|YES|ASIS'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'IMBD'
+    SET  MESG 'Please specify NO, YES, or ASIS.'
+  ENDIF
+  SET  PPDCOND 0
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN SPAN  EQ ''
+  SET  SPAN     'NO'
+ELSE
+  SET  PPDCOND 1
+  VEXAMINE SPAN  '\NO|YES|ASIS'
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'SPAN'
+    SET  MESG 'Please specify NO, YES, or ASIS.'
+  ENDIF
+  SET  PPDCOND 0
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN ICISZ(1) EQ ''
+  SET  ICISZ(1) '  512'
+ELSE
+  SET  VAR 'ICISZ(1)'
+  GOSUB CHECK1
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN ICISZ(2) EQ ''
+  SET  ICISZ(2) ' 4096'
+ELSE
+  SET  VAR 'ICISZ(2)'
+  GOSUB CHECK1
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN DCISZ(1) EQ ''
+  SET  DCISZ(1) ' 8192'
+ELSE
+  SET  VAR 'DCISZ(1)'
+  GOSUB CHECK1
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IFTHEN DCISZ(2) EQ ''
+  SET  DCISZ(2) '18432'
+ELSE
+  SET  VAR 'DCISZ(2)'
+  GOSUB CHECK1
+ENDIF
+IF PPDALARM NE 0             ;FIELD ERRORS?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+
+IF PPDKEY EQ 'ENTER'         ;ENTER KEY PRESSED?
+   GOTO -DISPLAY               ;YES, GET INPUT AGAIN
+IF PPDKEY EQ 'PF6'           ;ENTER KEY PRESSED?
+   GOTO CONTINUE             ;YES, GO SUBMIT TUNE JOB
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -DISPLAY
+;----------------------------------------------------------------------;
+LABEL CONTINUE
+SUBMITF
+* $$ JOB JNM=DAPTUNE,DISP=D,CLASS=C,USER='&DD',XDEST=PROD
+* $$ LST LST=SYSLST,DISP=L,CLASS=Z
+// JOB    DAPTUNE   SEMI-AUTOMATED VSAM FILE REORG (TUNE)
+// ON     $ABEND OR $CANCEL GOTO NOTIFY
+// ON     $RC > 15 GOTO NOTIFY
+)
+)IFTHEN CLIST NE 'NO'
+/. STEP01 - CLOSE DATASET(s) TO CICS (MBCBATCH)
+// LIBDEF *,SEARCH=ESP.MKSMBC,TEMP
+// EXEC   PROC=MBCCNTL
+// EXEC   PGM=MBCBATCH,SIZE=*,OS390
+CLOS &DD
+)SET PARMLIST "&CLIST"
+)PARSE CLO(1) CLO(2) CLO(3) CLO(4) CLO(5) CLO(6)
+)SET X  0
+)BLOCK
+)  ADD X  1
+)  IF CLO(&X) EQ ''
+)     LEAVE
+CLOS &CLO(&X)
+)  LOOP
+)ENDBLOCK
+/* EOD
+)ENDIF
+)
+/. STEP02 - GENERATE TUNING ANALYSIS (VSOANLYZ)
+// DLBL   TRENDS,'TUNING.STATS',,VSAM,CAT=DEVLCAT
+// EXEC   PGM=VSOANLYZ,SIZE=AUTO
+   SCAT=&CAT
+   ECAT=&CAT
+   SDSN=&DSN
+   EDSN=&DSN
+/* EOD
+/* EXEC   PGM=M4VSMRPT,SIZE=(AUTO,132K)
+/* TUNE   &DSN
+/* )IFTHEN BIAS  EQ 'YES'
+/*        ASSOC=&ASSOC BIAS=TP LSRCI=&LSRCI IMBD=&IMBD SPAN=&SPAN
+/* )ELSE
+/*        ASSOC=&ASSOC LSRCI=NO IMBD=&IMBD SPAN=&SPAN
+/* )ENDIF
+/*        NEWICISZ &ICISZ(1) &ICISZ(2)
+/*        NEWDCISZ &DCISZ(1) &DCISZ(2)
+/*        CAT=&CAT
+/* EOD
+)
+)IFTHEN CLIST NE 'NO'
+/. STEP03 - OPEN DATASET(s) TO CICS (MBCBATCH)
+// LIBDEF *,SEARCH=ESP.MKSMBC,TEMP
+// EXEC   PROC=MBCCNTL
+// EXEC   PGM=MBCBATCH,SIZE=*,OS390
+OPEN &DD
+)SET X  0
+)BLOCK
+)  ADD X  1
+)  IF CLO(&X) EQ ''
+)     LEAVE
+OPEN &CLO(&X)
+)  LOOP
+)ENDBLOCK
+/* EOD
+)ENDIF
+)
+// GOTO   EXIT
+/. NOTIFY
+* $NOTIFY UNEXPECTED ERROR OCCURRED IN JOB
+/. EXIT
+// ON     $ABEND OR $CANCEL GOTO EOJ
+/& EOJ
+* $$ EOJ
+++/*
+SET  MESG 'Tune job submitted.'
+GOTO -MAIN
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Check form variable for numeric content
+;
+LABEL CHECK1
+  IFTHEN &VAR NE ''
+    SET  PPDCOND 2
+    SET  WRK  &&VAR
+    IFTHEN SIBRETCD NE 'OK'
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&VAR'
+      SET  MESG 'Unable to interpret expected numeric specification.'
+    ENDIF
+    SET  PPDCOND 0
+  ENDIF
+  IF PPDALARM EQ 1
+     RETURN
+  SET  WRK  &&VAR
+  SETD &VAR WRK
+RETURN
+;----------------------------------------------------------------------;
+;
+;                  Submit first-stage processing to batch
+;
+LABEL STAGE1
+IFTHEN DEL EQ 'TAPE'
+  SET PRI 'PRI=8,'
+  SET VAR 'TAPE'
+ELSE
+  SET PRI ''
+  SET VAR ''
+ENDIF
+PEND
+SUBMITF
+* $$ JOB JNM=DAPREORG,DISP=K,CLASS=M,XDEST=PROD,                       +
+* $$     &PRI.USER='&DD &VAR'
+* $$ LST LST=SYSLST,DISP=L,CLASS=Z,DEST=*
+// JOB    DAPREORG   SEMI-AUTOMATED VSAM FILE REORG (STAGE 1)
+// EXEC   PGM=BIMUTIL,SIZE=AUTO
+LOGON &SIBUSER,&SIBPDPSW
+DAPREORG &DD,&PROC,&DEL,"&CLIST"
+LOGOFF
+/* EOD
+/& EOJ
+* $$ EOJ
+++/*
+SET  MESG 'First-stage processing submitted.'
+GOTO -MAIN
+;----------------------------------------------------------------------;
+;
+;                  Submit second-stage processing to batch
+;
+LABEL STAGE2
+IF DD EQ ''                  ;DDNAME MISSING?
+   EXIT SV,'(DAPREORG) ** DLBL Name argument is missing! **'
+
+GOSUB -GTDECKLN              ;GET IDCAMS DECK LENGTH
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+SET  CATAL 'YES'
+IFTHEN DEL EQ 'TAPE'
+  SET  CLS   'J'
+ELSE
+  SET  CLS   'V'
+ENDIF
+GOSUB SUBMIT
+SET  MESG 'Second-stage processing submitted.'
+IF SIBDIALG NE 'T'           ;IF NOT A TERMINAL, EXIT PROCEDURE
+   EXIT OK,'(DAPREORG) ## &MESG ##'
+GOTO -MAIN
+;----------------------------------------------------------------------;
+;
+;                  Submit reorg-only job
+;
+LABEL REORG
+SET  CATAL 'NO'
+SET  CLS   'C'
+GOSUB SUBMIT
+SET  MESG 'Reorg job submitted.'
+GOTO -MAIN
+;----------------------------------------------------------------------;
+;
+;   SUBROUTINE --- Build custom job for submittal to batch
+;
+LABEL SUBMIT
+IFTHEN DEL EQ 'TAPE'
+  SET PRI 'PRI=8,'
+  SET VAR 'TAPE'
+ELSE
+  SET PRI ''
+  SET VAR ''
+ENDIF
+SUBMITF
+* $$ JOB JNM=DAPREORG,DISP=L,XDEST=PROD,                               +
+* $$     CLASS=&CLS,&PRI.USER='&DD &VAR'
+* $$ LST LST=SYSLST,DISP=L,CLASS=Z,DEST=*
+// JOB    DAPREORG   SEMI-AUTOMATED VSAM FILE REORG (STAGE 2)
+// ON     $ABEND OR $CANCEL GOTO NOTIFY
+// ON     $RC > 15 GOTO NOTIFY
+)
+)IFTHEN DEL EQ 'TAPE'
+// ASSGN  SYS000,200
+)ENDIF
+)
+)IFTHEN CATAL EQ 'YES'
+/. STEP01 - CHECK VSAM DELETE & DEFINE DECK (IDCAMS)
+// EXEC   PGM=IDCAMS,SIZE=AUTO
+   PARM   SYNCHK
+)INCLUDE VSAM.DEFINES.&DD BASE=&DECKB DEPTH=&DECKL
+/* EOD
+// IF     $RC > 0 THEN
+// GOTO   NOTIFY
+/. STEP02 - CATALOG VSAM DELETE & DEFINE DECK (LIBR)
+// EXEC   PGM=LIBR,SIZE=256K
+   ACCESS SUBLIB=DAP.PROD
+)INCLUDE VSAM.DEFINES.&DD
+/* EOD
+// IF     $RC > 0 THEN
+// GOTO   NOTIFY
+)ENDIF
+/* GOTO   STEP05
+)
+)IFTHEN CLIST NE 'NO'
+/. STEP03 - CLOSE DATASET(s) TO CICS (MBCBATCH)
+// LIBDEF *,SEARCH=ESP.MKSMBC,TEMP
+// EXEC   PROC=MBCCNTL
+// EXEC   PGM=MBCBATCH,SIZE=*,OS390
+CLOS &DD
+)SET PARMLIST "&CLIST"
+)PARSE CLO(1) CLO(2) CLO(3) CLO(4) CLO(5) CLO(6)
+)SET X  0
+)BLOCK
+)  ADD X  1
+)  IF CLO(&X) EQ ''
+)     LEAVE
+CLOS &CLO(&X)
+)  LOOP
+)ENDBLOCK
+/* EOD
+)ENDIF
+)
+/. STEP04 - BACKUP DATASET (FAVER2)
+)IFTHEN DEL EQ 'TAPE'
+// TLBL   TAPEBU,'&DD REORG'
+// ASSGN  SYS000,SYS000           /* DISPLAY ASSIGNMENT ON CONSOLE */
+// PAUSE  MOUNT SCRATCH TAPE FOR '&DD REORG' ON SYS000
+// MTC    REW,SYS000
+)ELSE
+// DLBL   DISKBU,'%%DAPSCO.REORG',1,VSAM,DISP=(,KEEP,DELETE),          X
+               CAT=COPYCAT,RECORDS=(50000,50000),RECSIZE=18420
+)ENDIF
+// EXEC   PGM=FAVER2,SIZE=AUTO
+   OPTION NO_AIX NO_PATH ESTOP=8
+)IFTHEN DEL EQ 'TAPE'
+   OPEN   DDN=TAPEBU/SYS000 FOR STORE BUFNO=4
+)ELSE
+   OPEN   DDN=DISKBU FOR STORE BUFNO=4
+)ENDIF
+   STORE  DDN(&DD)
+/* EOD
+// IF     $RC > 4 THEN
+// GOTO   NOTIFY
+)
+/. STEP05 - REDEFINE DATASET (IDCAMS)
+// EXEC   PROC=&DD
+// IF     $RC > 0 THEN
+// GOTO   NOTIFY
+)
+/. STEP06 - RESTORE DATASET (FAVER2)
+)IFTHEN DEL EQ 'TAPE'
+// TLBL   TAPEBU,'&DD REORG'
+// ASSGN  SYS000,SYS000           /* DISPLAY ASSIGNMENT ON CONSOLE */
+// PAUSE  REMOUNT '&DD REORG' TAPE FOR RESTORE ON SYS000
+// MTC    REW,SYS000
+)ELSE
+// DLBL   DISKBU,'%%DAPSCO.REORG',,VSAM,DISP=(,KEEP,KEEP),             X
+               CAT=COPYCAT
+)ENDIF
+// EXEC   PGM=FAVER2,SIZE=AUTO
+   OPTION NO_DELETE NO_DEFINE ESTOP=8
+)IFTHEN DEL EQ 'TAPE'
+   OPEN   DDN=TAPEBU/SYS000 FOR LOAD BUFNO=4
+)ELSE
+   OPEN   DDN=DISKBU FOR LOAD BUFNO=4
+)ENDIF
+   LOAD   DSN(*)
+/* EOD
+// IF     $RC > 4 THEN
+// GOTO   NOTIFY
+)
+)IFTHEN DEL EQ 'YES'
+/. STEP07 - DELETE WORK FILE (DELVSAM)
+// DLBL   DELETE,'%%DAPSCO.REORG',,VSAM,DISP=(,DELETE,DELETE),         X
+               CAT=COPYCAT
+// EXEC   PGM=DELVSAM,SIZE=(DELVSAM,64K),PARM='DD:DELETE'
+/* EOD
+)ENDIF
+)
+)IFTHEN PROC NE ''
+/. STEP08 - REDEFINE AIX & PATH (IDCAMS)
+// EXEC   PROC=&PROC
+// IF     $RC > 0 THEN
+// GOTO   NOTIFY
+)ENDIF
+)
+)IFTHEN CLIST NE 'NO'
+/. STEP09 - OPEN DATASET(s) TO CICS (MBCBATCH)
+// LIBDEF *,SEARCH=ESP.MKSMBC,TEMP
+// EXEC   PROC=MBCCNTL
+// EXEC   PGM=MBCBATCH,SIZE=*,OS390
+OPEN &DD
+)SET X  0
+)BLOCK
+)  ADD X  1
+)  IF CLO(&X) EQ ''
+)     LEAVE
+OPEN &CLO(&X)
+)  LOOP
+)ENDBLOCK
+/* EOD
+)ENDIF
+)
+// GOTO   EXIT
+/. NOTIFY
+* $NOTIFY UNEXPECTED ERROR OCCURRED IN JOB
+// PAUSE  !!! MANUAL INTERVENTION REQUIRED !!!
+/. EXIT
+/& EOJ
+* $$ EOJ
+++/*
+
+RETURN
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

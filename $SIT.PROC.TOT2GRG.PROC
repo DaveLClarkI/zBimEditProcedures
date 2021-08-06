@@ -1,0 +1,119 @@
+;"TOT2GRG" PROC CONVERTS TOTAL DAYS TO GREGORIAN DATE
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+;
+DCL N        NUM    6 V
+DCL X        NUM    6 V
+DCL TOTL     NUM    6 V
+DCL MNTH     NUM    2 F
+DCL DAY      NUM    2 F
+DCL YEAR     NUM    4 F
+;
+DCL MO01     NUM    2 F
+DCL MO02     NUM    2 F
+DCL MO03     NUM    2 F
+DCL MO04     NUM    2 F
+DCL MO05     NUM    2 F
+DCL MO06     NUM    2 F
+DCL MO07     NUM    2 F
+DCL MO08     NUM    2 F
+DCL MO09     NUM    2 F
+DCL MO10     NUM    2 F
+DCL MO11     NUM    2 F
+DCL MO12     NUM    2 F
+;
+DCL OPER1    CHAR  10 V
+DCL OPER2    NUM    6 V
+PARSE OPER1 OPER2
+
+IF OPER1,EQ,''
+   EXIT SV,'(TOT2GRG ) ** GLOBAL VARIABLE NAME "OPER1" IS REQUIRED **'
+IF OPER2,EQ,0
+   EXIT SV,'(TOT2GRG ) ** TOTAL DAYS VALUE "OPER2" IS < 1 **'
+IF OPER2,GT,876582
+   EXIT SV,'(TOT2GRG ) ** TOTAL DAYS VALUE IS > 876,582 **'
+
+SET MO01 31
+SET MO02 28
+SET MO03 31
+SET MO04 30
+SET MO05 31
+SET MO06 30
+SET MO07 31
+SET MO08 31
+SET MO09 30
+SET MO10 31
+SET MO11 30
+SET MO12 31
+
+SETD TOTL OPER2
+
+SETD N TOTL
+DIVI N 146097
+SUBT TOTL &N
+SETD N TOTL
+DIVI N 36524
+ADD  TOTL &N
+SETD N TOTL
+DIVI N 1461
+SUBT TOTL &N
+SETD N TOTL
+SUBT N 1
+DIVI N 365
+SETD YEAR N
+
+MULT N 365
+SUBT OPER2 &N
+SETD N YEAR
+DIVI N 400
+SUBT OPER2 &N
+SETD N YEAR
+DIVI N 100
+ADD  OPER2 &N
+SETD N YEAR
+DIVI N 4
+SUBT OPER2 &N
+ADD  YEAR 1
+
+LABEL LOOP
+ADD MNTH 1
+IF OPER2,LE,&MO&MNTH
+   GOTO DONE
+IF MNTH,EQ,02
+   GOTO FEBRUARY
+SUBT OPER2 &MO&MNTH
+GOTO -LOOP
+
+LABEL FEBRUARY
+SETD X YEAR
+DIVI X 400 N
+IF N,EQ,0
+   GOTO LEAPYEAR
+SETD X YEAR
+DIVI X 100 N
+IF N,EQ,0
+   GOTO NOLEAPYR
+SETD X YEAR
+DIVI X 4 N
+IF N,EQ,0
+   GOTO LEAPYEAR
+LABEL NOLEAPYR
+SUBT OPER2 28
+GOTO -LOOP
+LABEL LEAPYEAR
+IF OPER2,LE,29
+   GOTO DONE
+SUBT OPER2 29
+GOTO -LOOP
+
+LABEL DONE
+SETD DAY OPER2
+SET &OPER1 &MNTH./&DAY./&YEAR
+
+EXIT OK

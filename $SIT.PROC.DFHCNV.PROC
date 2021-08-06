@@ -1,0 +1,138 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: DFHCNV     PROC Created 02/13/2004   by Dave Clark        *
+;*                  Last Revised 02/13/2004                        *
+;*                                                                 *
+;*      This procedure converts  the  contents  of an RPGII I-spec *
+;* copybook (i.e.,  a file layout) into DFHCNV format for use with *
+;* CICS ECI calls  from  WebSphere.   The converted information is *
+;* written to a BIM-EDIT Display Session.                          *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  SPEC     CHAR  1 V
+DCL  TYP      CHAR  9 V
+DCL  OFS      NUM   4 F
+DCL  STP      NUM   4 F
+DCL  LEN      NUM   4 F
+DCL  ENP      NUM   4 F
+DCL  FLD      CHAR  6 F
+DCL  MSG      CHAR 82 V
+
+IF   PARMLIST EQ ''
+     EXIT ER,'(DFHCNV  ) ** Please specify a LIBRARY.MEMBER name **'
+DCL  NAME     CHAR 33 V
+PARSE NAME
+
+SET  PPDCOND  1
+READ &NAME
+SETD MSG      SIBRESP
+IF   MSG{1,2} NE OK
+     GOTO EXIT
+IF   TXMTYPE NE 'RPGII'
+     GOTO ERROR
+IF   TXMATTR EQ 'COPYBOOK'
+     GOTO ENDSESS
+LABEL ERROR
+SET  MSG      'ER(DFHCNV  ) ** Member "&TXMLIB..&TXMMEM" is not an RPGII copybook **'
+GOTO EXIT
+
+LABEL ENDSESS
+IF   SIBSESSD EQ 0
+     GOTO CONTINUE
+IF   SSDTYPE NE DI
+     GOTO CONTINUE
+IF   SSDOBJ  NE 'DISP  -> DFHCNV &TXMLIB..&TXMMEM'{1,46}
+     GOTO CONTINUE
+END  NOSAVE
+
+LABEL CONTINUE
+BYPASS
+LIST &TXMLIB..&TXMMEM
+SETD MSG      SIBRESP
+IF   MSG{1,2} NE OK
+     GOTO EXIT
+BYPASS
+STACK OPT=CLEAR
+BYPASS
+STACKF
+        DFHCNV TYPE=SELECT,OPTION=DEFAULT
+++/*
+
+BLOCK
+  NEXT 1
+  IF SIBRETCD NE OK
+     LEAVE
+  SETD PARMLIST XTRSLINE{1,80}
+  SETD PARMLIST PARMLIST
+  SETD SPEC PARMLIST{7,1}
+  IF   SPEC EQ '*'
+       LOOP
+  SETD SPEC PARMLIST{6,1}
+  IFTHEN SPEC NE 'I'
+    STACK OPT=CLEAR
+    SET  MSG  'ER(DFHCNV  ) ** Other than I-spec found in member "&TXMLIB..&TXMMEM" **'
+    GOTO EXIT
+  ENDIF
+  IF   PARMLIST{53,6} EQ ' '
+       LOOP
+  SETD TYP  PARMLIST{43,1}
+  SETD OFS  PARMLIST{44,4}
+  SETD LEN  PARMLIST{48,4}
+  SETD FLD  PARMLIST{53,6}
+  IFD  OFS EQ STP
+       LOOP
+  IFD  LEN EQ ENP
+       LOOP
+  VEXAM TYP '\B|P| '
+  IFTHEN SIBRETCD NE OK
+    STACK OPT=CLEAR
+    SET  MSG  'ER(DFHCNV  ) ** Unknown data type found in member "&TXMLIB..&TXMMEM" **'
+    GOTO EXIT
+  ENDIF
+  IF TYP EQ 'B'
+    SET  TYP  'BINARY'
+  IF TYP EQ 'P'
+    SET  TYP  'PD'
+  IF TYP EQ ' '
+    SET  TYP  'CHARACTER'
+  SETD STP  OFS
+  SETD ENP  LEN
+  SUBT OFS  1
+  SUBT LEN  &OFS
+  STACKF
+&FLD  DFHCNV TYPE=FIELD,OFFSET=&OFS,DATALEN=&LEN,DATATYP=&TYP
+++/*
+  SET  PPDLPCTR  0
+  LOOP
+ENDBLOCK
+
+SET  PPDCOND  0              ;DEFAULT ERROR HANDLING
+BYPASS
+END  NOSAVE
+
+SET  PPDINCL  2
+DISPLAYF 'DFHCNV &TXMLIB..&TXMMEM'
+/INCL $STACK
+               LAST=YES
+++/*
+POS  &SSDSZLN
+UP   1
+CH   '&TYP   ' '&TYP,  ' 1
+OVLY 72 'C' 1
+TOP
+SETKEYS
+SET  MSG      'OK(DFHCNV  ) ## Member "&TXMLIB..&TXMMEM" converted ##'
+
+LABEL EXIT
+SET  PPDCOND  2              ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND  0              ;DEFAULT ERROR HANDLING
+EXIT &MSG{1,2},'&MSG{3,}'

@@ -1,0 +1,150 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPSCANI   Proc Created 10/30/2001   By Dave Clark        *
+;*                  Last Revised 08/27/2009                        *
+;*                                                                 *
+;*      One or all (up to 99)  ICCF libraries are searched for one *
+;* or more occurrences of  the  character  string specified as the *
+;* command parameter.  If you need to scan more than 99 libraries, *
+;* just change the MAXI variable's initial value below.            *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  Then add the following line(s), without the *
+;* ruler line and  in  sorted sequence,  to the $SIT.CTRL.COMMANDS *
+;* member and issue the "NEWCOPY COMMANDS" command:                *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* SCANI    BIPSCANI                                               *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL 1
+DCL  LSTMEM CHAR  33 V       ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  INMEM  CHAR   1 V
+DCL  LIBI   NUM    3 Z
+DCL  MAXI   NUM    3 Z,,,99  ;MAXIMUM ICCF LIBRARIES TO SCAN
+DCL  RESP   CHAR   1 V
+DCL  SRCL   CHAR 253 V
+
+DCL  LIB    CHAR   3 V
+DCL  STR    CHAR  72 V
+PARSE LIB STR
+
+IF LIB EQ '0'
+  EXIT SV,'(BIPSCANI) ** PARM "LIB=0" IS NOT A VALID ICCF LIBRARY NUMBER **'
+IF LIB EQ ''
+  SET  LIB '*'
+IFTHEN LIB EQ '*'
+  SET  LIBI  1
+ELSE
+  EVALUATE "DataType('&LIB','WholeNumber')"
+  SETD RESP SIBMSG{3,1}
+  IFTHEN RESP EQ '1'     ;'1'=True, '0'=False
+    SET  LIBI &LIB
+  ELSE
+    EXIT SV,'(BIPSCANI) ** DATA "&LIB" FOR PARM "LIB" IS NOT NUMERIC **'
+  ENDIF
+ENDIF
+
+IF STR EQ ''
+  EXIT SV,'(BIPSCANI) ** PARM "STR" IS REQUIRED **'
+
+IF SIBSESSD EQ 0             ;IF "REFRESH" COMMAND USED ON
+   GOTO CONTINUE
+IF SSDTYPE NE DI             ;A CURRENT DISPLAY SESSION FOR THE
+   GOTO CONTINUE
+IF SSDOBJ{1,17} NE 'DISP  -> SCANI &LIB'{1,17}   ;SAME ICCF LIBRARY
+   GOTO CONTINUE
+BYPASS
+END  NOSAVE                  ;END THAT SESSION BEFORE BUILDING NEW ONE
+
+LABEL CONTINUE
+STACK OPT=CLEAR
+
+BLOCK
+  BYPASS
+  LIBI &LIBI
+  POS  4
+
+  BLOCK
+    SET  PPDLPCTR  0
+    SET  PPDCOND 1
+    BYPASS
+    NEXT 1
+    IF SIBRETCD NE 'OK'
+       LEAVE
+    SET  PPDCOND 0
+    OVERLAY 15 '&LIBI'
+    SETD SRCL XTRSLINE
+    SET  INMEM 'N'
+    BYPASS
+    LISTI &LIBI &SRCL{1,8}
+
+    BLOCK
+      SET  PPDCOND 1
+      BYPASS
+      LOCATE "&STR"
+      IF SIBRETCD NE 'OK'
+         LEAVE
+      SET  PPDCOND 0
+      IFTHEN INMEM NE 'Y'
+        SET INMEM 'Y'
+        IFTHEN SIBSTSIZ EQ 0
+          STACKI "SCANI &LIB ""&STR"""
+          STACKI "-----------------"
+          STACKI " MEMBER  USER LIB"
+          STACKI "-------- ---- ---"
+        ELSE
+          STACKI " "
+        ENDIF
+        STACKI "&SRCL"
+        STACKI " "
+      ENDIF
+      STACK 1 APPEND
+      LOOP
+    ENDBLOCK
+
+    SET  PPDCOND 0
+    BYPASS
+    END  NOSAVE
+    LOOP
+  ENDBLOCK
+
+  SET  PPDCOND 0
+  BYPASS
+  END  NOSAVE
+  IF LIB NE '*'
+     LEAVE
+  ADD  LIBI  1
+  IF LIBI LE &MAXI
+     LOOP
+ENDBLOCK
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IFTHEN SIBSTSIZ EQ 0
+  IFTHEN LIB EQ '*'
+    EXIT NF,'(BIPSCANI) ** "&STR" NOT FOUND IN ICCF **'
+  ELSE
+    EXIT NF,'(BIPSCANI) ** "&STR" NOT FOUND IN ICCF LIBRARY &LIB **'
+  ENDIF
+ENDIF
+
+SET  PPDINCL 1
+DISPLAYF 'SCANI &LIB "&STR"'
+/INCL $STACK
+++/*
+
+SETKEYS
+EXIT

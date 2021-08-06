@@ -1,0 +1,65 @@
+;"COLDJOB" PROC -- CATALOG A JOB FOR POWER COLD STARTS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    WinWholesale Group Svcs *
+;*  responsible for any loss or damage       3110 Kettering Blvd.    *
+;*  resulting from the use of this code.     Dayton, OH  45439       *
+;*  Source is provided on an as-is basis.    Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+;
+DCL MEM CHAR 33 V
+DCL VSE CHAR 15 V
+DCL LEN NUM   3 V
+
+PARSE MEM VSE
+READ &MEM
+
+SETL LEN TXMMEM
+IF LEN,GT,8
+   EXIT SV,'** MEMBER NAME LENGTH CANNOT BE GREATER THAN 8 **'
+IF VSE,NE,''
+   SET VSE ',XDEST=&VSE'
+
+BYPASS
+DISPLAY
+
+TOP
+CHANGE '* $$ ' '$$$$ ' * 1-5
+CHANGE '/* '   '$$/* ' * 1-8
+CHANGE '/& '   '$$/& ' * 1-8
+
+TOP
+INSERTF
+* $$ JOB JNM=&TXMMEM,DISP=D,CLASS=C&VSE
+* $$ LST LST=SYSLST,DISP=D,CLASS=Z
+// JOB    &TXMMEM   RECATALOG A -COLDJOB-
+/. STEP01 - CATALOG COLD JOB INTO LIB
+// EXEC   PGM=LIBR,SIZE=256K,PARM='MSHP'
+   ACCESS SUBLIB=IJSYSRS.SYSLIB
+   CATALOG &TXMMEM..Z   REPLACE=YES
+++/*
+
+POSITION &SSDSZLN
+INSERTF
+/+
+   CONNECT SUBLIB=IJSYSRS.SYSLIB:PRD2.SAVE
+   COPY   &TXMMEM..Z   REPLACE=YES
+/* EOD
+/. STEP02 - LOAD COLD JOB INTO RDR
+// EXEC   PGM=DTRIINIT,SIZE=256K
+   LOAD   &TXMMEM..Z
+/* EOD
+/& EOJ
+* $$ EOJ
+++/*
+
+TOP
+SET PPDINCL 1
+SUBMITF
+/INCL (SESS)
+++/*
+
+BYPASS
+END NOSAVE
+EXIT OK,'## JOB "&PWRJNAME" SUBMITTED, JOB NUMBER = &PWRJNUM ##'

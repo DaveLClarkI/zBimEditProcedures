@@ -1,0 +1,60 @@
+;"STRIP   " IS A QUICK WAY TO STRIP "SCAN" OUTPUT OF GENERATION MEMBERS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(STRIP   ) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+IF SSDTYPE,NE,DI
+   EXIT SV,'(STRIP   ) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+SET  PPDCOND  1
+FIND '/CTL/M' 136
+IF SIBRETCD,NE,OK
+   EXIT SV,'(STRIP   ) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+SET  PPDLITEX 1
+SET  PPDLPLMT 10000
+
+SESS ZONE=1-253
+
+POS  1
+LABEL NONMEMB
+IF SIBSIGNL,EQ,1
+   GOTO EXIT
+EXAM '/CTL/M' 136-141
+IFTHEN SIBRETCD,EQ,OK
+   NEXT 1
+   IF SIBRETCD,NE,OK
+      GOTO EXIT
+ENDIF
+EXAM '/CTL/M' 136-141
+IFTHEN SIBRETCD,NE,OK
+   DEL  '/CTL/M'
+   IF SIBRETCD,NE,OK
+      GOTO DELETE
+ENDIF
+GOTO -NONMEMB
+
+LABEL DELETE
+IF SSDSZLN,EQ,&SSDBASE&SIBSCRPM
+   GOTO DELLAST
+DEL  1
+EXAM '/CTL/M' 136-141
+IF SIBRETCD,NE,OK
+   GOTO -DELETE
+UP   1
+GOTO -NONMEMB
+
+LABEL DELLAST
+DEL  1
+
+LABEL EXIT
+SESS ZONE=1-124
+TOP
+EXIT

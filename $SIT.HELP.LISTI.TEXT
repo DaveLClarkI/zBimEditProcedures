@@ -1,0 +1,29 @@
+
+Use LISTI to create a DISPLAY session of an ICCF library member.
+
+Also, see the LIST command.
+
+-------------------------------------------------------------------------------
+|                             Required Operands                               |
+|-----------------------------------------------------------------------------|
+| LIB      | is the ICCF library number.                                      |
+|-----------------------------------------------------------------------------|
+| MEM      | is the ICCF member name.                                         |
+-------------------------------------------------------------------------------
+
+If the ICCF member is stored  in  a compressed format,  LISTI will retrieve the
+expanded form of the text.
+
+When Valid
+----------
+
+The user must have ADM command  access  level.   LISTI  can be used only if the
+predefined variable MMPICCTL has a value of "1".
+
+Use in a Procedure
+------------------
+
+Return Codes:
+  OK   Successful.
+  NF   ICCF member not found.
+

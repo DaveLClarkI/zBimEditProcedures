@@ -1,0 +1,855 @@
+;"FCOMPARE" FULL-SCREEN COMPARE OF TWO MEMBERS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    DAPSCO Information Sys. *
+;*  responsible for any loss or damage       3110 Kettering Blvd.    *
+;*  resulting from the use of this code.     Dayton, OH  45439       *
+;*  Source is provided on an as-is basis.    Phone: (937)294-5331    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL 1                ;VARIABLE REPLACEMENT
+SET  PPDSCRSZ A              ;ALTERNATE SCREEN SIZE
+SET  PPDPFOPT 1              ;PERFORMANCE OPTION
+
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  MEM1     CHAR 34 V      ;MAPF FIELD
+DCL  A        CHAR  1 F      ;MAPF FIELD
+DCL  MEM2     CHAR 34 V      ;MAPF FIELD
+DCL  B        CHAR  1 F      ;MAPF FIELD
+DCL  BEG      CHAR  3 V      ;MAPF FIELD
+DCL  END      CHAR  3 V      ;MAPF FIELD
+DCL  CNT      CHAR  3 V,,,'  5' ;MAPF FIELD
+DCL  P        CHAR  1 F      ;MAPF FIELD
+DCL  DEL      CHAR  3 V,,,'  0' ;MAPF FIELD
+DCL  INS      CHAR  3 V,,,'  0' ;MAPF FIELD
+DCL  ASRC(9)  CHAR 80 V      ;MAPF FIELD
+DCL  BSRC(9)  CHAR 80 V      ;MAPF FIELD
+DCL  RULE     CHAR 99 V      ;MAPF FIELD
+DCL  MESG     CHAR 78 V      ;MAPF FIELD
+
+DCL  IDX      NUM   3 V      ;ARRAY INDEX
+DCL  LEN      NUM   3 V      ;STRING LENGTH
+DCL  LCNT     NUM   3 V      ;LOOP COUNT
+DCL  XLEN     NUM   3 V      ;EXTRACT SOURCE LEN
+DCL  LMRG     NUM   3 V      ;LEFT MARGIN
+DCL  RMRG     NUM   3 V      ;RIGHT MARGIN
+DCL  ELNS     NUM   3 V      ;EYE-CATCHER LINES
+DCL  ADEL     NUM   6 V,,,0  ;DELETE COUNT
+DCL  BINS     NUM   6 V,,,0  ;INSERT COUNT
+DCL  POS      NUM   6 V      ;SESSION POSITION
+DCL  APOS     NUM   6 V      ;SESSION POSITION
+DCL  BPOS     NUM   6 V      ;SESSION POSITION
+DCL  ASIZE    NUM   6 V      ;SESSION SIZE
+DCL  BSIZE    NUM   6 V      ;SESSION SIZE
+
+DCL  RC       CHAR  2 V
+DCL  MSG      CHAR 82 V
+DCL  SCALE    CHAR 99 V,,,'----+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----'
+
+PARSE MEM1 MEM2
+IFTHEN MEM1 NE ''            ;ORIGINAL MEMBER SPECIFIED?
+   GOSUB CHECK               ;YES, CHECK FIELD ENTRIES
+ELSE                         ;NO...
+  IFTHEN MEM2 NE ''          ;MODIFIED MEMBER SPECIFIED?
+     GOSUB CHECK             ;YES, CHECK FIELD ENTRIES
+  ENDIF
+ENDIF
+
+LABEL MAIN
+;
+;                  Main-line routine
+;
+MAPF
+}FCOMPARE                 ¬Full-Screen Member Compare               }&OPSDATE
+                               Member Definition                    }&OPSTIME
+
+  }This procedure will create a DISPLAY session containing the difference(s)
+   between the following two members.  These two member's type may be mixed
+   and/or matched between BIM-EDIT members and VSE/ESA Librarian members.
+
+
+  }Original member:{MEM1                              }
+  } BIM/VSE member:{A}     ('B'=BIM, 'V'=VSE)
+
+  }Modified member:{MEM2                              }
+  } BIM/VSE member:{B}     ('B'=BIM, 'V'=VSE)
+
+  } Compare column:{BEG}   (beginning)
+  }           thru:{END}   (ending)
+
+  } Number of Eye-
+  }  catcher lines:{CNT}   (before and after mis-match areas)
+
+  }  Display/Print:{P}     ('D'=Create display session, 'P'=Print results)
+
+
+
+}Press¬ENTER}to edit entries and begin the comparison.
+¬PF3}= Exit
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG ''
+
+IF PPDKEY EQ 'PF3'           ;PF3 KEY PRESSED?
+   GOTO EXITPROC             ;YES, EXIT PROCEDURE
+
+IF PPDKEY EQ 'ENTER'         ;ENTER KEY PRESSED?
+   GOSUB CHECK               ;YES, CHECK FIELDS
+IF PPDALARM EQ 0             ;FIELD ERRORS?
+   GOTO SETUP                ;NO, BEGIN PROCESSING
+IF PPDKEY EQ 'ENTER'         ;YES, ENTER KEY PRESSED?
+   GOTO -MAIN                ;     YES, GET INPUT AGAIN
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -MAIN
+;
+;                  Check MAPF fields
+;
+LABEL CHECK        ;SUBROUTINE
+SET  PPDCOND 2
+
+VTRUNC MEM1
+IFTHEN MEM1 EQ ''            ;ORIGINAL MEMBER MISSING?
+  SET  PPDCOND 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'MEM1'
+  SET  MESG 'An Original Member name is required.'
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VEXAMINE A '\B|V| '          ;INVALID ORIGINAL MEMBER TYPE?
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'A'
+  SET  MESG "The Original member's Type must be 'B' or 'V'."
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VEXAMINE A '\B| '            ;BIM MEMBER OR NOT SET YET?
+IFTHEN SIBRETCD EQ 'OK'
+  READ &MEM1                 ;YES, FOUND IN BIM-EDIT?
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  A 'B'               ;YES, FLAG AS BIM MEMBER
+    SET  PPDCOND 0
+    IFTHEN BEG EQ ''         ;LEFT MARGIN NOT SET YET?
+      SET  LMRG &TXMZONBS    ;YES, CHECK MEMBER BEGIN ZONE
+      EVALUATE 'Format(&LMRG,3)'
+      SETD MSG SIBMSG        ;MEMBER BEGIN ZONE SET?
+      IFTHEN MSG{1,2} EQ 'OK'
+        SETD BEG MSG{3}      ;YES, USE AS LEFT MARGIN
+      ELSE
+        SET  LMRG   1        ;NO, DEFAULT LEFT MARGIN
+        SET  BEG '  1'
+      ENDIF
+    ENDIF
+    IFTHEN END EQ ''         ;RIGHT MARGIN NOT SET YET?
+      SET  RMRG &TXMZONLM    ;YES, CHECK MEMBER END ZONE
+      EVALUATE 'Format(&RMRG,3)'
+      SETD MSG SIBMSG        ;MEMBER END ZONE SET?
+      IFTHEN MSG{1,2} EQ 'OK'
+        SETD END MSG{3}      ;YES, USE AS RIGHT MARGIN
+      ELSE
+        SET  RMRG  80        ;NO, DEFAULT RIGHT MARGIN
+        SET  END ' 80'
+      ENDIF
+    ENDIF
+    SET  PPDCOND 2
+  ELSE                       ;NO, NOT BIM MEMBER
+    IFTHEN A EQ 'B'          ;FLAGGED AS BIM MEMBER?
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'MEM1'
+      SET  MESG 'The specified BIM Original member does not exist.'
+    ENDIF
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VEXAMINE A '\V| '            ;VSE MEMBER OR NOT SET YET?
+IFTHEN SIBRETCD EQ 'OK'
+  BYPASS
+  LISTD &MEM1                ;YES, FOUND IN VSE LIBRARY?
+  IFTHEN SIBRETCD EQ 'OK'
+    BYPASS
+    END
+    SET  A 'V'               ;YES, FLAG AS VSE MEMBER
+  ELSE                       ;NO, NOT VSE MEMBER
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'MEM1'
+    IFTHEN A EQ 'V'          ;FLAGGED AS VSE MEMBER?
+      SET  MESG 'The specified VSE Original member does not exist.'
+    ELSE
+      SET  MESG 'The specified Original member was not found.'
+    ENDIF
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VTRUNC MEM2
+IFTHEN MEM2 EQ ''            ;MODIFIED MEMBER MISSING?
+  SET  PPDCOND 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'MEM2'
+  SET  MESG 'A Modified Member name is required.'
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VEXAMINE B '\B|V| '          ;INVALID MODIFIED MEMBER TYPE?
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'B'
+  SET  MESG "The Modified member's Type must be 'B' or 'V'."
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VEXAMINE B '\B| '            ;BIM MEMBER OR NOT SET YET?
+IFTHEN SIBRETCD EQ 'OK'
+  READ &MEM2                 ;YES, FOUND IN BIM-EDIT?
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  B 'B'               ;YES, FLAG AS BIM MEMBER
+    SET  PPDCOND 0
+    IFTHEN BEG EQ ''         ;LEFT MARGIN NOT SET YET?
+      SET  LMRG &TXMZONBS    ;YES, CHECK MEMBER BEGIN ZONE
+      EVALUATE 'Format(&LMRG,3)'
+      SETD MSG SIBMSG        ;MEMBER BEGIN ZONE SET?
+      IFTHEN MSG{1,2} EQ 'OK'
+        SETD BEG MSG{3}      ;YES, USE AS LEFT MARGIN
+      ELSE
+        SET  LMRG   1        ;NO, DEFAULT LEFT MARGIN
+        SET  BEG '  1'
+      ENDIF
+    ENDIF
+    IFTHEN END EQ ''         ;RIGHT MARGIN NOT SET YET?
+      SET  RMRG &TXMZONLM    ;YES, CHECK MEMBER END ZONE
+      EVALUATE 'Format(&RMRG,3)'
+      SETD MSG SIBMSG        ;MEMBER END ZONE SET?
+      IFTHEN MSG{1,2} EQ 'OK'
+        SETD END MSG{3}      ;YES, USE AS RIGHT MARGIN
+      ELSE
+        SET  RMRG  80        ;NO, DEFAULT RIGHT MARGIN
+        SET  END ' 80'
+      ENDIF
+    ENDIF
+    SET  PPDCOND 2
+  ELSE                       ;NO, NOT BIM MEMBER
+    IFTHEN B EQ 'B'          ;FLAGGED AS BIM MEMBER?
+      SET  PPDCOND 0
+      SET  PPDALARM 1
+      SET  PPDCSFLD 'MEM2'
+      SET  MESG 'The specified BIM Modified member does not exist.'
+    ENDIF
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+VEXAMINE B '\V| '            ;VSE MEMBER OR NOT SET YET?
+IFTHEN SIBRETCD EQ 'OK'
+  BYPASS
+  LISTD &MEM2                ;YES, FOUND IN VSE LIBRARY?
+  IFTHEN SIBRETCD EQ 'OK'
+    BYPASS
+    END
+    SET  B 'V'               ;YES, FLAG AS VSE MEMBER
+  ELSE                       ;NO, NOT VSE MEMBER
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'MEM2'
+    IFTHEN B EQ 'V'          ;FLAGGED AS VSE MEMBER?
+      SET  MESG 'The specified VSE Modified member does not exist.'
+    ELSE
+      SET  MESG 'The specified Modified member was not found.'
+    ENDIF
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+IFTHEN BEG EQ ''             ;COMPARE BEGIN COLUMN IS SET?
+  SET  LMRG   1              ;NO, DEFAULT TO COLUMN 1
+  SET  BEG '  1'             ;    DEFAULT TO COLUMN 1
+ELSE
+  SET  LMRG &BEG             ;YES, CHECK VALUE
+  IFTHEN SIBRETCD EQ 'OK'
+    EVALUATE 'Format(&LMRG,3)'
+    SETD MSG SIBMSG
+    IFTHEN MSG{1,2} EQ 'OK'
+      SETD BEG MSG{3}
+    ENDIF
+  ELSE
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'BEG'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+IFTHEN END EQ ''             ;COMPARE END COLUMN IS SET?
+  SET  RMRG  80              ;NO, DEFAULT TO COLUMN 80
+  SET  END ' 80'             ;    DEFAULT TO COLUMN 80
+ELSE
+  SET  RMRG &END             ;YES, CHECK VALUE
+  IFTHEN SIBRETCD EQ 'OK'
+    EVALUATE 'Format(&RMRG,3)'
+    SETD MSG SIBMSG
+    IFTHEN MSG{1,2} EQ 'OK'
+      SETD END MSG{3}
+    ENDIF
+  ELSE
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'END'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+IFTHEN LMRG GT &RMRG         ;MODIFIED MEMBER MISSING?
+  SET  PPDCOND 0
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'BEG'
+  SET  MESG 'The beginning Compare column is greater than the ending Compare column.'
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+SET  XLEN &RMRG
+SUBT XLEN &LMRG
+ADD  XLEN 1
+
+IFTHEN CNT EQ ''             ;EYE-CATCHER LINE COUNT IS SET?
+  SET  ELNS   5              ;NO, DEFAULT TO 5 LINES
+  SET  CNT '  5'             ;    DEFAULT TO 5 LINES
+ELSE
+  SET  ELNS &CNT             ;YES, CHECK VALUE
+  IFTHEN SIBRETCD EQ 'OK'
+    EVALUATE 'Format(&ELNS,3)'
+    SETD MSG SIBMSG
+    IFTHEN MSG{1,2} EQ 'OK'
+      SETD CNT MSG{3}
+    ENDIF
+  ELSE
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'CNT'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+IFTHEN P EQ ''               ;DISPLAY/PRINT OPTION IS SET?
+  SET  P 'D'                 ;NO, DEFAULT TO DISPLAY SESSION
+ELSE
+  VEXAMINE P '\D|P'          ;YES, CHECK VALUE
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'P'
+    SET  MESG "The Display/Print option must be 'D' or 'P'."
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   RETURN
+
+RETURN
+;
+;                  Setup work sessions
+;
+LABEL SETUP
+SET  PPDCOND 0
+
+IFTHEN A EQ 'B'              ;BIM-EDIT MEMBER?
+  BYPASS
+  DISP &MEM1                 ;YES, DISPLAY ORIGINAL BIM MEMBER
+ELSE
+  BYPASS
+  DISPD &MEM1                ;NO, DISPLAY ORIGINAL VSE MEMBER
+ENDIF
+DCL  S$ORIG   NUM   2 V      ;SESSION NUMBER (ORIGINAL MEMBER)
+SET  S$ORIG &SIBSSNU&SIBSCRPM
+NEXT 1                       ;POSITION TO THE FIRST LINE
+SET  ASIZE  &SSDSZLN         ;GET TOTAL NUMBER OF LINES
+
+IFTHEN B EQ 'B'              ;BIM-EDIT MEMBER?
+  BYPASS
+  DISP &MEM2                 ;YES, DISPLAY MODIFIED BIM MEMBER
+ELSE
+  BYPASS
+  DISPD &MEM2                ;NO, DISPLAY MODIFIED VSE MEMBER
+ENDIF
+DCL  S$MODF   NUM   2 V      ;SESSION NUMBER (MODIFIED MEMBER)
+SET  S$MODF &SIBSSNU&SIBSCRPM
+NEXT 1                       ;POSITION TO THE FIRST LINE
+SET  BSIZE  &SSDSZLN         ;GET TOTAL NUMBER OF LINES
+
+SETD RULE SCALE              ;COPY TEMPLATE SCALE LINE
+SET  RULE{&LMRG,1} '<'       ;SET LEFT MARGIN
+SET  RULE{&RMRG,1} '>'       ;SET RIGHT MARGIN
+
+STACK OPT=CLEAR              ;CLEAR THE $STACK
+STACKF                       ;STACK REPORT HEADERS
+FCOMPARE               BIM-EDIT MEMBER COMPARISON RESULTS
+
+ORIGINAL MEMBER (&A) = &MEM1
+MODIFIED MEMBER (&B) = &MEM2
+
+CHG &RULE
+++/*
+;
+;                  Compare member contents
+;
+LABEL COMPARE
+SET  PPDLPCTR  0
+
+BYPASS
+ROTATE &S$MODF
+SET  BPOS &SSDBASE&SIBSCRPM  ;SAVE CURRENT POSITION OF ORIGINAL FILE
+SETD BSRC(1) XTRSLINE &LMRG &XLEN
+
+BYPASS
+ROTATE &S$ORIG
+SET  APOS &SSDBASE&SIBSCRPM  ;SAVE CURRENT POSITION OF MODIFIED FILE
+SETD ASRC(1) XTRSLINE &LMRG &XLEN
+
+IFD ASRC(1) NE BSRC(1)       ;BOTH LINES MATCH?
+   GOTO MISMATCH             ;NO, GO REPORT MISMATCH
+
+IF SSDBASE&SIBSCRPM EQ &SSDSZLN
+   GOTO STACKEM              ;IF EOF ON ORIGINAL, GO STACK ANY REMAINS
+
+BYPASS
+ROTATE &S$MODF
+IF SSDBASE&SIBSCRPM EQ &SSDSZLN
+   GOTO STACKEM              ;IF EOF ON MODIFIED, GO STACK ANY REMAINS
+NEXT 1                       ;ADVANCE TO NEXT MODIFIED LINE
+
+BYPASS
+ROTATE &S$ORIG
+NEXT 1                       ;ADVANCE TO NEXT ORIGINAL LINE
+
+GOTO -COMPARE                ;REPEAT THE COMPARE PROCESS
+;
+;                  Prepare MAPF fields to display mismatched members
+;
+LABEL MISMATCH
+
+SETD RULE SCALE              ;COPY TEMPLATE SCALE LINE
+SET  RULE{&LMRG,1} '<'       ;SET LEFT MARGIN
+SET  RULE{&RMRG,1} '>'       ;SET RIGHT MARGIN
+
+SET  IDX 0                   ;START AT BEGINNING OF STRING
+SETL LEN ASRC(1)             ;GET THE LENGTH OF THE STRING
+BLOCK                        ;LOOP THROUGH STRINGS
+  ADD  IDX 1                 ;  INCREMENT POSITION
+  IFD ASRC(1){&IDX,1} EQ BSRC(1){&IDX,1}
+    LOOP                     ;  LOOP WHILE EQUAL
+ENDBLOCK                     ;UNTIL MISMATCH FOUND
+ADD  IDX &LMRG               ;ADJUST FOR THE LEFT MARGIN THAT
+SUBT IDX 1                   ;  IS NOT INCLUDED IN THE STRING
+SET  RULE{&IDX,1} '|'        ;SET MISMATCH POSITION
+
+BYPASS
+ROTATE &S$ORIG
+SET  POS &SSDBASE&SIBSCRPM   ;SAVE CURRENT POSITION
+IFTHEN SSDBASE&SIBSCRPM GT 1 ;FIRST LINE ALREADY?
+  UP   1                     ;NO, DISPLAY ONE LINE BEFORE CURRENT LINE
+  SET  IDX 1
+ELSE
+  SET  ASRC(1) ''            ;YES, DISPLAY BLANKS FOR FIRST LINE
+  SET  IDX 2
+ENDIF
+BLOCK                        ;LOAD UP ORIGINAL SOURCE LINES
+  SETD ASRC(&IDX) XTRSLINE
+  ADD  IDX 1
+  IFTHEN IDX LE 9
+    IFTHEN SSDBASE&SIBSCRPM LT &SSDSZLN
+      NEXT 1
+      LOOP
+    ENDIF
+  ENDIF
+ENDBLOCK
+IFTHEN IDX LE 9
+  BLOCK                      ;INITIALIZING ANY THAT ARE NOT USED
+    SET  ASRC(&IDX) ''
+    IFTHEN IDX LT 9
+      ADD  IDX 1
+      LOOP
+    ENDIF
+  ENDBLOCK
+ENDIF
+POS  &POS                    ;RESTORE TO SAVED POSITION
+
+BYPASS
+ROTATE &S$MODF
+SET  POS &SSDBASE&SIBSCRPM   ;SAVE CURRENT POSITION
+IFTHEN SSDBASE&SIBSCRPM GT 1 ;FIRST LINE ALREADY?
+  UP   1                     ;NO, DISPLAY ONE LINE BEFORE CURRENT LINE
+  SET  IDX 1
+ELSE
+  SET  BSRC(1) ''            ;YES, DISPLAY BLANKS FOR FIRST LINE
+  SET  IDX 2
+ENDIF
+BLOCK                        ;LOAD UP MODIFIED SOURCE LINES
+  SETD BSRC(&IDX) XTRSLINE
+  ADD  IDX 1
+  IFTHEN IDX LE 9
+    IFTHEN SSDBASE&SIBSCRPM LT &SSDSZLN
+      NEXT 1
+      LOOP
+    ENDIF
+  ENDIF
+ENDBLOCK
+IFTHEN IDX LE 9
+  BLOCK                      ;INITIALIZING ANY THAT ARE NOT USED
+    SET  BSRC(&IDX) ''
+    IFTHEN IDX LT 9
+      ADD  IDX 1
+      LOOP
+    ENDIF
+  ENDBLOCK
+ENDIF
+POS  &POS                    ;RESTORE TO SAVED POSITION
+
+SET  PPDALARM 1
+SET  MESG 'Resynchronize at next matching line via adding to adjustment fields provided.'
+;
+;                  Display mismatched member information
+;
+LABEL DISPLAY
+MAPF
+}FCOMPARE                 ¬Full-Screen Member Compare               }&OPSDATE
+}Enter number of lines changed/deleted from Original Member?{DEL}   }&OPSTIME
+}and/or number of lines changed/inserted in Modified Member?{INS}
+¬==================== Original Member = &MEM1 ====================
+}&ASRC(1)
+¬&RULE
+}&ASRC(2)
+}&ASRC(3)
+}&ASRC(4)
+}&ASRC(5)
+}&ASRC(6)
+}&ASRC(7)
+}&ASRC(8)
+}&ASRC(9)
+¬==================== Modified Member = &MEM2 ====================
+}&BSRC(1)
+¬&RULE
+}&BSRC(2)
+}&BSRC(3)
+}&BSRC(4)
+}&BSRC(5)
+}&BSRC(6)
+}&BSRC(7)
+}&BSRC(8)
+}&BSRC(9)
+¬========== F1 = Skip deletes, F2 = Skip inserts, F3 = Skip both ========== F12 = Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG ''
+
+IFTHEN PPDKEY EQ 'PF12'      ;PF12 KEY PRESSED?
+  STACK OPT=CLEAR            ;CLEAR THE $STACK
+  GOTO DONESESS              ;GO CLOSE THE FILES
+ENDIF
+
+SET  PPDCOND 2
+IFTHEN DEL EQ ''             ;MAPF FIELD EMPTY?
+  SET  ADEL   0              ;YES, SET TO ZERO
+  SET  DEL '  0'             ;     SET TO ZERO
+ELSE                         ;MAPF FIELD IS NOT EMPTY
+  SET  ADEL &DEL             ;VALUE NUMERIC?
+  IFTHEN SIBRETCD EQ 'OK'    ;YES, FORMAT IT FOR REDISPLAY
+    EVALUATE 'Format(&ADEL,3)'
+    SETD MSG SIBMSG
+    IFTHEN MSG{1,2} EQ 'OK'
+      SETD DEL MSG{3}
+    ENDIF
+  ELSE                       ;NO, REPORT THE PROBLEM
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'DEL'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -DISPLAY
+
+IFTHEN INS EQ ''             ;MAPF FIELD EMPTY?
+  SET  BINS   0              ;YES, SET TO ZERO
+  SET  INS '  0'             ;     SET TO ZERO
+ELSE                         ;MAPF FIELD IS NOT EMPTY
+  SET  BINS &INS             ;VALUE NUMERIC?
+  IFTHEN SIBRETCD EQ 'OK'    ;YES, FORMAT IT FOR REDISPLAY
+    EVALUATE 'Format(&BINS,3)'
+    SETD MSG SIBMSG
+    IFTHEN MSG{1,2} EQ 'OK'
+      SETD INS MSG{3}
+    ENDIF
+  ELSE                       ;NO, REPORT THE PROBLEM
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'INS'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+ENDIF
+IF PPDALARM EQ 1
+   GOTO -DISPLAY
+
+IF PPDKEY EQ 'ENTER'         ;ENTER KEY PRESSED?
+   GOTO CHECKEM              ;YES, GO CHECK 'EM
+
+IF PPDKEY EQ 'PF1'           ;PF1 KEY PRESSED?
+   GOTO SKIPDEL              ;YES, GO SKIP DELETES
+IF PPDKEY EQ 'PF2'           ;PF2 KEY PRESSED?
+   GOTO SKIPINS              ;YES, GO SKIP INSERTS
+SET  LCNT  0                 ;INITIALIZE LOOP COUNT
+IF PPDKEY EQ 'PF3'           ;PF3 KEY PRESSED?
+   GOTO SKIPCHG              ;YES, GO SKIP CHANGES
+
+SET PPDALARM 1
+SET MESG 'That Program Function key is not shown, and serves no purpose, on this screen.'
+GOTO -DISPLAY
+
+LABEL CHECKEM                ;CHECK IF CURRENT LINES MATCH
+GOSUB SETNGET                ;SET FILE POSITIONS
+IFD ASRC(1) EQ BSRC(1)       ;FILES IN SYNCH NOW?
+    GOTO STACKEM             ;YES, GO STACK DIFFERENCES
+GOTO -MISMATCH               ;NO, GO ASK FOR MORE
+;
+LABEL SKIPDEL                ;SKIP DELETES
+GOSUB SETNGET                ;SET FILE POSITIONS
+IFD ASRC(1) EQ BSRC(1)       ;FILES IN SYNCH NOW?
+    GOTO STACKEM             ;YES, GO STACK DIFFERENCES
+SET  POS  &APOS              ;IF CURRENT POSITION
+ADD  POS  &ADEL              ;PLUS NUMBER OF SKIPPED LINES
+IF POS GE &ASIZE             ;IS GREATER THAN OR EQUAL TO TOTAL LINES
+   GOTO STACKEM              ;THEN, GO STACK DIFFERENCES
+ADD  ADEL  1                 ;ELSE, SKIP SOME MORE
+GOTO -SKIPDEL                ;GO CHECK IT, AGAIN
+;
+LABEL SKIPINS                ;SKIP INSERTS
+GOSUB SETNGET                ;SET FILE POSITIONS
+IFD ASRC(1) EQ BSRC(1)       ;FILES IN SYNCH NOW?
+    GOTO STACKEM             ;YES, GO STACK DIFFERENCES
+SET  POS  &BPOS              ;IF CURRENT POSITION
+ADD  POS  &BINS              ;PLUS NUMBER OF SKIPPED LINES
+IF POS GE &BSIZE             ;IS GREATER THAN OR EQUAL TO TOTAL LINES
+   GOTO STACKEM              ;THEN, GO STACK DIFFERENCES
+ADD  BINS  1                 ;ELSE, SKIP SOME MORE
+GOTO -SKIPINS                ;GO CHECK IT, AGAIN
+;
+LABEL SKIPCHG                ;SKIP CHANGES
+GOSUB SETNGET                ;SET FILE POSITIONS
+IFD ASRC(1) EQ BSRC(1)       ;FILES IN SYNCH NOW?
+    GOTO STACKEM             ;YES, GO STACK DIFFERENCES
+SET  POS  &APOS              ;IF CURRENT POSITION
+ADD  POS  &ADEL              ;PLUS NUMBER OF SKIPPED LINES
+IF POS GE &ASIZE             ;IS GREATER THAN OR EQUAL TO TOTAL LINES
+   GOTO -MISMATCH            ;THEN, GO ASK FOR MORE
+SET  POS  &BPOS              ;IF CURRENT POSITION
+ADD  POS  &BINS              ;PLUS NUMBER OF SKIPPED LINES
+IF POS GE &BSIZE             ;IS GREATER THAN OR EQUAL TO TOTAL LINES
+   GOTO -MISMATCH            ;THEN, GO ASK FOR MORE
+IF LCNT GE 8                 ;SAFE TO SKIP 8 CHANGED LINES AT A TIME
+   GOTO -MISMATCH            ;THEN, GO ASK FOR MORE
+ADD  LCNT  1                 ;INCREMENT LOOP COUNT
+ADD  ADEL  1                 ;SKIP SOME MORE
+EVALUATE 'Format(&ADEL,3)'
+SETD MSG SIBMSG
+IFTHEN MSG{1,2} EQ 'OK'
+  SETD DEL MSG{3}
+ENDIF
+ADD  BINS  1                 ;SKIP SOME MORE
+EVALUATE 'Format(&BINS,3)'
+SETD MSG SIBMSG
+IFTHEN MSG{1,2} EQ 'OK'
+  SETD INS MSG{3}
+ENDIF
+GOTO -SKIPCHG                ;GO CHECK IT, AGAIN
+;
+LABEL SETNGET                ;SET FILE POSITIONS AND GET SOURCELINE
+BYPASS
+ROTATE &S$ORIG               ;CHECK NEW ORIGINAL LINE
+IFTHEN ADEL GT 0             ;LINES FLAGGED AS DELETED?
+  POS &APOS                  ;POSITION TO FIRST MISMATCH LINE
+  NEXT &ADEL                 ;POSITION PAST DELETED LINES
+ENDIF
+SETD ASRC(1) XTRSLINE &LMRG &XLEN
+BYPASS
+ROTATE &S$MODF               ;AGAINST NEW MODIFIED LINE
+IFTHEN BINS GT 0             ;LINES FLAGGED AS INSERTED?
+  POS &BPOS                  ;POSITION TO FIRST MISMATCH LINE
+  NEXT &BINS                 ;POSITION PAST INSERTED LINES
+ENDIF
+SETD BSRC(1) XTRSLINE &LMRG &XLEN
+RETURN
+;
+;                  Record differences in $STACK
+;
+LABEL STACKEM
+SET  PPDCOND 0
+
+IFTHEN ADEL EQ 0             ;NOTHING FLAGGED AS DELETED?
+  IFTHEN BINS EQ 0           ;NOTHING FLAGGED AS INSERTED?
+    BYPASS                   ;THEN ONE OF THE FILES HAS ENDED
+    ROTATE &S$ORIG
+    SET  ADEL &SSDSZLN       ;COMPUTE ORIGINAL LINES REMAINING
+    SUBT ADEL &SSDBASE&SIBSCRPM
+    ADD  APOS  1             ;AND ADVANCE ONE LINE (PAST EOF?)
+    BYPASS
+    ROTATE &S$MODF
+    SET  BINS &SSDSZLN       ;COMPUTE MODIFIED LINES REMAINING
+    SUBT BINS &SSDBASE&SIBSCRPM
+    ADD  BPOS  1             ;AND ADVANCE ONE LINE (PAST EOF?)
+  ENDIF
+ENDIF
+
+IFTHEN BPOS GT &SSDSZLN      ;END OF MODIFIED FILE?
+  BYPASS
+  ROTATE &S$ORIG
+  IFTHEN APOS GT &SSDSZLN    ;END OF ORIGINAL FILE?
+    GOTO DONESESS            ;WE'RE DONE
+  ENDIF
+ENDIF
+
+STACKI ' '                   ;OTHERWISE, STACK THE DIFFERENCE
+STACKI '    ==================================================================================================='
+
+SETD RULE SCALE              ;COPY TEMPLATE SCALE LINE
+SET  RULE{&LMRG,1} '<'       ;SET LEFT MARGIN
+SET  RULE{&RMRG,1} '>'       ;SET RIGHT MARGIN
+
+BYPASS
+ROTATE &S$ORIG
+IFTHEN APOS LE &ELNS
+  POS  1
+ELSE
+  IFTHEN APOS GT &SSDSZLN    ;EOF ON ORIGINAL FILE?
+    POS  &SSDSZLN            ;POSITION TO LAST LINE
+    UP   &ELNS               ;NUMBER OF EYE-CATCHER LINES
+    NEXT 1                   ;MINUS ONE
+  ELSE
+    POS  &APOS               ;POSITION TO MISMATCH LINE
+    UP   &ELNS               ;NUMBER OF EYE-CATCHER LINES
+  ENDIF
+ENDIF
+IFTHEN APOS GT 1
+  IFTHEN APOS LE &ELNS
+    SET  IDX &APOS
+    SUBT IDX 1
+    SHIFT +4 &IDX 1-135      ;SET ALIGNMENT FOR $STACK
+    STACK &IDX OPT=APPEND    ;STACK EYE-CATCHER LINES
+    SHIFT -4 &IDX 1-135      ;RESTORE MEMBER ALIGNMENT
+  ELSE
+    SHIFT +4 &ELNS 1-135     ;SET ALIGNMENT FOR $STACK
+    STACK &ELNS OPT=APPEND   ;STACK EYE-CATCHER LINES
+    SHIFT -4 &ELNS 1-135     ;RESTORE MEMBER ALIGNMENT
+  ENDIF
+ENDIF
+IFTHEN APOS GT &SSDSZLN      ;EOF ON ORIGINAL FILE?
+  POS  &SSDSZLN              ;POSITION TO LAST LINE
+ELSE
+  POS  &APOS                 ;POSITION TO MISMATCH LINE
+ENDIF
+
+IFTHEN ADEL GT 0             ;LINES FLAGGED AS DELETED?
+  STACKI '    &RULE'         ;STACK RULER/MARGINS LINE
+  SHIFT +4 &ADEL 1-135       ;SET ALIGNMENT FOR $STACK
+  OVLY 1 '<D>' &ADEL         ;OVERLAY DELETE FLAG
+  STACK &ADEL OPT=APPEND     ;STACK DELETED LINES
+  SHIFT -4 &ADEL 1-135       ;RESTORE MEMBER ALIGNMENT
+  NEXT &ADEL                 ;POSITION PAST DELETED LINES
+ENDIF
+
+IFTHEN BINS GT 0             ;LINES FLAGGED AS INSERTED?
+  STACKI '    &RULE'         ;STACK RULER/MARGINS LINE
+  BYPASS
+  ROTATE &S$MODF
+  POS  &BPOS                 ;POSITION TO MISMATCH LINE
+  SHIFT +4 &BINS 1-135       ;SET ALIGNMENT FOR $STACK
+  OVLY 1 '<I>' &BINS         ;OVERLAY INSERT FLAG
+  STACK &BINS OPT=APPEND     ;STACK INSERTED LINES
+  SHIFT -4 &BINS 1-135       ;RESTORE MEMBER ALIGNMENT
+  NEXT &BINS                 ;POSITION PAST INSERTED LINES
+  BYPASS
+  ROTATE &S$ORIG
+ENDIF
+
+STACKI '    &RULE'           ;STACK RULER/MARGINS LINE
+
+SHIFT +4 &ELNS 1-135         ;SET ALIGNMENT FOR $STACK
+STACK &ELNS OPT=APPEND       ;STACK EYE-CATCHER LINES
+SHIFT -4 &ELNS 1-135         ;RESTORE MEMBER ALIGNMENT
+
+STACKI '    ==================================================================================================='
+
+IF APOS GT &SSDSZLN          ;END OF ORIGINAL FILE?
+   GOTO DONESESS             ;WE'RE DONE
+
+SET  ADEL   0                ;CLEAR NUMBER OF DELETED LINES
+SET  BINS   0                ;CLEAR NUMBER OF INSERTED LINES
+SET  DEL '  0'               ;CLEAR NUMBER OF DELETED LINES
+SET  INS '  0'               ;CLEAR NUMBER OF INSERTED LINES
+GOTO -COMPARE
+;
+;                  Done with work sessions
+;
+LABEL DONESESS
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+BYPASS
+ROTATE &S$MODF               ;SELECT MODIFIED FILE
+BYPASS
+END NOSAVE                   ;CLOSE IT
+
+BYPASS
+ROTATE &S$ORIG               ;SELECT ORIGINAL FILE
+BYPASS
+END NOSAVE                   ;CLOSE IT
+;
+;                  Create DISPLAY session
+;
+IFTHEN SIBSTSIZ GT 0         ;ANYTHING IN THE $STACK?
+  SET  PPDINCL   1
+  SET  SIBOUTPT &P
+  OUTPUTF 'FCOMPARE' FMT=0 CASE=U ;CREATE SESSION FROM THE $STACK
+/INCLUDE $STACK
+++/*
+  IF SIBOUTPT EQ 'D'         ;DISPLAY, NOT PRINT?
+     SCREEN LCA OFF          ;TURNOFF LCA
+     SETKEYS                 ;SET PF KEYS
+  ENDIF
+  SET  SIBOUTPT 'D'
+  SET  PPDINCL   0
+  STACK OPT=CLEAR            ;CLEAR THE $STACK
+ENDIF
+;
+;                  End of Procedure
+;
+LABEL EXITPROC
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+EXIT

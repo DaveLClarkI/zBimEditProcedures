@@ -1,0 +1,101 @@
+;"SPELLFMT" FORMATS SPELLCHK DICTIONARIES INTO SOMETHING MORE EFFICIENT
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDHEX   1
+;
+DCL  C        CHAR   1 V
+DCL  X        NUM    5 V
+DCL  XA       NUM    4 V
+DCL  XB       NUM    4 V
+DCL  XC       NUM    4 V
+DCL  XD       NUM    4 V
+DCL  XE       NUM    4 V
+DCL  XF       NUM    4 V
+DCL  XG       NUM    4 V
+DCL  XH       NUM    4 V
+DCL  XI       NUM    4 V
+DCL  XJ       NUM    4 V
+DCL  XK       NUM    4 V
+DCL  XL       NUM    4 V
+DCL  XM       NUM    4 V
+DCL  XN       NUM    4 V
+DCL  XO       NUM    4 V
+DCL  XP       NUM    4 V
+DCL  XQ       NUM    4 V
+DCL  XR       NUM    4 V
+DCL  XS       NUM    4 V
+DCL  XT       NUM    4 V
+DCL  XU       NUM    4 V
+DCL  XV       NUM    4 V
+DCL  XW       NUM    4 V
+DCL  XX       NUM    4 V
+DCL  XY       NUM    4 V
+DCL  XZ       NUM    4 V
+DCL  Y        NUM    5 V
+DCL  Z        NUM    3 V
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(SPELLFMT) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+IF SSDTYPE,EQ,EE
+   GOTO EXECUTE
+IF SSDTYPE,NE,ED
+   EXIT SV,'(SPELLFMT) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+
+LABEL EXECUTE
+
+SET  Z 253
+IF SSDTYPE,EQ,EE
+   SET  Z 80
+SESS ZONE=1-&Z
+IF SSDTYPE,EQ,ED
+   ALT  &SSDLIB..&SSDMEM ZONE=1-&Z
+SUBT Z 1
+
+TOP
+SET  PPDCOND  1
+LABEL FORMAT
+FIND "-----" 3
+IF SIBRETCD,NE,OK
+   GOTO DONE
+SETD C        XTRSLINE 1 1
+IF C,EQ,"@FF"
+   GOTO DONE
+SETD X&C      SSDBASE&SIBSCRPM
+SETD PARMLIST XTRSLINE 9 6
+PARSE X
+IF X,EQ,0
+   OVLY 20 "0 " 1
+IF X,EQ,0
+   GOTO -FORMAT
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+BYPASS
+FORMAT 2-&Z OFF
+SETD X        SSDBASE&SIBSCRPM
+FIND "-----" 3
+IF SIBRETCD,NE,OK
+   SETD Y        SSDSZLN
+IF SIBRETCD,EQ,OK
+   SETD Y        SSDBASE&SIBSCRPM
+SUBT Y        &X
+POS  &X
+UP   1
+OVLY 20 "&Y " 1
+GOTO -FORMAT
+
+LABEL DONE
+POS  &SSDSZLN
+EXAM "-----",3-7
+IF SIBRETCD,NE,OK
+   INSI "@FF -----     0 "
+OVLY 20 "&XA &XB &XC &XD &XE &XF &XG &XH &XI &XJ &XK &XL &XM " 1
+OVLY 85 "&XN &XO &XP &XQ &XR &XS &XT &XU &XV &XW &XX &XY &XZ " 1
+TOP
+NEXT 1

@@ -1,0 +1,251 @@
+;"SPELLSQU" SQUEEZES DOCUMENTS REMOVING ALL NON-ALPHABETBETIC CHARACTERS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+;
+DCL  ALPHABET CHAR  26 V U
+SET  ALPHABET 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+;
+DCL  C        CHAR   1 V
+DCL  L        NUM    3 V
+DCL  M        NUM    3 V
+DCL  N        NUM    3 V
+DCL  OLD      CHAR  80 V
+DCL  STR      CHAR  80 V
+DCL  SW       CHAR   1 V
+DCL  T        NUM    8 V
+DCL  W        NUM    5 Z
+DCL  X        NUM    5 V
+DCL  Y        NUM    5 Z
+DCL  Z        NUM    3 V
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(SPELLSQU) ** COMMAND REQUIRES AN UPDATEABLE SESSION **'
+IF SSDTYPE,EQ,EE
+   GOTO EXECUTE
+IF SSDTYPE,EQ,ED
+   GOTO EXECUTE
+IF MMPDSCTL,EQ,0
+   EXIT SV,'(SPELLSQU) ** COMMAND REQUIRES AN UPDATEABLE SESSION **'
+IF SSDTYPE,NE,DI
+   EXIT SV,'(SPELLSQU) ** COMMAND REQUIRES AN UPDATEABLE SESSION **'
+
+LABEL EXECUTE
+
+SET  Z        253
+IF SSDTYPE,EQ,EE
+   SET  Z        80
+SESS ZONE=1-&Z
+IF SSDTYPE,EQ,ED
+   ALT  &SSDLIB..&SSDMEM,ZONE=1-&Z
+
+SET  PPDCOND  1
+SET  PPDLPLMT 100000
+
+PARSE STR
+IF STR,NE,''
+   GOTO RETRY
+
+TOP
+BYPASS
+LOC  "\~                                                          ",196-253
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSQU) ** INVALID MEMBER CONTENTS IN CC 80-253 **'
+BYPASS
+LOC  "\~                                                          ",138-195
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSQU) ** INVALID MEMBER CONTENTS IN CC 80-253 **'
+BYPASS
+LOC  "\~                                                          ",80-137
+IF SIBRETCD,EQ,OK
+   EXIT SV,'(SPELLSQU) ** INVALID MEMBER CONTENTS IN CC 80-253 **'
+
+TOP
+UPPER *
+SHIFT +1,*
+CHANGE '¢',' ',*,1-80        ;4A
+CHANGE '.',' ',*,1-80        ;4B
+CHANGE '<',' ',*,1-80        ;4C
+CHANGE '(',' ',*,1-80        ;4D
+CHANGE '+',' ',*,1-80        ;4E
+CHANGE '|',' ',*,1-80        ;4F
+CHANGE '&',' ',*,1-80        ;50
+CHANGE '!',' ',*,1-80        ;5A
+CHANGE '$',' ',*,1-80        ;5B
+CHANGE '*',' ',*,1-80        ;5C
+CHANGE ')',' ',*,1-80        ;5D
+CHANGE ';',' ',*,1-80        ;5E
+CHANGE '¬',' ',*,1-80        ;5F
+CHANGE '-',' ',*,1-80        ;60
+CHANGE '/',' ',*,1-80        ;61
+CHANGE '¦',' ',*,1-80        ;6A
+CHANGE ',',' ',*,1-80        ;6B
+CHANGE '%',' ',*,1-80        ;6C
+CHANGE '_',' ',*,1-80        ;6D
+CHANGE '>',' ',*,1-80        ;6E
+CHANGE '?',' ',*,1-80        ;6F
+CHANGE '`',' ',*,1-80        ;79
+CHANGE ':',' ',*,1-80        ;7A
+CHANGE '#',' ',*,1-80        ;7B
+CHANGE '@',' ',*,1-80        ;7C
+;HANGE "'"," ",*,1-80        ;7D
+CHANGE '=',' ',*,1-80        ;7E
+CHANGE '"',' ',*,1-80        ;7F
+CHANGE '~',' ',*,1-80        ;A1
+CHANGE '{',' ',*,1-80        ;C0
+CHANGE '}',' ',*,1-80        ;D0
+CHANGE '\',' ',*,1-80        ;E0
+CHANGE '0',' ',*,1-80        ;F0
+CHANGE '1',' ',*,1-80        ;F1
+CHANGE '2',' ',*,1-80        ;F2
+CHANGE '3',' ',*,1-80        ;F3
+CHANGE '4',' ',*,1-80        ;F4
+CHANGE '5',' ',*,1-80        ;F5
+CHANGE '6',' ',*,1-80        ;F6
+CHANGE '7',' ',*,1-80        ;F7
+CHANGE '8',' ',*,1-80        ;F8
+CHANGE '9',' ',*,1-80        ;F9
+
+SET  L        0
+LABEL SQUEEZE
+ADD  L        1
+CHANGE '  ',' ',*,1-80
+IF L,LT,8
+   GOTO -SQUEEZE
+
+LABEL RETRY
+TOP
+SET  PPDCOND  2
+SET  PPDLPCTR 0
+SET  SW       ''
+SET  T        &SSDSZLN
+LABEL SORT
+BYPASS
+SORT 1-80,&T
+IF SIBRETCD,EQ,OK
+   GOTO ENDSORT
+SUBT T        100
+SET  SW       'X'
+GOTO -SORT
+LABEL ENDSORT
+SET  PPDCOND  1
+
+SET  T        &SSDSZLN
+LOC  'A'
+SETD X SSDBASE&SIBSCRPM
+SUBT X        1
+TOP
+IF X,GT,0
+   DEL  &X
+
+IF SW,EQ,'X'
+   GOTO CHECK
+BYPASS
+FIND "-----",3
+IF SIBRETCD,EQ,OK
+   DEL  *
+
+LABEL CHECK
+TOP
+NEXT 1
+SETD OLD      XTRSLINE 1 80
+VTRUNC OLD
+LABEL NEXT
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+SETD W        SSDBASE&SIBSCRPM
+LABEL RECHECK
+SETD STR      XTRSLINE 1 80
+VTRUNC STR
+IFD STR,EQ,OLD
+   GOTO DELETE
+SETD OLD      STR
+GOTO -NEXT
+LABEL DELETE
+DEL  1
+IF W,GT,&SSDSZLN
+   GOTO DONE
+GOTO -RECHECK
+
+LABEL DONE
+IF SW,NE,'X'
+   GOTO CONTINUE
+IF T,GT,&SSDSZLN
+   GOTO -RETRY
+TOP
+FIND "-----",3
+EXIT SV,'(SPELLSQU) ** SESSION IS TOO LARGE TO SORT IN THE AVAILABLE MEMORY **'
+
+LABEL CONTINUE
+TOP
+SET  L        0
+SET  M        0
+SET  W        0
+LABEL LABEL
+ADD  L        1
+IF L,GT,26
+   GOTO DONE
+SETD C        ALPHABET &L 1
+FIND &C       2
+IF SIBRETCD,NE,OK
+   GOTO MEMORY
+SETD X        SSDBASE&SIBSCRPM
+SET  N        0
+LABEL NEXT
+ADD  N        1
+ADD  L        1
+IF L,GT,26
+   GOTO LAST
+SETD C        ALPHABET &L 1
+FIND &C       2
+IF SIBRETCD,NE,OK
+   GOTO -NEXT
+SETD Y        SSDBASE&SIBSCRPM
+POS  &X
+GOTO READY
+LABEL MEMORY
+ADD  M        1
+GOTO -LABEL
+LABEL LAST
+SETD Y        SSDSZLN
+ADD  Y        1
+LABEL READY
+SUBT Y        &X
+ADD  W        &Y
+SUBT L        &N
+UP   1
+LABEL LOOP
+SUBT L        &M
+SETD C        ALPHABET &L 1
+IF M,GT,0
+   INSERTI "&C -----     0"
+IF M,EQ,0
+   INSERTI "&C ----- &Y"
+ADD  L        &M
+IF M,EQ,0
+   GOTO -LABEL
+SUBT M        1
+GOTO -LOOP
+
+LABEL DONE
+IF M,EQ,0
+   GOTO EXIT
+POS  &SSDSZLN
+SUBT L        &M
+SETD C        ALPHABET &L 1
+INSI "&C -----     0"
+ADD  L        &M
+SUBT M        1
+GOTO -DONE
+
+LABEL EXIT
+POS  &SSDSZLN
+SET  PPDHEX   1
+INSERTI "@FF ----- &W"
+TOP

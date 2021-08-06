@@ -1,0 +1,42 @@
+;FINDDUP - FIND DUPLICATE LINES BY ZONE
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svcs *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL 1
+SET  PPDLITEX 1
+SET  PPDPFOPT 1
+DCL  OLD      CHAR 253 V M
+DCL  STR      CHAR 253 V M
+DCL  BEG      NUM    3 V
+DCL  END      NUM    3 V
+PARSE BEG END
+IF BEG EQ 0
+   EXIT SV,'FINDDUP ** BEGINNING COLUMN IS REQUIRED **'
+IF END EQ 0
+   EXIT SV,'FINDDUP ** ENDING COLUMN IS REQUIRED **'
+IF END GT 253
+   EXIT SV,'FINDDUP ** ENDING COLUMN GREATER THAN 253 **'
+IF END LT &BEG
+   EXIT SV,'FINDDUP ** ENDING COLUMN LESS THAN BEGINNING COLUMN **'
+
+SETD OLD      XTRSLINE &BEG &END
+LABEL NEXT
+NEXT 1
+IF SIBRETCD,NE,OK
+   GOTO DONE
+SETD STR      XTRSLINE &BEG &END
+VTRUNC STR
+IFD STR,EQ,OLD
+   GOTO DUPLICATE
+SETD OLD      STR
+GOTO -NEXT
+
+LABEL DUPLICATE
+UP 1
+EXIT OK,'** COLUMN &BEG TO &END IS DUPLICATED WITH THE NEXT LINE **'
+LABEL DONE

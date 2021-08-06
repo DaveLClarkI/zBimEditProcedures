@@ -1,0 +1,99 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPSTKY    Proc Created 10/30/2001   By Dave Clark        *
+;*                  Last Revised 08/27/2009                        *
+;*                                                                 *
+;*      Set the PF  keys  according  to  the current session type. *
+;* Note that if the current  user  has no saved PFkey settings for *
+;* the current session type  (or  no  saved PFkey settings for the *
+;* "no-session"  display),   then  default  PFkey  settings  (from *
+;* $SIT.CTRL.SETKEYS) are used.                                    *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  The following line (without the ruler line) *
+;* must be added to  the  $SIT.CTRL.COMMANDS member and then issue *
+;* the "NEWCOPY COMMANDS" command:                                 *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* SETKEYS  BIPSTKY                                                *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL,1
+SET  PPDLITDL '"'
+DCL  DMY1   CHAR  8 V
+DCL  DMY2   CHAR  8 V
+DCL  CMD    CHAR 46 V
+DCL  DMY3   CHAR 33 V
+DCL  DMY4   CHAR 33 V
+DCL  MSG    CHAR 80 V
+DCL  LSTMEM CHAR 33 V        ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+SET  PPDCOND,1
+IFTHEN SIBSESSD,EQ,0
+   READ $USR.&SIBUSER..SETKEYS
+ELSE
+   READ $USR.&SIBUSER..SETKEYS-&SSDTYPE
+   IF SIBRETCD,NE,OK
+      READ $USR.&SIBUSER..SETKEYS
+   IF SIBRETCD,NE,OK
+      READ $SIT.CTRL.SETKEYS-&SSDTYPE
+ENDIF
+IF SIBRETCD,NE,OK
+   READ $SIT.CTRL.SETKEYS    ;DEFAULT PF-KEY SETTINGS OF LAST RESORT
+IFTHEN SIBRETCD,NE,OK
+   SET  PPDCOND 2            ;BYPASS ALL ERRORS
+   READ &LSTMEM              ;RESTORE USER'S LAST REFERENCED INFO
+   SET  PPDCOND 0            ;DEFAULT ERROR HANDLING
+   EXIT OK,'## NO PFKEY SETTINGS FOUND ##'
+ENDIF
+SET  PPDCOND,0
+
+INCL &TXMLIB..&TXMMEM
+
+IFTHEN SIBSESSD,GT,0
+  IFTHEN SSDTYPE,EQ,DI
+    SET CMD '&SSDOBJ'
+    SET  PPDLITEX 1
+    EVALUATE "S='&CMD'" "PARSE UPPER VAR S 10 C ." "C"
+    SETD MSG SIBMSG
+    SET  PPDLITEX 0
+    IFTHEN MSG{1,2} EQ 'OK'
+      SET CMD '&MSG{3,}'
+    ELSE
+      EXIT &MSG{1,2},'C: &MSG{3,}'
+    ENDIF
+    SET  PPDCOND 1
+    VEXAM CMD '\DA|DC|DISPC|DISPLAYC'
+    IF SIBRETCD,EQ,OK
+       SET ENTER 'REFRESH'
+    SET  PPDCOND 0
+  ENDIF
+ENDIF
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 1               ;DEFAULT ERROR HANDLING
+
+;VEXAM SSDTYPE '\ED|LI'
+;IF SIBRETCD,NE,OK
+;   GOTO EXIT
+;IF SSDMEM NE &TXMMEM
+;   GOTO SETMEM
+;IF SSDLIB EQ &TXMLIB
+;   GOTO EXIT
+
+;LABEL SETMEM
+;READ &SSDLIB\&SSDMEM
+
+;LABEL EXIT
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+EXIT OK,'## KEY(S) SET ##'

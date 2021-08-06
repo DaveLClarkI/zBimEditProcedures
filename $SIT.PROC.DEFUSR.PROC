@@ -1,0 +1,359 @@
+* -------------------------------------------------------------------- *
+* PROCEDURE: DEFUSR     (ALSO "FDEFU" AND "FDEFINEU")
+* TITLE....: CREATE NEW USER, LIBRARIES, AND SECURITY IN FULL SCREEN
+* AUTHOR...: DAVE L CLARK I                 CREATED: 07/12/2018
+* -------------------------------------------------------------------- *
+SET  PPDVBL   1
+SET  PPDPFOPT 1
+SET  PPDSCRSZ D
+
+IF SIBSECCM,NE,'4'
+   EXIT SV,'(DEFUSR) ** ADMINISTRATOR LEVEL AUTHORITY IS REQUIRED **'
+
+DCL  USER     CHAR   8 V U   ;these are the MAPF fields
+DCL  PSWD     CHAR   8 V U
+DCL  NAME     CHAR  25 V M
+DCL  TYPE     CHAR   4 V U
+DCL  MESG     CHAR  78 V U
+                           ;default settings for basic user
+DCL  LIBSEC   CHAR   4 V U INIT='NULL'
+DCL  POWSEC   CHAR   1 V U INIT='0'
+DCL  LOGL     NUM    6 V   INIT=500
+DCL  MAILL    NUM    6 V   INIT=500
+DCL  SIZEL    NUM    6 V   INIT=100000
+DCL  ATTR     CHAR   8 V U INIT=''
+DCL  NTFY     CHAR   8 V U INIT='YES'
+DCL  GRPS     NUM    1 V   INIT=3
+DCL  MXSESS   NUM    2 V   INIT=99
+DCL  AUTOMAIL CHAR   4 V U INIT='NTFY'
+                           ;can override above later (at label BEGIN)
+DCL  EXISTS   CHAR   1 V U
+DCL  LSTMEM   CHAR  33 V U
+DCL  TEMP     CHAR   8 V U
+DCL  RC       CHAR   2 V U
+DCL  MSG      CHAR  82 V U
+
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+* -------------------------------------------------------------------- *
+LABEL GETUSR                 ;display map for full screen input...
+* -------------------------------------------------------------------- *
+
+MAPF
+}DEFUSR                        ¬Define New Users                    }&OPSDATE
+                                                                    }&OPSTIME
+
+¬Enter the values to define a new BIM-EDIT user. }Note that this also creates
+}      their standard user libraries and their default library security.
+
+  }User id . . . . . . . . . :{USER    }                   Max:  8 chars.
+
+  }User name (mixed case)  . :{NAME                     }  Max: 25 chars.
+
+  }Password  . . . . . . . . :{PSWD    }                   Max:  8 chars.
+
+  }User type . . . . . . . . :{TYPE}      Use ADM  for administrators;
+                                              OPER for operators;
+                                              PGMR for programmers;
+                                              TEMP for contractors; and
+                                              USER for other users.
+
+
+
+
+}Press¬ENTER}to begin processing.
+¬PF3}= Exit
+¬&MESG                                                                         }
+++/*
+
+IF PPDKEY EQ 'CLEAR'
+   EXIT OK,'(DEFUSR) ** OPERATION CANCELLED **'
+IF PPDKEY EQ 'PF3'
+   EXIT OK,'(DEFUSR) ** OPERATION CANCELLED **'
+
+* -------------------------------------------------------------------- *
+LABEL CHKUSR                 ;validate all input from the bottom up...
+* -------------------------------------------------------------------- *
+
+SET  PPDALARM  0
+SET  PPDCSFLD  ''
+SET  MESG      ''
+
+IFTHEN TYPE,LE,' '           ;validate user type
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'TYPE'
+  SET  MESG     'User type is required.'
+ELSE
+  SET  PPDCOND   1           ;test for user type value
+  VEXAM TYPE '\ADM|OPER|PGMR|TEMP|USER'
+  IFTHEN SIBRETCD,NE,'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'TYPE'
+    SET  MESG     'User type must be ADM, OPER, PGMR, TEMP, or USER.'
+  ELSE
+    VTRUNC TYPE              ;truncate spaces
+  ENDIF
+  SET  PPDCOND   0
+ENDIF
+
+IFTHEN PSWD,LE,' '           ;validate user password
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'PSWD'
+  SET  MESG     'User password is required.'
+ELSE
+  SET  PPDCOND   2
+  SET  TEMP  &PSWD           ;test for embeded spaces
+  IFTHEN SIBRETCD,NE,'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'PSWD'
+    SET  MESG     'User password may not contain spaces.'
+  ELSE
+    VTRUNC PSWD              ;truncate spaces
+  ENDIF
+  SET  PPDCOND   0
+ENDIF
+
+IFTHEN NAME,LE,' '           ;validate user name
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'NAME'
+  SET  MESG     'User name is required.'
+ELSE
+  VTRUNC NAME                ;truncate spaces
+ENDIF
+
+IFTHEN USER,LE,' '           ;validate user id
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'USER'
+  SET  MESG     'User id is required.'
+ELSE
+  SET  PPDCOND   2
+  SET  TEMP  &USER           ;test for embeded spaces
+  IFTHEN SIBRETCD,NE,'OK'
+    SET  PPDALARM 1
+    SET  PPDCSFLD 'USER'
+    SET  MESG     'User id may not contain spaces.'
+  ELSE
+    VTRUNC USER              ;truncate spaces
+  ENDIF
+  SET  PPDCOND   0
+ENDIF
+
+IFTHEN PPDALARM,EQ,0         ;if no errors so far
+  SET  PPDCOND  1            ;check if user already exists
+  READU &USER
+  IFTHEN SIBRETCD,EQ,OK      ;if they do
+    IFTHEN PPDKEY NE 'PF9'   ;and no signal to accept this
+      SET  PPDALARM 1        ;ask for a signal
+      SET  PPDCSFLD 'USER'
+      SET  MESG  'User id exists.  Respecify or press F9 to alter this user.'
+    ENDIF
+  ENDIF
+  SET  PPDCOND  0
+ENDIF
+
+IF PPDALARM,NE,0             ;if errors
+   GOTO -GETUSR              ;repeat process
+
+* -------------------------------------------------------------------- *
+LABEL BEGIN                  ;apply overrides as needed...
+* -------------------------------------------------------------------- *
+                             ;first, apply type overrides by user id
+IFTHEN USER,EQ,'$BAT'
+  SET  TYPE     'ADM'
+ENDIF
+
+IFTHEN USER,EQ,'$OPER'
+  SET  TYPE     'OPER'
+ENDIF
+
+IFTHEN USER,EQ,'$SYS'
+  SET  TYPE     'ADM'
+ENDIF
+
+IFTHEN USER,EQ,'DLC'
+  SET  TYPE     'ADM'
+ENDIF
+
+* -------------------------------------------------------------------- *
+                             ;then, apply attr. overrides by user type
+IFTHEN TYPE,EQ,'TEMP'
+  SET  TYPE     'EXTU'
+  SET  LIBSEC   'LIST'
+  SET  POWSEC   '2'
+ENDIF
+
+IFTHEN TYPE,EQ,'PGMR'
+  SET  TYPE     'EXTU'
+  SET  LIBSEC   'EDIT'
+  SET  POWSEC   '2'
+ENDIF
+
+IFTHEN TYPE,EQ,'OPER'
+  SET  LIBSEC   'EXEC'
+  SET  POWSEC   '2'
+ENDIF
+
+IFTHEN TYPE,EQ,'ADM'
+  SET  LIBSEC   'DEFS'
+  SET  POWSEC   '2'
+ENDIF
+
+* -------------------------------------------------------------------- *
+                             ;last, apply attr. overrides by user id
+IFTHEN USER,EQ,'$BAT'
+  SET  LIBSEC   'DEF'
+ENDIF
+
+IFTHEN USER,EQ,'$OPER'
+  SET  POWSEC   '3'
+ENDIF
+
+IFTHEN USER,EQ,'$SYS'
+  SET  LIBSEC   'DEFL'
+  SET  POWSEC   '3'
+ENDIF
+
+IFTHEN USER,EQ,'DLC'
+  SET  POWSEC   '3'
+  SET  SIZEL    500000
+  SET  GRPS     9
+ENDIF
+
+* -------------------------------------------------------------------- *
+LABEL DEFUSR                 ;define/alter the user...
+* -------------------------------------------------------------------- *
+SET  PPDCOND  1
+
+DEFU USER=&USER PSWD=&PSWD NAME='&NAME' CMDSEC=&TYPE LIBSEC=&LIBSEC -
+     PWRSEC=&POWSEC LOGL=&LOGL MAILL=&MAILL SIZEL=&SIZEL -
+     NTFY=&NTFY GRPS=&GRPS MXSESS=&MXSESS AUTOMAIL=&AUTOMAIL
+
+IFTHEN SIBRETCD,EQ,'DP'
+  SET  EXISTS  'Y'
+  ALTU USER=&USER PSWD=&PSWD NAME='&NAME' CMDSEC=&TYPE LIBSEC=&LIBSEC -
+       PWRSEC=&POWSEC LOGL=&LOGL MAILL=&MAILL SIZEL=&SIZEL -
+       NTFY=&NTFY GRPS=&GRPS MXSESS=&MXSESS AUTOMAIL=&AUTOMAIL
+ENDIF
+
+IFTHEN SIBRETCD,EQ,'OK'
+  IF ATTR,GT,' '
+     ALTU USER=&USER ATTR='&ATTR'
+ENDIF
+
+IF SIBRETCD,NE,'OK'
+   EXIT &SIBRETCD,'&SIBMSG'
+
+* -------------------------------------------------------------------- *
+LABEL DEFLIB                 ;define standard user libraries...
+* -------------------------------------------------------------------- *
+SET  PPDCOND  1
+
+DEFL LIB=$USR.&USER TITLE="User's Profile Library" USER=&USER
+
+IFTHEN SIBRETCD,NE,'DP'
+  IF SIBRETCD,NE,'OK'
+     EXIT &SIBRETCD,'&SIBMSG'
+ENDIF
+
+BYPASS                       ;configure user for first time logon
+DEF  $USR.&USER..$FIRSTTIME TYPE=PROC TITLE='FIRST TIME USE'
+BYPASS
+EDIT
+BYPASS
+DELETE *
+SET  PPDTRAP  1
+INSERTF
+SET  SIBHEXC   '¢'
+SET  SIBDFLCA  'L'
+)IFTHEN TYPE,EQ,'USER'
+ATT  LIB=&USER..DATA OPT=HOME
+)ELSE
+ATT  LIB=&USER..PRO OPT=HOME
+)ENDIF
+ATTD LIB=DAP.PROD  OPT=HOME
+++/*
+SET  PPDTRAP  0
+BYPASS
+SAVE
+                             ;give user standard function keys
+COPY $SIT.CTRL.SETKEYS    $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-DI $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-ED $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-EE $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-LD $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-LG $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-LI $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-LP $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-ML $USR.&USER..*
+COPY $SIT.CTRL.SETKEYS-ST $USR.&USER..*
+
+IFTHEN TYPE,EQ,'USER'        ;create basic user's working library
+
+  DEFL LIB=&USER..DATA TITLE="User's Data Library" USER=&USER
+
+  IFTHEN SIBRETCD,NE,'DP'
+    IF SIBRETCD,NE,'OK'
+       EXIT &SIBRETCD,'&SIBMSG'
+  ENDIF
+
+ELSE                         ;create extended working libraries
+
+  DEFL LIB=&USER..JCL TITLE="User's Job Control Library" USER=&USER
+
+  IFTHEN SIBRETCD,NE,'DP'
+    IF SIBRETCD,NE,'OK'
+       EXIT &SIBRETCD,'&SIBMSG'
+  ENDIF
+
+  DEFL LIB=&USER..JOB TITLE="User's Jobs Model Library" USER=&USER
+
+  IFTHEN SIBRETCD,NE,'DP'
+    IF SIBRETCD,NE,'OK'
+       EXIT &SIBRETCD,'&SIBMSG'
+  ENDIF
+
+  DEFL LIB=&USER..PRO TITLE="User's Program Library" USER=&USER
+
+  IFTHEN SIBRETCD,NE,'DP'
+    IF SIBRETCD,NE,'OK'
+       EXIT &SIBRETCD,'&SIBMSG'
+  ENDIF
+
+ENDIF
+
+* -------------------------------------------------------------------- *
+LABEL DEFSEC                 ;define default library security...
+* -------------------------------------------------------------------- *
+SET  PPDCOND  1
+
+DEFS LIB=$USR.&USER USER=&USER SEC=DEF
+
+IFTHEN SIBRETCD,NE,'DP'
+  IF SIBRETCD,NE,'OK'
+     EXIT &SIBRETCD,'&SIBMSG'
+ENDIF
+
+DEFS LIB=&USER      USER=&USER SEC=DEF
+
+IFTHEN SIBRETCD,NE,'DP'
+  IF SIBRETCD,NE,'OK'
+     EXIT &SIBRETCD,'&SIBMSG'
+ENDIF
+
+DEFS LIB=&USER      USER=$DFL  SEC=LIST
+
+IFTHEN SIBRETCD,NE,'DP'
+  IF SIBRETCD,NE,'OK'
+     EXIT &SIBRETCD,'&SIBMSG'
+ENDIF
+
+* ------------------------------------------------------------------
+LABEL DONE                   ;all done.
+* ------------------------------------------------------------------
+SET  PPDCOND  2              ;DISABLE DEFAULT ERROR HANDLING
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED MEMBER
+SET  PPDCOND  0              ;RESTORE DEFAULT ERROR HANDLING
+
+IF EXISTS,EQ,'Y'
+   EXIT OK,"(DEFUSR) ## '&USER' ALTERED SUCCESSFULLY ##"
+EXIT OK,"(DEFUSR) ## '&USER' DEFINED SUCCESSFULLY ##"

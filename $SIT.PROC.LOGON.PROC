@@ -1,0 +1,37 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: LOGON      Proc Created 10/30/2001   By Dave Clark        *
+;*                  Last Revised 08/27/2009                        *
+;*                                                                 *
+;*      After normal session logon, issue the SETKEYS command.     *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.                                              *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL,1
+DCL  LSTMEM  CHAR 33 V       ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+
+AUTHORIZ ON                       ;uncomment, if appropriate
+EX $SYS.MAINT\LOGON               ;uncomment, if appropriate
+
+SET  PPDCOND  2              ;TURN OFF DEFAULT ERROR HANDLING
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+READ $USR.&SIBUSER..$FIRSTTIME
+IFTHEN SIBRETCD,EQ,OK
+  BYPASS
+  EXEC $USR.&SIBUSER..$FIRSTTIME
+  BYPASS
+  PUR  $USR.&SIBUSER..$FIRSTTIME OPT=NOPGCTL
+ENDIF
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND  0              ;RESTORE DEFAULT ERROR HANDLING
+
+SETKEYS
+EXIT OK

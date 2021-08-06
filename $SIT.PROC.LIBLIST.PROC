@@ -1,0 +1,262 @@
+* -------------------------------- *
+* DAPSCO PROC: LIBLIST             *
+* CREATES LIB OF ALL LIBRARIES IN  *
+* COMMON.LIBLIST                   *
+* OR LIST OBSOLETE/ICCF LIBLIST    *
+* -------------------------------- *
+SET  PPDVBL   1
+DCL  MSG    CHAR 82 V
+DCL  LSTMEM CHAR 33 V        ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL START,CHAR,8,V
+PARSE START
+
+   IF START,EQ,'CREATE'
+      GOTO DOCREATE
+
+   IF START,EQ,'OBSOLETE'
+      GOTO OBSLIST
+
+   IF START,EQ,'ICCF'
+      GOTO ICCFLIST
+
+   IF START,EQ,'COBOL'
+      GOTO COBOLLIST
+
+   GOTO DONORM
+
+LABEL OBSLIST
+   LIST COMMON.OBSLIB
+   SET PPDCOND 2                ;BYPASS ALL ERRORS
+   READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+   SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+   EXIT OK,'COMMON.OBSLIB DATA NOW IN LIST MODE'
+
+LABEL ICCFLIST
+   LIST COMMON.ICCFLIB
+   SET PPDCOND 2                ;BYPASS ALL ERRORS
+   READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+   SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+   EXIT OK,'COMMON.ICCFLIB DATA NOW IN LIST MODE'
+
+LABEL COBOLLIST
+   LIST COMMON.LIBCOBOL
+   IF SSDSCRSZ,EQ,D
+      SCR ALT
+   SET PPDCOND 2                ;BYPASS ALL ERRORS
+   READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+   SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+   EXIT OK,'COMMON.LIBCOBOL DATA NOW IN LIST MODE'
+
+LABEL DONORM
+   LIST COMMON.LIBLIST
+   IF SSDSCRSZ,EQ,D
+      SCR ALT
+   SET PPDCOND 2                ;BYPASS ALL ERRORS
+   READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+   SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+   EXIT OK,'COMMON.LIBLIST DATA NOW IN LIST MODE'
+
+LABEL DOCREATE
+
+   IF SIBDIALG NE 'T'
+      GOTO DOIT
+
+   READU &SIBUSER
+   IFTHEN TXUSECCM,NE,4
+      SET PPDCOND 2                ;BYPASS ALL ERRORS
+      READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+      SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+      EXIT NG,'LIBLIST CREATION REQUIRES ADMINISTRATOR-LEVEL AUTHORITY'
+   ENDIF
+
+   SET  PPDCOND  2
+   READL COMMON
+   IFTHEN SIBRETCD NE OK
+      BYPASS
+      DEFL COMMON 'Common Library For All Users' $SYS
+      BYPASS
+      DEFS COMMON $DFL DEF
+   ENDIF
+   SET  PPDCOND  0
+
+   IFTHEN SIBSESSD,GT,0
+      SET PPDCOND 2                ;BYPASS ALL ERRORS
+      READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+      SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+      EXIT NS,'LIBLIST CREATION REQUIRES THE "NO SESSION" DISPLAY'
+   ENDIF
+
+DCL YES,CHAR,3,V
+
+LABEL DOMAP
+MAPF
+
+             LIBLIST CREATE: CREATE COMMON.LIBLIST
+
+             THIS TAKES 1 OR 2 MINUTES TO COMPLETE
+
+             DO YOU WANT TO CONTINUE? (YES/NO):{YES}
+++/*
+   IF YES,EQ,'YES'
+      GOTO DOIT
+   IF YES,NE,'NO'
+      GOTO -DOMAP
+   SET PPDCOND 2                ;BYPASS ALL ERRORS
+   READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+   SET PPDCOND 0                ;DEFAULT ERROR HANDLING
+   EXIT OK,'LIBLIST ABORTED - OLD LIBLIST-DATA REMAINS'
+
+LABEL DOIT
+   SET  PPDCOND  0
+   IF SIBDIALG NE 'T'
+      SET  SIBOUTPT 'D'
+
+   DCL  STRT,CHAR,8
+   SET  STRT,&OPSTIME
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+*  CREATE THE COMMON.LIBLIST MEMBER                                   *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+   SET  PPDCOND  2
+   BYPASS
+   PUR  COMMON.LIBLIST  NOPGCTL
+   SETD MSG SIBRESP
+   SET  PPDCOND  0
+   IFTHEN MSG{1,2} NE OK
+       IF MSG{1,2} NE NF
+          EXIT SV,'&MSG{3}'
+   ENDIF
+   BYPASS
+   DEF  COMMON.LIBLIST,DATA,'Listing of All BIMEDIT Libraries',CASE=U
+   BYPASS
+   EDIT COMMON.LIBLIST
+
+   INSERTF
+LIBLIST created on &OPSDATE at &OPSTIME
+=======================================================================================================================================
+
+++/*
+
+   SET  TXLLIB,'$SYS.99999999'
+LABEL LOOP1
+
+   SET  PPDCOND  1
+   BROWSEL
+   IF SIBRETCD,NE,OK
+       GOTO ENDLOOP1
+   SET  PPDCOND  0
+
+   BYPASS
+   LIB  &TXLLIB..,FULL
+   STACK *
+   BYPASS
+   END  NOSAVE
+   POS  &SSDSZLN
+   GET  $STACK
+   POS  &SSDSZLN
+   INS  ' '
+
+   GOTO -LOOP1
+
+LABEL ENDLOOP1
+   SET  PPDCOND  0
+
+   SET  TXLLIB,''
+LABEL LOOP2
+
+   SET  PPDCOND  1
+   BROWSEL
+   IF SIBRETCD,NE,OK
+       GOTO ENDLOOP2
+   SET  PPDCOND  0
+
+   IF TXLLIB{1,4},GT,'$SYS'
+       GOTO ENDLOOP2
+
+   BYPASS
+   LIB  &TXLLIB..,FULL
+   STACK *
+   BYPASS
+   END  NOSAVE
+   GET  $STACK
+   POS  &SSDSZLN
+   INS  ' '
+
+   GOTO -LOOP2
+
+LABEL ENDLOOP2
+*  SAVE THE COMMON.LIBLIST SESSION
+   BYPASS
+   SAVE
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+*  CREATE THE COMMON.LIBCOBOL MEMBER                                  *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+   SET  PPDCOND  2
+   BYPASS
+   PUR  COMMON.LIBCOBOL  NOPGCTL
+   SET  PPDCOND  0
+   BYPASS
+   DEF  COMMON.LIBCOBOL,DATA,'Listing of COBOL BIMEDIT Libraries',CASE=U
+   BYPASS
+   EDIT COMMON.LIBCOBOL
+
+   INSERTF
+LIBCOBOL created on &OPSDATE at &OPSTIME
+=======================================================================================================================================
+
+++/*
+
+   SET  TXLLIB,'$SYS.99999999'
+LABEL LOOP3
+
+   SET  PPDCOND  1
+   BROWSEL
+   IF SIBRETCD,NE,OK
+       GOTO EOJ
+   SET  PPDCOND  0
+
+   BYPASS
+   LIB  &TXLLIB..,FULL,'\CBL|COB*'
+   IFTHEN SSDSZLN GT 5
+     STACK *
+     BYPASS
+     END NOSAVE
+     POS &SSDSZLN
+     GET $STACK
+     POS &SSDSZLN
+     INS ' '
+   ELSE
+     BYPASS
+     END NOSAVE
+   ENDIF
+
+   GOTO -LOOP3
+
+LABEL EOJ
+   SET  PPDCOND  0
+*  SAVE THE COMMON.LIBCOBOL SESSION
+   BYPASS
+   SAVE
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+*  DONE                                                               *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+   SET  PPDCOND  2              ;BYPASS ALL ERRORS
+   READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+   SET  PPDCOND  0              ;DEFAULT ERROR HANDLING
+
+   IF SIBDIALG NE 'T'
+      SET  SIBOUTPT 'P'
+EXIT OK,'## LIBLIST COMPLETED-STARTED AT: &STRT, ENDED AT: &OPSTIME'

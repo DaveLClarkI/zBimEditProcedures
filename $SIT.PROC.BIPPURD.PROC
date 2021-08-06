@@ -1,0 +1,41 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: PURGE A VSE LIBRARY MEMBER                             *
+* Procedure..: BIPPURD                                                *
+* Command....: PURGED                                                 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Winsupply Group Services                         Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Purge a VSE library member  and  create  a  log entry to record the *
+* event.                                                              *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 2
+
+DCL MEMD CHAR 34 V
+PARSE MEMD
+
+BYPASS
+LISTD &MEMD
+BYPASS
+END NOSAVE
+
+BYPASS
+EDIT COMMON.TESTPROD
+POS &SSDSZLN
+INSERTF
+PURGED &SIBLSPDS{1,16}.&SIBLSPDS{17,17} BY &SIBUSER
+++/*
+BYPASS
+SAVE
+
+BYPASS
+PURGED &MEMD

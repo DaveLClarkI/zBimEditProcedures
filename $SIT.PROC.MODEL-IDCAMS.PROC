@@ -1,0 +1,99 @@
+;"MODEL-IDCAMS" PROC HANDLES THE "IDCAMS" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+
+
+¬  ALTER    }-  Change VSAM file attributes
+¬  BLDINDEX }-  Load a VSAM Alternate Index from it's base cluster
+¬  BACKUP   }-  Backup VSAM files/catalog to tape
+¬  CANCEL   }-  Abort the IDCAMS job step (optionally, the job)
+¬  DEFINE   }-  Create a new VSAM file definition
+¬  DELETE   }-  Remove a VSAM file definition from the catalog
+¬  EXPORT   }-  Backup a VSAM file to tape
+¬  IF       }-  IDCAMS modal command
+¬  IMPORT   }-  Restore a VSAM file from tape
+¬  LISTCAT  }-  Display the contents of a VSAM catalog
+¬  PRINT    }-  Dump the contents of a VSAM file
+¬  REPRO    }-  Copy a file
+¬  RESTORE  }-  Restore VSAM files/catalog from tape
+¬  SET      }-  IDCAMS modal command
+¬  VERIFY   }-  Validate the EOF marker on a VSAM file
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,ALTER
+   EXIT OK
+IF NAME,EQ,BLDINDEX
+   EXIT OK
+IF NAME,EQ,BACKUP
+   EXIT OK
+IF NAME,EQ,CANCEL
+   EXIT OK
+IF NAME,EQ,DEFINE
+   EXIT OK
+IF NAME,EQ,DELETE
+   EXIT OK
+IF NAME,EQ,EXPORT
+   EXIT OK
+IF NAME,EQ,IF
+   EXIT OK
+IF NAME,EQ,IMPORT
+   EXIT OK
+IF NAME,EQ,LISTCAT
+   EXIT OK
+IF NAME,EQ,PRINT
+   EXIT OK
+IF NAME,EQ,REPRO
+   EXIT OK
+IF NAME,EQ,RESTORE
+   EXIT OK
+IF NAME,EQ,SET
+   EXIT OK
+IF NAME,EQ,VERIFY
+   EXIT OK
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME

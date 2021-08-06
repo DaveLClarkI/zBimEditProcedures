@@ -1,0 +1,85 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: LOCATE MEMBER in ICCF libraries                        *
+* Procedure..: LOCMEMI                                                *
+* Command....: LOCMEMI                                                *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Written by:        *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* All ICCF libraries are searched for the generic or full member name *
+* specified as the command parameter.                                 *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL 1
+DCL  LSTMEM CHAR  33 V       ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM TXMPATH          ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  LIBI   NUM    3 Z,,,0
+
+DCL  MEM    CHAR   8
+PARSE MEM
+
+IF MEM,EQ,''
+  EXIT SV,'(LOCMEMI) ** NO MEMBER SPECIFIED **'
+
+STACK OPT=CLEAR
+
+BLOCK
+  ADD  LIBI 1
+  BYPASS
+  LIBI &LIBI
+  POS  4
+
+  BLOCK
+    SET  PPDLPCTR  0
+    SET  PPDCOND 1
+    BYPASS
+    LOCATE &MEM 1-8
+    IFTHEN SIBRETCD,NE,OK
+      LEAVE
+    ENDIF
+    SET  PPDCOND 0
+    IFTHEN SIBSTSIZ EQ 0
+      STACKI '-----------------'
+      STACKI ' MEMBER  USER LIB'
+      STACKI '-------- ---- ---'
+    ENDIF
+    OVERLAY 15 '&LIBI'
+    STACK 1 APPEND
+    LOOP
+  ENDBLOCK
+
+  SET  PPDCOND 0
+  BYPASS
+  END  NOSAVE
+  IFTHEN LIBI LT 99
+    LOOP
+  ENDIF
+ENDBLOCK
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IFTHEN SIBSTSIZ EQ 0
+  EXIT NF,'(LOCMEMI) ** "&MEM" NOT IN ICCF **'
+ENDIF
+
+SET  PPDINCL 1
+DISPLAYF 'LOCMEMI &MEM'
+/INCL $STACK
+++/*
+POS  4
+SORT '1-8-A,15-17-A' *
+TOP
+
+SETKEYS
+EXIT

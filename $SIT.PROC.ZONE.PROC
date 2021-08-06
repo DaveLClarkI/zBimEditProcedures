@@ -1,0 +1,24 @@
+;"ZONE" SELECTIVELY COMBINES "ALTER ZONE=" AND "SESS ZONE=" COMMANDS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(ZONE    ) ** COMMAND REQUIRES A SESSION **'
+
+DCL ZONE CHAR 7 V
+PARSE ZONE
+
+IF ZONE,EQ,''
+   SET ZONE '&SSDZONBS.-&SSDZONLM.'
+
+IF SSDTYPE,EQ,ED
+   ALTER MEM=&SSDLIB..&SSDMEM,ZONE=&ZONE
+SESS ZONE=&ZONE
+
+EXIT OK,'## Zone set to "&ZONE" ##'

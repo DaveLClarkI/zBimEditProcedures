@@ -1,0 +1,135 @@
+;"DATES" PROC DEMONSTRATES THE DATE CONVERSION ROUTINES
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDSCRSZ 'D'
+;
+DCL  GJULN    CHAR   7 V U GLOBAL
+DCL  GTOTL    NUM    6 F U GLOBAL
+DCL  GTOTX    CHAR   6 V U GLOBAL
+DCL  IREQU    CHAR  10 V U
+DCL  JGREG    CHAR  10 V U GLOBAL
+DCL  JTOTL    NUM    6 F U GLOBAL
+DCL  JTOTX    CHAR   6 V U GLOBAL
+DCL  MESG     CHAR  79 V M
+DCL  MSG      CHAR  82 V M
+DCL  RC       CHAR   2 V M
+DCL  TGREG    CHAR  10 V U GLOBAL
+DCL  TJULN    CHAR   7 V U GLOBAL
+DCL  W        NUM    1 V
+DCL  X        NUM    6 V
+DCL  WDAY0    CHAR   9 V M
+DCL  WDAY1    CHAR   9 V M
+DCL  WDAY2    CHAR   9 V M
+DCL  WDAY3    CHAR   9 V M
+DCL  WDAY4    CHAR   9 V M
+DCL  WDAY5    CHAR   9 V M
+DCL  WDAY6    CHAR   9 V M
+DCL  WDAY7    CHAR   9 V M
+;
+SET  WDAY0 ''
+SET  WDAY1 'Sunday'
+SET  WDAY2 'Monday'
+SET  WDAY3 'Tuesday'
+SET  WDAY4 'Wednesday'
+SET  WDAY5 'Thursday'
+SET  WDAY6 'Friday'
+SET  WDAY7 'Saturday'
+
+LABEL DISPLAY
+
+MAPF
+}DATES                         ¬Date Conversions                       }&OPSDATE
+                                                                       }&OPSTIME
+
+}Enter any¬Gregorian date}formatted MM/DD/<YY>YY and press the¬ENTER}key.
+
+
+                   ¬ Selected Gregorian date ===>{IREQU     }
+
+
+                   ¬to Julian date (GRG2JUL)}....¬&GJULN
+                   } to Total days (JUL2TOT) .... &JTOTX
+                   }  to Gregorian (JUL2GRG) .... &JGREG
+
+
+                   ¬ to Total days (GRG2TOT)}....¬&GTOTX
+                   }  to Gregorian (TOT2GRG) .... &TGREG
+                   }     to Julian (TOT2JUL) .... &TJULN
+
+
+                   ¬Day of the Week}.............¬&WDAY&W
+
+
+}Press¬PF3}to terminate the DATES procedure.
+¬&MESG
+++/*
+
+SET  PPDALARM 0
+SET  MESG ''
+
+IF PPDKEY,EQ,'PF3'
+   GOTO EXIT
+IF PPDKEY,EQ,'PF15'
+   GOTO EXIT
+IF PPDKEY,EQ,'ENTER'
+   GOTO CONVERT
+
+SET  PPDALARM 1
+SET  MESG 'That key is not shown, and serves no purpose, on this screen'
+GOTO -DISPLAY
+
+LABEL ERROR
+SETD MSG SIBRESP
+SETD RC  MSG 1 2
+SETD MSG MSG 3
+SET  PPDALARM 1
+SETD MESG MSG
+GOTO -DISPLAY
+
+LABEL CONVERT
+SET  GJULN ''
+SET  GTOTX ''
+SET  JGREG ''
+SET  JTOTX ''
+SET  TGREG ''
+SET  TJULN ''
+SET  W     0
+
+SET  PPDCOND 2
+
+GRG2JUL GJULN &IREQU
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GRG2TOT GTOTL &IREQU
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+SETD GTOTX GTOTL
+
+JUL2TOT JTOTL &GJULN
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+SETD JTOTX JTOTL
+JUL2GRG JGREG &GJULN
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+
+TOT2GRG TGREG &GTOTL
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+TOT2JUL TJULN &GTOTL
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+
+SETD X GTOTL
+DIVI X 7 W
+ADD  W 1
+GOTO -DISPLAY
+
+LABEL EXIT
+EXIT OK,"## DATES procedure terminated due to user's request ##"

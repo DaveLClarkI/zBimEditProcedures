@@ -1,0 +1,89 @@
+;"TABS" SELECTIVELY COMBINES "ALTER TCOL=" AND "SESS TCOL=" COMMANDS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(TABS    ) ** COMMAND REQUIRES A SESSION **'
+
+DCL SQ NUM 2 F
+DCL TABS CHAR 48 V
+PARSE TABS
+
+IF TABS,NE,''
+   GOTO SKIP
+IF SSDTDPTH,EQ,0
+   GOTO DEFAULT
+
+SET SQ 1
+SET TABS '&SSDTCL&SQ.'
+LABEL ASSIGN
+ADD SQ 1
+IF SQ,GT,&SSDTDPTH
+   GOTO SKIP
+SET TABS '&TABS.-&SSDTCL&SQ.'
+GOTO -ASSIGN
+
+LABEL DEFAULT
+
+IF SSDTYPEM,EQ,A
+   SET TABS 10-16-72
+IF SSDTYPEM,EQ,AMAP
+   SET TABS 10-16-72
+IF SSDTYPEM,EQ,ASM
+   SET TABS 10-16-72
+IF SSDTYPEM,EQ,B
+   SET TABS 10-16-72
+IF SSDTYPEM,EQ,CASM
+   SET TABS 10-16-72
+IF SSDTYPEM,EQ,MAP
+   SET TABS 10-16-72
+
+IF SSDTYPEM,EQ,C
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,CBL
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,CBL2
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,CCBL
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,CCBL2
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,CDLI
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,CDLI2
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,DLI
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,DLI2
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,HDLI
+   SET TABS 8-12-16-20-24-28-40-53
+IF SSDTYPEM,EQ,HDLI2
+   SET TABS 8-12-16-20-24-28-40-53
+
+IF SSDTYPEM,EQ,J
+   SET TABS 11-22-72
+IF SSDTYPEM,EQ,JCL
+   SET TABS 11-22-72
+
+IF TABS,EQ,''
+   EXIT OK,'## Tabs are not currently set ##'
+
+LABEL SKIP
+
+IF TABS,EQ,'OFF'
+   SET TABS "''"
+
+IF SSDTYPE,EQ,ED
+   ALTER MEM=&SSDLIB..&SSDMEM,TCOL=&TABS
+SESS TCOL=&TABS
+
+IF TABS,EQ,"''"
+   SET TABS 'OFF'
+EXIT OK,'## Tabs set to "&TABS" ##'

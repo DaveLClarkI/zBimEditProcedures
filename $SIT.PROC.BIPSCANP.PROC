@@ -1,0 +1,158 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPSCANP   Proc Created 07/15/2013   By Dave Clark        *
+;*                  Last Revised 02/20/2018                        *
+;*                                                                 *
+;*      Selected POWER queue entries  are searched for one or more *
+;* occurrences of the  character  string  specified as the command *
+;* parameter.                                                      *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svcs *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  Then add the following line(s), without the *
+;* ruler line and  in  sorted sequence,  to the $SIT.CTRL.COMMANDS *
+;* member and issue the "NEWCOPY COMMANDS" command:                *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* SCANP    BIPSCANP                                               *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+SET PPDLITDL '"'
+
+DCL INMEM    CHAR   1 V
+DCL SELC     CHAR  40 V
+DCL STR2     CHAR  72 V
+DCL SRCL     CHAR 253 V
+
+DCL SELECT   CHAR  40 V
+DCL STR      CHAR  72 V
+PARSE SELECT STR
+
+IF  SELECT EQ ''
+    EXIT SV,'(BIPSCANP) ** PARM "SELECT" IS REQUIRED **'
+IF  STR EQ ''
+    SETD STR SIBLCSTR
+
+IF  SIBSESSD EQ 0            ;IF "REFRESH" COMMAND USED ON
+    GOTO CONTINUE
+IF  SSDTYPE NE DI            ;A CURRENT DISPLAY SESSION FOR
+    GOTO CONTINUE
+IF  SSDOBJ{1,14} NE 'DISP  -> SCANP'{1,14}   ;THE SAME COMMAND
+    GOTO CONTINUE
+BYPASS
+END NOSAVE                   ;END THAT SESSION BEFORE BUILDING NEW ONE
+
+LABEL CONTINUE
+STACK OPT=CLEAR
+
+IFTHEN SELECT NE '/'
+    SETD PARMLIST SELECT
+    LIBP &PARMLIST
+ENDIF
+
+IF  SIBSESSD,EQ,0
+    EXIT SV,'(BIPSCANP) ** COMMAND REQUIRES A POWER QUEUE DISPLAY **'
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(BIPSCANP) ** COMMAND REQUIRES A POWER QUEUE DISPLAY **'
+SET PPDCOND 1
+FIND '/CTL/P' 136
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(BIPSCANP) ** COMMAND REQUIRES A POWER QUEUE DISPLAY **'
+
+STACKI "SCANP &SELECT ""&STR"""
+
+VEXAM XTRSLINE 'P-INQP-1' 141-148
+IFTHEN SIBRETCD EQ 'OK'
+    STACKI "-------------------------------------------------------------------------------------------------"
+    STACKI "           --POWER JOB -- C   CARDS/                           DESTINATION                       "
+    STACKI "PP QUE,CUU NAME    NUMBER L   PAGES   FORM     USER INFO      NODE     USER      DATE      TIME  "
+    STACKI "-- ------- -------- ----- - --------- ---- ---------------- -------- -------- ---------- --------"
+ELSE
+    STACKI "--------------------------------------------------------------------------------------------------------------------------------"
+    STACKI "----- POWER JOB ----- P D C S  CARDS/ CPY FORM  ORIGIN/    USER INFO        DESTINATION         ORIGIN          DATE      TIME  "
+    STACKI "QUE   NAME  NUMBER SG          PAGES             DEST                      NODE     USER     NODE     USER                      "
+    STACKI "--- -------- ----- -- - - - - ------- --- ---- -------- ---------------- -------- -------- -------- -------- ---------- --------"
+ENDIF
+
+UP  1
+
+BLOCK
+    SET  PPDLPCTR 0
+    SET  PPDCOND 1
+
+    BYPASS
+    NEXT 1
+    IF  SIBRETCD NE 'OK'
+        LEAVE
+    VEXAM XTRSLINE '/CTL/P' 136-141
+    IF  SIBRETCD NE 'OK'
+        LOOP
+    SETD SRCL XTRSLINE
+    VTRUNC SRCL
+
+    VEXAM XTRSLINE 'P-INQP-1' 141-148
+    IFTHEN SIBRETCD EQ 'OK'
+        SET  SELC "&XTRSLINE{1,2} &XTRSLINE{8,18}"
+    ELSE
+        SET  SELC "&XTRSLINE{1,21}"
+    ENDIF
+
+    SET INMEM 'N'
+    BYPASS
+    LISTP &SELC
+    IF  SIBRETCD EQ 'NF'
+        LOOP
+    IF  SIBRETCD NE 'OK'
+        EXIT '&SIBRETCD.','&SIBMSG.'
+
+    BLOCK
+        SET  PPDCOND 1
+        BYPASS
+        LOCATE "&STR"
+        IF  SIBRETCD NE 'OK'
+            LEAVE
+        SET  PPDCOND 0
+        IFTHEN INMEM NE 'Y'
+            SET INMEM 'Y'
+            IFTHEN SIBSTSIZ GT 0
+                STACKI " "
+            ENDIF
+            SET  PPDLITEX 1
+            STACKI "&SRCL"
+            SET  PPDLITEX 0
+            STACKI " "
+        ENDIF
+        STACK 1 APPEND
+        LOOP
+    ENDBLOCK
+
+    SET  PPDCOND 0
+    BYPASS
+    END  NOSAVE
+    LOOP
+ENDBLOCK
+
+IFTHEN SELECT NE '/'
+    BYPASS
+    END  NOSAVE
+ENDIF
+
+IF  SIBSTSIZ EQ 0
+    EXIT NF,'(BIPSCANP) ** "&STR" NOT FOUND IN SELECTED POWER ENTRIES **'
+
+SET  PPDINCL 1
+OUTPUTF 'SCANP &SELECT "&STR"'
+/INCL $STACK
+++/*
+STACK OPT=CLEAR
+
+SETKEYS
+EXIT

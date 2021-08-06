@@ -1,0 +1,644 @@
+* -----------------------------------------*
+* DAPSCO PROMPT PROCEDURE : DEF            *
+* -----------------------------------------*
+SET PPDCOND,1
+SET PPDVBL,1
+DCL MEM,CHAR,16
+DCL TYPE,CHAR,8,V
+DCL TITLE,CHAR,40,V
+DCL ATTR,CHAR,8,V
+DCL NUL,CHAR,3,V
+DCL C,CHAR,1,V
+DCL TBG,CHAR,3,V
+DCL TCOL,CHAR,27,V
+DCL LIBDEF,CHAR,8,V
+DCL SEQ,CHAR,3,V
+DCL AUD,CHAR,3,V
+DCL CURLIB,CHAR,16
+DCL ERR,CHAR,68,V
+DCL ERR2,CHAR,2,V
+DCL OPERNAME,CHAR,25,v
+DCL ADDED,CHAR,1,V
+
+SET ATTR,'     '
+SET TYPE,'     '
+SET NUL,'  '
+SET C,' '
+SET TBG,'   '
+SET LIBDEF,'DAPSCO'
+SET AUD,'OFF'
+SET ERR,' '
+SET CURLIB,&SIBLIB
+SET ADDED,' '
+
+LABEL DSPMAP
+MAPF
+                   DEFMEM - DEFine a MEMber to Bim-Edit
+
+FOLLOWING ARE MANDaTORY:
+  CURRENT LIBRARY ........................:{CURLIB          }:
+  MEMBER NAME ............................:{MEM             }:(BLANKS TO EXIT)
+  TITLE....{TITLE                                   }:(MANDaTORY)
+  TYPE ...................................:{TYPE    }:(LEAVE BLANK FOR HELP)
+  ATTRIBUTE ..............................:{ATTR    }:(LEAVE BLANK FOR HELP)
+  LIBDEF .................................:{LIBDEF  }:(LEAVE BLANK FOR HELP)
+
+FOLLOWING ARE OPTIONAL (DEFAULTS WILL BE USED)
+  NULLS ..........................(OFF/ON):{NUL}:
+  CASE ..................(U=UPPER,M=MIXED):{C}:
+  TABBING.........................(ON/OFF):{TBG}:
+  TABS (OVERRIDE DEFAULT)..(COL-COL-COL..):{TCOL                       }:
+  SEQUENCE STARTING COLUMN ...............:{SEQ}:
+  AUDIT CHANGES ..................(ON/OFF):{AUD}:
+
+      Note: Leave NULLS, CASE, TABBING, TABS, and SEQUENCE blank to
+            use the defaults set up for the particular TYPE you
+            have defined.
+
+{ERR                                                                 }
+++/*
+
+LABEL AFTERMAP
+
+   IF MEM,NE,''
+      GOTO AFTERMAP2
+   IF ADDED,EQ,'Y'
+      PUR &MEM
+   EXIT OK,'MEMBER -*NOT*- DEFINED'
+
+LABEL AFTERMAP2
+
+   IF TYPE,EQ,''
+      GOTO HELPTYPE
+   IF TYPE,EQ,'TEXT'
+      GOTO NOHELPA
+   IF TYPE,EQ,'DATA'
+      GOTO NOHELPA
+   IF ATTR,EQ,''
+      GOTO HELPATTR
+LABEL NOHELPA
+   IF LIBDEF,EQ,''
+      GOTO HELPLIB
+   IF TYPE,EQ,'HELP'
+      GOTO HELPTYPE
+   IF ATTR,EQ,'HELP'
+      GOTO HELPATTR
+   IF LIBDEF,EQ,'HELP'
+      GOTO HELPLIB
+
+   ATT &CURLIB
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+   IF ATTR,EQ,'////////'
+      SET ATTR,''
+   READ $SIT.COMP.&TYPE-&ATTR
+   SET ERR2,'&SIBRETCD'
+   IF ERR2,EQ,'SV'
+      SET ERR,'SECURITY VIOLATION-YOU ARE NOT ALLOWED TO DEFINE THIS TYPE'
+   IF ERR2,EQ,'SV'
+      GOTO -DSPMAP
+   IF ERR2,EQ,OK
+      GOTO OKCOMP
+   SET ERR,'COMBINATION OF TYPE AND ATTRIBUTE INVALID: &TYPE-&ATTR'
+   GOTO -DSPMAP
+
+LABEL OKCOMP
+
+IF LIBDEF,EQ,IJSYSRS
+   GOTO SYSLIB
+IF LIBDEF,EQ,SYSLIBS
+   GOTO SYSLIB
+IF LIBDEF,NE,CONFIG
+   GOTO OKLIBS
+
+LABEL SYSLIB
+
+IF SIBUSER,EQ,'$SYS'
+   GOTO OKLIBS
+IF SIBUSER,EQ,'$SYT'
+   GOTO OKLIBS
+IF SIBUSER,EQ,'CTE'
+   GOTO OKLIBS
+SET ERR,'ONLY SYSTEM PROGRAMMING CAN USE IJSYSRS/SYSLIBS'
+GOTO -DSPMAP
+
+LABEL OKLIBS
+
+   READ $SIT.COMP.LIBDEF-&LIBDEF
+   IF SIBRETCD,EQ,OK
+      GOTO OKLIB1
+   SET ERR,'LIBRARY GROUP IN LIBDEF IS INVALID'
+   GOTO -DSPMAP
+
+LABEL OKLIB1
+
+   IF ADDED,EQ,'Y'
+      GOTO ALREADY
+
+   DEF &MEM,&TYPE
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+   SET ADDED,'Y'
+
+LABEL ALREADY
+
+   ALT &MEM,TYPE=&TYPE
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+   IF TITLE,NE,''
+      GOTO OKTITLE
+   SET ERR,'TITLES ARE MANDaTORY'
+   GOTO -DSPMAP
+
+LABEL OKTITLE
+
+   ALT &MEM,TITLE='&TITLE'
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+   IF ATTR,EQ,''
+      GOTO OKATTR
+   ALT &MEM,ATTR=&ATTR
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKATTR
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKATTR
+   IF TBG,NE,''
+      ALT &MEM,TSET=&TBG
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKTSET
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKTSET
+   IF TCOL,NE,''
+   ALT &MEM,TCOL=&TCOL
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKTCOL
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKTCOL
+   IF LIBDEF,EQ,'////////'
+      SET LIBDEF,''
+   IF LIBDEF,NE,''
+      GOTO DOLIBDEF
+   IF TYPE,EQ,'PROC'
+      GOTO OKLIBDEF
+   IF TYPE,EQ,'TEXT'
+      GOTO OKLIBDEF
+   IF TYPE,EQ,'DATA'
+      GOTO OKLIBDEF
+   IF TYPE,EQ,'JCL'
+      GOTO OKLIBDEF
+   SET ERR,'YOU MUST SPECIFY A LIBDEF FOR THIS TYPE OF MEMBER'
+   GOTO -DSPMAP
+
+LABEL DOLIBDEF
+   ALT &MEM,LIBDEF=&LIBDEF
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKLIBDEF
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKLIBDEF
+   IF SEQ,NE,''
+      ALT &MEM,SEQ=&SEQ
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKSEQ
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKSEQ
+   IF AUD,NE,''
+      ALT &MEM,AUDIT=&AUD
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKAUD
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKAUD
+   IF NUL,NE,''
+      ALT &MEM,NULLS=&NUL
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKNULL
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKNULL
+   IF C,NE,''
+      ALT &MEM,CASE=&C
+   SET ERR,'&SIBMSG'
+   SET ERR2,'&ERR',1,2
+   IF ERR2,EQ,''
+      GOTO OKCASE
+   IF ERR2,NE,'##'
+      GOTO -DSPMAP
+
+LABEL OKCASE
+
+   READU &SIBUSER
+   SET OPERNAME,'&TXUNAME',1,20
+   ED
+   TOP
+   C '@MEMBER','&MEM',*
+   TOP
+   C '@DATE','&OPSDATE',*
+   TOP
+   C '@TITLE','&TITLE',*
+   TOP
+   C '@OPERNAME','&OPERNAME',*
+EXIT OK
+
+LABEL HELPTYPE
+MAPF
+                             DEFine a MEMber
+                             Help for 'TYPE'
+
+      'TYPE' is used by the COMPile procedure to determine what job
+      control needs to be 'wrapped' around your program in order to
+      properly submit it to be compiled.  It also determines the default
+      Tab setting, Sequence, and sometimes create a skeleton member.
+
+                                     - - - - - - - Defaults - - - - - - - -
+   TYPE        DESCRIPTION          TABS                SEQ     CASE   NULLS
+   ----------  -------------------  ------------------  -----   ------ -----
+   COBOL       COBOL PROGRAMS.      8-12-16-40-56       1-6     UPPER    ON
+   ASM         ASSEMBLIER PROGRAMS. 10-16-40-72         72-80   UPPER    ON
+   QUICKJOB    QUICKJOB PROGRAMS    3-6                 NONE    UPPER    ON
+   RPGII       RPGII PROGRAMS       NONE                1-6     UPPER    OFF
+   RPGIAUTO    RPGII AUTOREPORT PRG NONE                1-6     UPPER    OFF
+   JOBMODEL    JOBS MODELS.         NONE                NONE    UPPER    ON
+   JCL         JOB CONTROL.         NONE                NONE    UPPER    ON
+   PROC        BIM-EDIT PROCEDURE.  NONE                NONE    UPPER    ON
+   DATA        TEST DATA            NONE                NONE    UPPER    OFF
+   TEXT        UPPER/LOWER CASE     NONE                NONE    Mixed    ON
+   ALL         ALL LANGUAGES        NONE                NONE    UPPER    ON
+
+                 Which type:{TYPE    }
+++/*
+GOTO -AFTERMAP
+
+LABEL HELPATTR
+IF TYPE,EQ,'COBOL'
+   GOTO ATTRCOB
+IF TYPE,EQ,'ASM'
+   GOTO ATTRASM
+IF TYPE,EQ,'QUICKJOB'
+   GOTO ATTRQJ
+IF TYPE,EQ,'RPGII'
+   GOTO ATTRRPG
+IF TYPE,EQ,'RPGIAUTO'
+   GOTO ATTRRPG
+IF TYPE,EQ,'JOBMODEL'
+   GOTO ATTRJOBS
+IF TYPE,EQ,'JCL'
+   GOTO ATTRJCL
+IF TYPE,EQ,'PROC'
+   GOTO ATTRPROC
+IF TYPE,EQ,'DATA'
+   GOTO ATTRDATA
+IF TYPE,EQ,'TEXT'
+   GOTO ATTRDATA
+IF TYPE,EQ,'ALL'
+   GOTO ATTRALL
+GOTO -HELPTYPE
+
+LABEL ATTRASM
+SET ATTR,'        '
+MAPF
+                             DEFine a MEMber
+                 List of valid ATTRIBUTEs for a ASM member.
+                                                         First card in
+Attribute      Description                               member would be:
+----------     ----------------------------------------  ------------------
+BATCH          Non-Cics Programs                         TITLE
+BMS            CICS BMS Maps                             DFHMSD or *
+BMC            CICS BMS Maps (CSECT only)                DFHMSD or *
+CICSEXEC       CICS Command Level Programs               TITLE
+CICSMACR       CICS Macro Level Programs                 TITLE
+COPYBOOK       Copybooks (A.)                            NOT Catals/Bkend
+MACRO          Macros (E.)                               MACRO
+NOPHASE        Programs which generate their own PHASE   TITLE
+RELOC          Include/Autolink subroutines.             NOT Catalr
+RELOCSUB       Include/Autolink/Loaded (QJ-GO/L) subrtn. NOT Catalr
+
+  ALL Job Control and DOS library names are generated by the COMPile proc.
+  For CATALS copybooks the sublib is 'A' and the COPY name is the member name.
+  For CATALR subroutines the INCLUDE/AUTOLINK name is the member name.
+  For standard CATALogs the phase name is the member name.
+  For MACROS the member is compiled with OPTION EDECK and cataloged
+      into the E. source statement sub-library, macro name is the member name.
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL ATTRCOB
+SET ATTR,'        '
+MAPF
+                             DEFine a MEMber
+                 List of valid ATTRIBUTEs for a COBOL member.
+                                                         First card in
+Attribute      Description                               member would be:
+-----------    ------------------------------------      ------------------
+BATCH          Non-Cics Programs                         ID DIVISION / CBL
+CICSEXEC       CICS Command Level Programs               ID DIVISION / CBL
+COPYBOOK       Copybooks (C.)                            ID DIVISION / CBL
+RELOC          Include/Autolink subroutines.             ID DIVISION / CBL
+RELOCSUB       Include/Autolink/Loaded (QJ-GO/L) subrtn. ID DIVISION / CBL
+
+
+  ALL Job Control and DOS library names are generated by the COMPile proc.
+
+  For CATALS copybooks the sublib is 'C' and the COPY name is the member name.
+  For CATALR subroutines the INCLUDE/AUTOLINK name is the member name.
+  For standard CATALogs the phase name is the member name.
+
+
+
+
+
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL ATTRRPG
+SET ATTR,'        '
+MAPF
+                             DEFine a MEMber
+           List of valid ATTRIBUTEs for a RPGII / RPGIAUTO member.
+                                                         First card in
+Attribute      Description                               member would be:
+-----------    ------------------------------------      ------------------
+BATCH          Non-Cics Programs                         H Spec.
+COPYBOOK       Copybooks (R.)                            F/I Spec.
+
+
+
+
+
+  ALL Job Control and DOS library names are generated by the COMPile proc.
+
+  For CATALS copybooks the sublib is 'R' and the COPY name is the member name.
+  For standard CATALogs the phase name is the member name.
+
+
+
+
+
+
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL ATTRQJ
+SET ATTR,'BATCH   '
+MAPF
+                             DEFine a MEMber
+               List of valid ATTRIBUTEs for a QUICKJOB members.
+                                                         First card in
+Attribute      Description                               member would be:
+-----------    ------------------------------------      ------------------
+COPYBOOK       Copybooks (Q.)                            1st QJ card
+BATCH          Cataloged Programs (SLI's Q.)             1st QJ card
+
+  For CATALS copybooks the sublib is 'Q' and the COPY name is the member name.
+
+  QUICKJOB is never 'cataloged', it is always a 'COMPILE AND GO' type process.
+However, BATCH attributed members are CATALoged into the Q. source library
+(just like to copybooks) but represent the next best thing to a core image
+library version.
+  COPYBOOKs are COMPiled, or more precisely, cataloged, into the source
+statement library under sublibrary 'Q' with the ++INCLUDE name equal to
+the member name.
+
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL ATTRJOBS
+SET ATTR,'BATCH   '
+MAPF
+                             DEFine a MEMber
+                  List of valid ATTRIBUTEs for a JOBS member.
+                                                         First card in
+Attribute      Description                               member would be:
+-----------    ------------------------------------      ------------------
+BATCH          JOBS model deck.                          ./CONTROL card
+
+  ALL Job Control and DOS library names are generated by the COMPile proc.
+
+  JOBS is always 'BATCH' in execution but 'on-line' for menus and submission.
+
+  Remember, since you are reading both DOS job control and POWER/Vse JECL
+into a program you do want to have Power/vse intercept the LST/JOB cards
+nor have DOS treat any '/*' as end-of-your-jobs-catalog.  Therefore, you
+MUST start all of your job control in column 2 rather than 1.
+
+  A handy way to do this to test JCL you want to catalog to jobs is use the
+Bim-Edit '>>' LCA command (Put >>1 on first line and >> on last and hit
+enter!).
+
+  The name in the ./CONTROL *MUST* match the member name! (It's checked!)
+  ALL Job Control and DOS library names are generated by the COMPile proc.
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL ATTRJCL
+SET ATTR,'BATCH   '
+MAPF
+                             DEFine a MEMber
+                  List of valid ATTRIBUTEs for a JCL member.
+                                                         First card in
+Attribute      Description                               member would be:
+-----------    ------------------------------------      ------------------
+BATCH          JCL Deck                                  * $$ JOB card.
+SLI            POWER/VSE SOURCE LIBRARY INCLUSION        1ST JCL CARD
+PROCEDUR       DOS EXEC PROC= procedure                  CATALP
+QUICKJOB       QUICKJOB PROGRAM                          // EXEC QUKBJOB
+
+   For SLI members, a CATALS/BKEND set is generated with the sublibrary
+of 'P' and a name equal to the BimEdit member name.
+
+   For PROCEDURes the CATALP card is check to assure the name is the same
+as the BimEdit member name (A CATALP cannot be generated as it is unknown
+if 'DATA=YES' option is required).
+
+   SLI and PROCEDURes are COMPiled into a library,  BATCH are SUBmitted to
+Power/vse directly.
+
+   For BATCH decks, please make sure the BimEdit name equals the JNM= name
+which is also the //JOB name so we can find things!
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL ATTRPROC
+IF ATTR,NE,''
+   GOTO ATTRPRO2
+SET ATTR,'////////'
+GOTO -AFTERMAP
+LABEL ATTRPRO2
+SET ATTR,'        '
+MAPF
+                             DEFine a MEMber
+                  List of valid ATTRIBUTEs for a PROC member.
+
+
+
+       There are NO valid attributes for a member with type PROC!
+As you do not SUBmit nor COMPile a Bim-Edit procedure but rather use
+it as though it were another Bim-Edit command!
+
+       Leave the Attribute field blank for PROCedures.
+
+
+
+
+
+
+
+
+
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+IF ATTR,EQ,''
+   SET ATTR,'////////'
+GOTO -AFTERMAP
+
+LABEL ATTRDATA
+IF ATTR,NE,''
+   GOTO ATTRDAT2
+SET ATTR,'////////'
+GOTO -AFTERMAP
+LABEL ATTRDAT2
+SET ATTR,'        '
+SET ATTR,'        '
+MAPF
+                             DEFine a MEMber
+             List of valid ATTRIBUTEs for a DATA or TEXT member.
+
+
+
+     There are NO valid attributes for a member with type DATA or TEXT!
+
+     DATA is meant to be used to hold TEST data.   It defaults to UPPER
+case only and you may PRT or LIST80 it only (You cannot SUBmit DATA).
+
+     TEXT is meant to be used to hold messages, letters, or any other UPPER
+and lower case material.  You can PRT or LIST80 TEXT members but cannot
+SUBmit nor COMPile them.
+
+
+     Leave the attriubte for DATA or TEXT members blank.
+
+
+
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+IF ATTR,EQ,''
+   SET ATTR,'////////'
+GOTO -AFTERMAP
+
+LABEL ATTRALL
+SET ATTR,'COPYBOOK'
+MAPF
+                             DEFine a MEMber
+                  List of valid ATTRIBUTEs for an ALL member.
+                                                         First card in
+Attribute      Description                               member would be:
+-----------    ------------------------------------      ------------------
+COPYBOOK       Multiple Language Copybook.               CATALS card.
+
+     When creating a copybook for a file or a subroutine you are normally
+going to write one for RPG, COBOL, QUICKJOB, and perhaps ASM.
+
+     We want the COPY or ++INCLUDE names to be EXACTLY identical for copying
+of the same definition in different languages.  Therefore they must all be
+in the same member .... as such:
+                 CATALS A.filename
+                 BKEND
+                 ....bal statements
+                 BKEND
+                 CATALS C.filename
+                 BKEND
+                 ....cobol statments for the SAME INFO as the A. above.
+                 BKEND
+                 etc. etc. etc.
+
+                Enter your choice of Attribute:{ATTR    }:
+++/*
+GOTO -AFTERMAP
+
+LABEL HELPLIB
+IF LIBDEF,NE,''
+   GOTO HELPLIB2
+SET LIBDEF,'////////'
+IF TYPE,EQ,'DATA'
+   GOTO -AFTERMAP
+IF TYPE,EQ,'TEXT'
+   GOTO -AFTERMAP
+IF TYPE,EQ,'JCL'
+   GOTO -AFTERMAP
+LABEL HELPLIB2
+SET LIBDEF,'DAPSCO  '
+MAPF
+                             DEFine a MEMber
+                             Help for 'LIBDEF'
+
+       You have the ability to compile/catalog a member into any Dos/Vse
+       Library.  However, it should be placed in one and only one library
+       so that changes made to the program are reflected everywhere that
+       program can be found.  It if for this reason Bim-Edit has placed
+       the library name as part of a member's header information ... so
+       that there can be one and only one.
+
+       This parameter has no effect if the member never resides on any
+       Dos/Vse library, that is if it's whole existance is here on
+       Bim-Edit.
+
+       Library    Description
+       ---------- ----------------------------------------------------
+       DAPSCO     Dapsco Core Image, Relo, Source, and Procedure.
+       IJSYSRS    Dos/Vse System Residence libraries.  (System Programming
+       SYSLIBS    Non-IBM System Product libraries.     Use -*ONLY*-)
+
+                  Enter LIBDEF:{LIBDEF  }
+
+++/*
+GOTO -AFTERMAP

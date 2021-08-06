@@ -1,0 +1,360 @@
+;"LOAN" PROC DOES MORTGAGE AMORTIZATION SCHEDULES
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF SIBSESSD,GT,98
+   EXIT SV,'(LOAN    ) ** COMMAND REQUIRES ONE FREE SESSION **'
+
+DCL L        NUM    3 V
+DCL P        NUM    3 V
+DCL X        CHAR   1 V
+DCL TEMP     NUM    8 V
+DCL WORK     NUM    8 V
+DCL MESG     CHAR  79 V
+;
+DCL TVALUE   CHAR   6 V
+DCL MRATE    NUM    4 V
+DCL NRATE    NUM    4 V
+DCL DEC      NUM    3 V
+DCL YR       CHAR   2 V
+DCL MNTHS    NUM    4 V
+DCL MPMT     CHAR   4 V
+;
+DCL VALUE    NUM    8 V
+DCL IRATE    CHAR   5 V
+DCL YEARS    NUM    4 V
+DCL PMNT     NUM    6 V
+
+PARSE VALUE IRATE YEARS PMNT
+
+IF VALUE,GT,199999
+   EXIT SV,'(LOAN    ) ** PARAMETER "VALUE" GREATER THAN "199999" **'
+SET TVALUE &VALUE
+IF YEARS,GT,30
+   EXIT SV,'(LOAN    ) ** PARAMETER "YEARS" GREATER THAN "30" **'
+SET YR &YEARS
+IF PMNT,GT,1999
+   EXIT SV,'(LOAN    ) ** PARAMETER "PMNT" GREATER THAN "1999" **'
+SET MPMT &PMNT
+
+IF VALUE,EQ,0
+   GOTO DISPLAY
+IF IRATE,EQ,''
+   GOTO DISPLAY
+IF YEARS,NE,0
+   GOTO CHECK
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ;
+;                                                                     ;
+; THE FOLLOWING SECTION GETS LOAN INFORMATION AND CALCULATES PAYMENT  ;
+;                                                                     ;
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ;
+LABEL DISPLAY
+IF MESG,NE,''
+   SET PPDALARM 1
+MAPF
+}LOAN                   ¬MORTGAGE AMORTIZATION SCHEDULE                }&OPSDATE
+                                                                       }&OPSTIME
+
+
+}Specify your¬LOAN}requirements:
+
+
+}  Total amount of loan ===>{TVALUE}                 = "V"alue
+
+}  Yearly interest rate ===>{IRATE}                  = "R"ate
+
+}  Loan term (in years) ===>{YR}                     = "Y"ears
+
+}  Calculate your payment as show here:   R  /  1200 = "I"nterest
+                                          Y  *  12   = "M"onths
+                                         (I + 1)**-M = "F"raction
+}  Monthly payment $$$$ ===>{MPMT}       (1 - F) / I = "D"ivisor
+                                         INT(V/D+.5) = "P"ayment
+
+
+
+}Press¬PF1}to terminate the procedure¬after}generating a schedule.
+}Press¬PF3}to terminate the procedure¬without}generating a schedule.
+¬&MESG
+++/*
+
+SET MESG ''
+SET PPDALARM 0
+
+IF PPDKEY,EQ,PF3
+   GOTO EXIT
+IF PPDKEY,EQ,PF15
+   GOTO EXIT
+
+LABEL CHECK
+
+SET PPDCOND 2
+SET VALUE &TVALUE
+IF SIBRETCD,NE,OK
+   SET MESG 'The "Total amount of loan" field is invalid...'
+SET PPDCOND 0
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF VALUE,EQ,0
+   SET MESG 'The "Total amount of loan" field is required...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF VALUE,GT,199999
+   SET MESG 'The "Total amount of loan" field > $199,999...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+MULT VALUE 100
+
+SETL L IRATE
+SET NRATE 0
+SET DEC 0
+SET P 0
+LABEL LOOP
+IF MESG,NE,''
+   GOTO -DISPLAY
+ADD P 1
+IF P,GT,&L
+   GOTO DONE
+SETD X IRATE &P 1
+IF X,EQ,'.'
+   GOTO DECIMAL
+IF DEC,GT,0
+   ADD DEC 1
+MULT NRATE 10
+SET PPDCOND 2
+ADD NRATE &X
+IF SIBRETCD,NE,OK
+   SET MESG 'The "Yearly interest rate" field is invalid...'
+SET PPDCOND 0
+GOTO -LOOP
+LABEL DECIMAL
+IF DEC,GT,0
+   SET MESG 'The "Yearly interest rate" field is invalid...'
+ADD DEC 1
+GOTO -LOOP
+LABEL DONE
+IF DEC,GT,0
+   SUBT DEC 1
+IF DEC,GT,1
+   SET MESG 'The "Yearly interest rate" requires "99.9" format...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF DEC,EQ,1
+   GOTO DEC1
+LABEL DEC0
+IF NRATE,LT,1
+   SET MESG 'The "Yearly interest rate" field < 1.0%...'
+IF NRATE,GT,29
+   SET MESG 'The "Yearly interest rate" field > 29.9%...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+MULT NRATE 100
+GOTO END
+LABEL DEC1
+IF NRATE,LT,10
+   SET MESG 'The "Yearly interest rate" field < 1.0%...'
+IF NRATE,GT,299
+   SET MESG 'The "Yearly interest rate" field > 29.9%...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+MULT NRATE 10
+LABEL END
+
+SET PPDCOND 2
+SET YEARS &YR
+IF SIBRETCD,NE,OK
+   SET MESG 'The "Loan term (in years)" field is invalid...'
+SET PPDCOND 0
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF YEARS,EQ,0
+   SET MESG 'The "Loan term (in years)" field is required...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF YEARS,GT,30
+   SET MESG 'The "Loan term (in years)" field > 30 years...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+
+SET PPDCOND 2
+SET PMNT &MPMT
+IF SIBRETCD,NE,OK
+   SET MESG 'The "Monthly payment $$$$" field is invalid...'
+SET PPDCOND 0
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF PMNT,EQ,0
+   SET MESG 'The "Monthly payment $$$$" field is required...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+IF PMNT,GT,4999
+   SET MESG 'The "Monthly payment $$$$" field > 1999...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+MULT PMNT 100
+
+SET MRATE &NRATE
+DIV MRATE 12
+SET MNTHS &YEARS
+MULT MNTHS 12
+
+SETD WORK MRATE
+MULT WORK &VALUE
+ADD WORK 5000
+DIV WORK 10000
+IF WORK,GT,&PMNT
+   SET MESG 'The "Monthly payment $$$$" field is too small...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+
+IF PPDKEY,EQ,PF1
+   GOTO SCHEDULE
+IF PPDKEY,EQ,PF13
+   GOTO SCHEDULE
+GOTO -DISPLAY
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ;
+;                                                                     ;
+; THE FOLLOWING SECTION GENERATES THE AMORTIZATION SCHEDULE           ;
+;                                                                     ;
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ;
+LABEL SCHEDULE
+
+DCL FORMATED CHAR  10 F U GLOBAL
+DOLLARS FORMATED &VALUE
+
+DISPLAYF 'LOAN &TVALUE &IRATE &YR &MPMT'
+1--------------- LOAN VALUE=&FORMATED IRATE=&IRATE YEARS=&YR -----------------------------------------------------------
+    BALANCE       INTEREST       PRINCIPLE      PAYMENT      NEW BALANCE
+ ------------   ------------   ------------   -----------   ------------
+++/*
+BLANK 73-120 *
+NEXT 1
+STACK 3
+POSITION &SSDSZLN
+
+DCL STARTING NUM    8 V
+DCL MIDDLE   NUM    8 V
+DCL ENDING   NUM    8 V
+DCL CINT     NUM    8 V
+DCL CVAL     NUM    8 V
+DCL CPMT     NUM    8 V
+DCL YINT     NUM    8 V
+DCL YVAL     NUM    8 V
+DCL YPMT     NUM    8 V
+DCL TINT     NUM    8 V
+DCL TVAL     NUM    8 V
+DCL TPMT     NUM    8 V
+
+SETD STARTING VALUE
+SETD MIDDLE VALUE
+SETD ENDING VALUE
+SETD CPMT PMNT
+
+SET P 0
+LABEL YEARS
+ADD P 1
+IF P,GT,&YEARS
+   GOTO DONE
+IF ENDING,EQ,0
+   GOTO DONE
+
+INSERTI '0                        -----  YEAR = &P  -----'
+
+SET YINT 0
+SET YVAL 0
+SET YPMT 0
+
+SET L 0
+LABEL MONTHS
+ADD L 1
+IF L,GT,12
+   GOTO END
+
+SETD CINT MRATE
+MULT CINT &ENDING
+ADD CINT 5000
+DIV CINT 10000
+IF CINT,GT,&CPMT
+   SET MESG 'The "Monthly payment $$$$" field is too small...'
+IF MESG,NE,''
+   GOTO -DISPLAY
+
+SETD STARTING ENDING
+SETD MIDDLE STARTING
+ADD MIDDLE &CINT
+SETD ENDING MIDDLE
+IF CPMT,GT,&ENDING
+   SETD CPMT ENDING
+SUBT ENDING &CPMT
+SETD CVAL CPMT
+SUBT CVAL &CINT
+
+ADD YINT &CINT
+ADD YVAL &CVAL
+ADD YPMT &CPMT
+
+ADD TINT &CINT
+ADD TVAL &CVAL
+ADD TPMT &CPMT
+
+INSERTI ' '
+DOLLARS FORMATED &STARTING
+OVERLAY  4 '&FORMATED'
+DOLLARS FORMATED &CINT
+OVERLAY 19 '&FORMATED'
+DOLLARS FORMATED &CVAL
+OVERLAY 34 '&FORMATED'
+DOLLARS FORMATED &CPMT
+OVERLAY 48 '&FORMATED'
+DOLLARS FORMATED &ENDING
+OVERLAY 63 '&FORMATED'
+GOTO -MONTHS
+
+LABEL END
+INSERTI '                ------------   ------------   -----------'
+INSERTI ' '
+DOLLARS FORMATED &YINT
+OVERLAY 19 '&FORMATED'
+DOLLARS FORMATED &YVAL
+OVERLAY 34 '&FORMATED'
+DOLLARS FORMATED &YPMT
+OVERLAY 48 '&FORMATED'
+
+SET  TEMP &P
+DIVI TEMP 3 WORK
+IF WORK,NE,0
+   GOTO -YEARS
+GET  $STACK
+POS  &SSDSZLN
+GOTO -YEARS
+
+LABEL DONE
+INSERTI ' '
+INSERTI '                ============   ============   ==========='
+INSERTI ' '
+DOLLARS FORMATED &TINT
+OVERLAY 19 '&FORMATED'
+DOLLARS FORMATED &TVAL
+OVERLAY 34 '&FORMATED'
+DOLLARS FORMATED &TPMT
+OVERLAY 48 '&FORMATED'
+TOP
+EXIT
+
+LABEL EXIT
+IF SIBSESSD,EQ,0
+   GOTO END
+SETD IRATE SSDOBJ 10 4
+IF IRATE,EQ,LOAN
+   END NOSAVE
+LABEL END
+EXIT OK,'## LOAN PROCEDURE TERMINATED DUE TO USER REQUEST ##'

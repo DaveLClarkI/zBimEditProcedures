@@ -1,0 +1,55 @@
+;"CHGSLI" CONVERTS ICCF SLI CARDS TO BIM-EDIT INCLUDE STATEMENTS.
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    DAPSCO Information Sys. *
+;*  responsible for any loss or damage       3110 Kettering Blvd.    *
+;*  resulting from the use of this code.     Dayton, OH  45439       *
+;*  Source is provided on an as-is basis.    Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1                      ;TURN ON VARIABLE TRANSLATION
+DCL ICCF   CHAR 10 V U            ;CREATE VARB FOR ICCF MEMBER NAME
+DCL LIB    CHAR  5 V U            ;CREATE VARB FOR ICCF LIBRARY NUMBER
+
+DCL SRCLIB CHAR 16 V U            ;CREATE VARB FOR SOURCE LIBRARY PARM
+PARSE SRCLIB                      ;PARSE PROCEDURE PARAMETERS
+READL &SRCLIB                     ;VALIDATE SOURCE LIBRARY PARM
+
+SET TXMLIB &TXLLIB                ;SET MEMBER VARBS FOR BROWSE
+SET TXMMEM ''                     ;SET MEMBER VARBS FOR BROWSE
+BLOCK                             ;LOOP ON ALL MEMBERS
+  SET PPDCOND 1                   ;  TURN OFF HARD ERRORS
+  BROWSE                          ;  GET NEXT MEMBER NAME
+  IFTHEN SIBRETCD NE 'OK'         ;  IF NO MORE MEMBERS
+    SET PPDCOND 0                 ;    TURN ON HARD ERRORS
+    LEAVE                         ;    EXIT LOOP
+  ENDIF
+  SET PPDCOND 0                   ;  TURN ON HARD ERRORS
+  BYPASS                          ;  EXECUTE SYSTEM COMMAND ONLY
+  EDIT &TXMLIB..&TXMMEM           ;  EDIT MEMBER
+  BLOCK                           ;  LOOP ON ALL MEMBER LINES
+    SET PPDCOND 1                 ;    TURN OFF HARD ERRORS
+    BYPASS                        ;    EXECUTE SYSTEM COMMAND ONLY
+    LOCATE '\SLI+ICCF+LIB' 1-71   ;    LOCATE AN SLI LINE
+    IFTHEN SIBRETCD NE 'OK'       ;    IF NOT FOUND
+      SET PPDCOND 0               ;      TURN ON HARD ERRORS
+      SAVE                        ;      SAVE THIS MEMBER
+      LEAVE                       ;      EXIT LOOP
+    ENDIF
+    SET PPDCOND 0                 ;    TURN ON HARD ERRORS
+    BYPASS                        ;    EXECUTE SYSTEM COMMAND ONLY
+    CHANGE '(' '"' 1 1-71         ;    CHANGE PAREN TO QUOTE / PARSING
+    BYPASS                        ;    EXECUTE SYSTEM COMMAND ONLY
+    CHANGE ')' '"' 1 1-71         ;    CHANGE PAREN TO QUOTE / PARSING
+    SETD PARMLIST XTRSLINE{10,}   ;    EXTRACT SOURCE LINE
+    VTRUNC PARMLIST               ;    TRIM OFF BLANKS
+    PARSE ICCF LIB                ;    PARSE OUT MEMBER NAME & LIB NO.
+    SET ICCF &ICCF                ;    REMOVE QUOTES
+    SET LIB  &LIB                 ;    REMOVE QUOTES
+    BLANK 1-72                    ;    CLEAR SOURCE LINE
+    OVERLAY 1 '/INCLUDE ICCF.LIB&LIB..&ICCF'   ;FORMAT INCLUDE STMT
+    LOOP                          ;  LOOP ON ALL MEMBER LINES
+  ENDBLOCK
+  LOOP                            ;LOOP ON ALL MEMBERS
+ENDBLOCK
+
+EXIT OK,'COMPLETED.'              ;COMPLETION MESSAGE

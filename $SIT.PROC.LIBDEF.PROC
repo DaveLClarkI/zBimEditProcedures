@@ -1,0 +1,200 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: LIBDEF     Proc Created 08/05/2008   by Dave Clark        *
+;*                  Last Revised 08/06/2008                        *
+;*                                                                 *
+;*      This procedure  locates  and  lists  all  members having a *
+;* specified matching  LIBDEF  value.   A  LIBRARY  member display *
+;* session is  used  for  this procedure's output.   Meaning,  the *
+;* normal  line  commands  and  (LCA)  commands  for  working with *
+;* members are available for use with this output.                 *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svcs *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This proc must be loaded,  as a member, into the $SIT.PROC *
+;* library.   The following lines (without the ruler line) must be *
+;* added to $SIT.CTRL.COMMANDS and issue "NEWCOPY COMMANDS":       *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* LIBDEF   LIBDEF                                                 *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   1              ;turn on variable substitution
+SET  PPDLITEX 1              ;turn on literal delimeter expansion
+SET  PPDPFOPT 1              ;turn on performance option
+SET  PPDTRAP  1              ;turn on command trapping
+
+DCL  LSTMEM   CHAR 33 V      ;temporary holder for last referenced info
+SETD LSTMEM   TXMPATH        ;save the user's last referenced info
+DCL  SAVELIST CHAR 253 V M   ;temporary holder for the parm list
+SET  SAVELIST '&PARMLIST'    ;save parm list for later
+
+IFTHEN SIBSESSD GT 0         ;if sessions are present
+  IFTHEN SSDTYPE EQ 'DI'     ;  and current session is a display session
+    IFTHEN SSDOBJ{1,16} EQ 'DISP  -> LIBDEF ' ;    and is from this proc
+      BYPASS                 ;      use native command to
+      END  NOSAVE            ;      end this display session
+    ENDIF                    ;    endif
+  ENDIF                      ;  endif
+ENDIF                        ;endif
+
+DCL  MEM      CHAR  33 V U   ;proc parm: lib\mem to scan for
+DCL  LIBDEF   CHAR  72 V U   ;proc parm: libdef value to scan for
+
+PARSE MEM LIBDEF             ;get parms from parm list
+IF MEM EQ ''                 ;if member parm omitted
+  SET  MEM    '*'            ;  default to all members
+IF LIBDEF EQ ''              ;if libdef parm omitted
+  SET  LIBDEF '*'            ;  default to all libdef's
+
+DCL  L        NUM    7 V     ;length variable
+DCL  LIB      CHAR  16 V U   ;lib part extracted via parsel command
+DCL  HDR      CHAR   1 V U   ;switch for library separators
+DCL  EOL      CHAR   1 V U   ;switch for end of library browse
+DCL  EOM      CHAR   1 V U   ;switch for end of member browse
+DCL  FLAG     CHAR   1 V U   ;switch
+
+PARSEL &MEM                  ;get lib & member parts from member parm
+SET  PARMLIST '&SIBMSG'      ;put returned parts in parm list
+PARSE LIB MEM                ;get lib & member parts from parm list
+IFTHEN LIB EQ ''             ;if lib part omitted
+  SET  LIB    '&SIBLIB'      ;  default to attached library
+ELSE                         ;else
+  IFTHEN LIB EQ '*.*'        ;  if complex generic lib part specified
+    SET  LIB    '*'          ;    default to simple generic lib part
+  ELSE                       ;  else
+    IFTHEN LIB NE '*'        ;    if simple generic lib not specified
+      SETL L      LIB        ;      get length of lib part
+      IFTHEN LIB{&L,1} EQ '*' ;     if last char is an asterisk
+        SUBT L    1          ;        reduce length by 1
+        SET  LIB  '&LIB{1,&L}' ;      and leave off the asterisk
+      ENDIF                  ;      endif
+    ENDIF                    ;    endif
+  ENDIF                      ;  endif
+ENDIF                        ;endif
+IFTHEN MEM EQ ''             ;if member part omitted
+  SET  MEM    '*'            ;  default to simple generic member part
+ELSE                         ;else
+  SETL L      MEM            ;  get length of member part
+  IFTHEN MEM{&L,1} EQ '*'    ;  if last char is an asterisk
+    SUBT L    1              ;    reduce length by 1
+    SET  MEM  '&MEM{1,&L}'   ;    and leave off the asterisk
+  ENDIF                      ;  endif
+ENDIF                        ;endif
+
+OUTPUTF 'LIBDEF &SAVELIST'   ;create a display session for output
+++/*
+
+SESS CASE=M                  ;set session case to mixed mode
+POS  &SSDSZLN                ;position to last line of session
+SET  PPDCOND  1              ;bypass all except severe errors
+SET  PPDLPLMT 99999999       ;prevent loop limit from being reached
+
+* - - - - - - - - - - - SETUP FOR OUTER BLOCK - - - - - - - - - - - - *
+READL &LIB                   ;check for generic library specification
+IFTHEN SIBRETCD EQ 'OK'      ;if not generic
+  SET  EOL    'S'            ;  flag for single library scan
+ELSE                         ;else
+  SET  EOL    'N'            ;  flag library list as not ended
+ENDIF                        ;endif
+SET  TXLLIB   '&LIB'         ;set library to browse
+
+BLOCK                        ;begin outer loop on libraries
+  SET  FLAG   'Y'             ;flag library browse as successful
+  IFTHEN EOL NE 'S'           ;if generic library browse requested
+     BROWSEL                  ;  browse library list
+     IF SIBRETCD NE 'OK'      ;  if end of library list
+        SET  FLAG  'N'        ;    flag library browse as failed
+  ENDIF                       ;endif
+  IF FLAG NE 'Y'              ;if library browse failed
+     LEAVE                    ;  exit outer loop on libraries
+  IFTHEN LIB NE '*'           ;if generic matching on library needed
+     VEXAM TXLLIB LIB         ;  examine library name
+     IF SIBRETCD NE 'OK'      ;  if exam failed
+        SET  EOL  'Y'         ;    flag library list as ended
+  ENDIF                       ;endif
+  IF EOL EQ 'Y'               ;if library list has ended
+     LEAVE                    ;  exit outer loop on libraries
+
+* - - - - - - - - - - - SETUP FOR INNER BLOCK - - - - - - - - - - - - *
+  SET  PPDCOND 2              ;bypass all errors
+  READ &TXLLIB..&MEM          ;check for generic member specification
+  IFTHEN SIBRETCD EQ 'OK'     ;if not generic
+     SET  EOM   'S'           ;  flag for single member scan
+  ELSE                        ;else
+     SET  EOM   'N'           ;  flag member list as not ended
+  ENDIF                       ;endif
+  SET  PPDCOND 1              ;bypass all except severe errors
+  SET  TXMLIB   '&TXLLIB'     ;set member library to browse
+  SET  TXMMEM   '&MEM'        ;set starting member to browse
+  SET  HDR      'Y'           ;flag library separators as needed
+
+  BLOCK                       ;begin inner loop on members
+    SET  FLAG   'Y'            ;flag member browse as successful
+    IFTHEN EOM NE 'S'          ;if generic member browse requested
+       BROWSE                  ;  browse member list
+       IF SIBRETCD NE 'OK'     ;  if end of member list
+          SET  FLAG  'N'       ;    flag member browse as failed
+    ENDIF                      ;endif
+    IF FLAG NE 'Y'             ;if member browse failed
+       LEAVE                   ;  exit inner loop on members
+    IFTHEN MEM NE '*'          ;if generic matching on member needed
+       VEXAM TXMMEM MEM        ;  examine memer name
+       IF SIBRETCD NE 'OK'     ;  if exam failed
+          SET  EOM  'Y'        ;    flag member list as ended
+    ENDIF                      ;endif
+    IF EOM EQ 'Y'              ;if member list has ended
+       LEAVE                   ;  exit inner loop on members
+    SET  FLAG  'Y'             ;flag match as successful
+    IFTHEN LIBDEF NE '*'       ;if generic matching needed
+       VEXAM TXMLDEF LIBDEF    ;  examine member libdef
+       IF SIBRETCD NE 'OK'     ;  if exam failed
+          SET FLAG 'N'         ;    flag match as failed
+    ENDIF                      ;endif
+    IF FLAG NE 'Y'             ;if generic matching failed
+       LOOP                    ;  continue inner loop on members
+    IFTHEN HDR EQ 'Y'          ;if library separator headers needed
+       INSERTF                 ;  generate library separator headers
+)IFTHEN SSDSZLN GT 0           ;  include a blank line after first time
+
+)ENDIF                         ;  endif
+LIBRARY=&TXMLIB
+------------------------------------------------------------------------------------
+     Member        Type     Attr    Libdef                   Title
+---------------- -------- -------- -------- ----------------------------------------
+++/*                           ;  end header generation
+       SET  HDR 'N'            ;  flag headers as complete
+    ENDIF                      ;endif
+    INSERTI  '&TXMMEM'         ;generate member detail line
+    OVLY 18  '&TXMTYPE'        ;add member type to detail line
+    OVLY 27  '&TXMATTR'        ;add member attr to detail line
+    OVLY 36  '&TXMLDEF'        ;add member libdef to detail line
+    OVLY 45  '&TXMTITLE'       ;add member title to detail line
+    OVLY 136 '/CTL/M-DFLT-1/     /                /CTL/'
+    OVLY 156 '&TXMLIB'         ;add control info for lca commands
+    IF EOM EQ 'S'              ;if single member scan
+       LEAVE                   ;  exit inner loop on mmebers
+    LOOP                       ;continue inner loop on members
+  ENDBLOCK                    ;end of inner loop on members
+* - - - - - - - - - - - END OF INNER BLOCK  - - - - - - - - - - - - - *
+
+  IF EOL EQ 'S'               ;if single library scan
+     LEAVE                    ;  exit outer loop on libraries
+  LOOP                        ;continue outer loop on libraries
+ENDBLOCK                     ;end of outer loop on libraries
+* - - - - - - - - - - - END OF OUTER BLOCK  - - - - - - - - - - - - - *
+
+SET  PPDCOND 2               ;bypass all errors
+READ &LSTMEM                 ;restore user's last referenced info
+SET  PPDCOND 0               ;default error handling
+
+TOP                          ;top of display session
+RESET                        ;force cursor to command line
+EXIT OK                      ;normal procedure exit

@@ -1,0 +1,38 @@
+;"POWEROF" PROC RAISES OPER1 (GLOBAL VAR NAME) TO THE POWER OF OPER2
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+DCL  POWEROF  NUM    8 V
+;
+DCL  OPER1    CHAR   8 V          ;NAME OF SRC/DEST GLOBAL VARIABLE
+DCL  OPER2    NUM    3 V          ;EXPONENT VALUE FOR CALCULATION
+
+PARSE OPER1 OPER2                 ;GET ROOT AND EXPONENT
+
+IF OPER1,EQ,''
+   EXIT SV,'(POWEROF ) ** GLOBAL VARIABLE NAME "OPER1" IS REQUIRED **'
+
+SET  POWEROF 1                    ;ANSWER IS 1
+IF OPER2,EQ,0                     ;IF EXPONENT IS ZERO
+   GOTO DONE
+
+SETD POWEROF &OPER1               ;ANSWER IS ROOT
+SUBT OPER2 1
+IF OPER2,EQ,0                     ;IF EXPONENT WAS 1
+   GOTO DONE
+
+LABEL POWEROF
+MULT POWEROF &&OPER1              ;MULTIPLY ANSWER BY ROOT
+SUBT OPER2 1
+IF OPER2,NE,0                     ;EXHAUSTED EXPONENT YET?
+   GOTO -POWEROF
+
+LABEL DONE
+SETD &OPER1 POWEROF               ;SET GLOBAL VARIABLE TO ANSWER
+
+EXIT OK

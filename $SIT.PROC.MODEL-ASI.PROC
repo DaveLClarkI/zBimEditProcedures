@@ -1,0 +1,135 @@
+;"MODEL-ASI" PROC HANDLES THE "ASI" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+
+
+¬  COPYLIB }-  Execute an ATTACHE COPYLIB library function
+
+¬  DRECTRY }-  Execute an ATTACHE DRECTRY library function
+
+¬  MERGE   }-  Execute an ATTACHE MERGE library function
+
+¬  SELECT  }-  Execute an ATTACHE SELECT member function
+
+¬  UPDATE  }-  Execute an ATTACHE ADD, CHANGE, DELETE or REPLACE member function
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,COPYLIB
+   GOTO QUAL1
+IF NAME,EQ,DRECTRY
+   GOTO QUAL1
+IF NAME,EQ,MERGE
+   GOTO QUAL1
+IF NAME,EQ,SELECT
+   GOTO QUAL1
+IF NAME,EQ,UPDATE
+   GOTO QUAL1
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME
+;
+;                  Process QUAL1 options
+;
+LABEL QUAL1
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  DISK    }-  Primary ATTACHE library on DISK
+
+¬  TAPE    }-  Primary ATTACHE library on TAPE
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,DISK
+   EXIT OK
+IF QUAL1,EQ,TAPE
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -QUAL1

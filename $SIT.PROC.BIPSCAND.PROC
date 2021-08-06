@@ -1,0 +1,160 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BIPSCAND   Proc Created 06/15/2018   By Dave Clark        *
+;*                  Last Revised 06/15/2018                        *
+;*                                                                 *
+;*      Selected DOS/VSE library entries  are  searched for one or *
+;* more occurrences  of  the  character  string  specified  as the *
+;* command parameter.                                              *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   Winsupply Group Svcs    *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.  Then add the following line(s), without the *
+;* ruler line and  in  sorted sequence,  to the $SIT.CTRL.COMMANDS *
+;* member and issue the "NEWCOPY COMMANDS" command:                *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* SCAND    BIPSCAND                                               *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+SET PPDLITDL '"'
+
+DCL INMEM    CHAR   1 V
+DCL SELC     CHAR  44 V
+DCL STR2     CHAR  72 V
+DCL SRCL     CHAR 253 V
+
+DCL SELECT   CHAR  44 V
+DCL STR      CHAR  72 V
+PARSE SELECT STR
+
+IF  SELECT EQ ''
+    EXIT SV,'(BIPSCAND) ** PARM "SELECT" IS REQUIRED **'
+IF  STR EQ ''
+    SETD STR SIBLCSTR
+
+IF  SIBSESSD EQ 0            ;IF "REFRESH" COMMAND USED ON
+    GOTO CONTINUE
+IF  SSDTYPE NE DI            ;A CURRENT DISPLAY SESSION FOR
+    GOTO CONTINUE
+IF  SSDOBJ{1,14} NE 'DISP  -> SCAND'{1,14}   ;THE SAME COMMAND
+    GOTO CONTINUE
+BYPASS
+END NOSAVE                   ;END THAT SESSION BEFORE BUILDING NEW ONE
+
+LABEL CONTINUE
+STACK OPT=CLEAR
+
+IFTHEN SELECT NE '/'
+    SETD PARMLIST SELECT
+    LIBD &PARMLIST
+ENDIF
+
+IF  SIBSESSD,EQ,0
+    EXIT SV,'(BIPSCAND) ** COMMAND REQUIRES A VSE LIBRARY DISPLAY **'
+IF  SSDTYPE,NE,DI
+    EXIT SV,'(BIPSCAND) ** COMMAND REQUIRES A VSE LIBRARY DISPLAY **'
+SET PPDCOND 1
+FIND '/CTL/D' 136
+IF  SIBRETCD,NE,OK
+    EXIT SV,'(BIPSCAND) ** COMMAND REQUIRES A VSE LIBRARY DISPLAY **'
+POS 1
+IF  XTRSLINE{1,17},NE,'DIRECTORY DISPLAY'
+    EXIT SV,'(BIPSCAND) ** COMMAND REQUIRES A VSE LIBRARY DISPLAY **'
+
+STACKI "SCAND &SELECT ""&STR"""
+
+STACKI "--------------------------------------------------------------------"
+STACKI " M E M B E R      CREATION   LAST     BYTES    LIBR CONT SVA  A- R- "
+STACKI "NAME     TYPE     DATE      UPDATE   RECORDS   BLKS STOR ELIG MODE  "
+STACKI "--------------------------------------------------------------------"
+
+UP  1
+
+BLOCK
+    SET  PPDLPCTR 0
+    SET  PPDCOND 1
+
+    BYPASS
+    NEXT 1                             ;END OF DISPLAY?
+    IF  SIBRETCD,NE,'OK'
+        LEAVE
+
+    IF  XTRSLINE{136,6},NE,'/CTL/D'    ;CONTROL INFO MISSING?
+        LOOP
+    IF  XTRSLINE{1,8},LE,' '           ;MEMBER NAME MISSING?
+        LOOP
+    SETD SRCL XTRSLINE{10,8}           ;SKIP THESE MEMBER TYPES
+    VEXAM SRCL '\DUMP|OBJ|PHASE|SYSDEBUG'
+    IF  SIBRETCD EQ 'OK'
+        LOOP
+
+    SETD SRCL XTRSLINE                 ;SAVE ENTIRE MEMBER LINE
+    VTRUNC SRCL
+
+    SET  SELC &XTRSLINE{156,16}        ;BUILD LIB.SLIB.MEM.TYPE
+    SET  SELC &SELC..&XTRSLINE{1,8}
+    SET  SELC &SELC..&XTRSLINE{10,8}
+
+    SET INMEM 'N'
+    BYPASS
+    LISTD &SELC
+    IF  SIBRETCD EQ 'NF'
+        LOOP
+    IF  SIBRETCD NE 'OK'
+        EXIT '&SIBRETCD.','&SIBMSG.'
+
+    BLOCK
+        SET  PPDCOND 1
+        BYPASS
+        LOCATE "&STR"
+        IF  SIBRETCD NE 'OK'
+            LEAVE
+        SET  PPDCOND 0
+        IFTHEN INMEM NE 'Y'
+            SET INMEM 'Y'
+            IFTHEN SIBSTSIZ GT 0
+                STACKI " "
+            ENDIF
+            SET  PPDLITEX 1
+            STACKI "&SRCL"
+            SET  PPDLITEX 0
+            STACKI " "
+        ENDIF
+        STACK 1 APPEND
+        LOOP
+    ENDBLOCK
+
+    SET  PPDCOND 0
+    BYPASS
+    END  NOSAVE
+    LOOP
+ENDBLOCK
+
+IFTHEN SELECT EQ '/'
+    BYPASS
+    TOP
+ELSE
+    BYPASS
+    END  NOSAVE
+ENDIF
+
+IF  SIBSTSIZ EQ 0
+    EXIT NF,'(BIPSCAND) ** "&STR" NOT FOUND IN SELECTED VSE MEMBERS **'
+
+SET  PPDINCL 1
+OUTPUTF 'SCAND &SELECT "&STR"'
+/INCL $STACK
+++/*
+STACK OPT=CLEAR
+
+SETKEYS
+EXIT

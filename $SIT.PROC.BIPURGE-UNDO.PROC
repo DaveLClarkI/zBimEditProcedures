@@ -1,0 +1,67 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: UNDO THE PURGE OF A MEMBER                             *
+* Procedure..: BIPURGE-UNDO                                           *
+* Command....: UNPURGE                                                *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* If Purge Control is  on,  this procedure will automatically recover *
+* the specified member (and  the  member's title) from the $SIT.PURGE *
+* library.                                                            *
+*                                                                     *
+* Note:  The recovered member is placed  in the original library from *
+* which it was purged (see the PURGE command).                        *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF  MMPPGCTL EQ '0'
+    EXIT SV,'(UNPURGE ) ** Purge Control is not active. **'
+
+DCL MEM CHAR 33 V
+PARSE MEM
+IF  MEM EQ ''
+    SETD MEM TXMPATH
+
+SET TXMLIB '$SIT.PURGE'
+SET TXMMEM ''
+SET PPDCOND '1'
+LABEL READNEXT
+BROWSE
+IF  SIBRETCD EQ 'EF'
+    EXIT SV,'(UNPURGE ) ** ''&MEM'' not found in $SIT.PURGE library. **'
+VEXAM TXMTITLE MEM
+IF  SIBRETCD EQ 'NF'
+    GOTO -READNEXT
+SET PPDCOND '0'
+
+SETD MEM TXMTITLE 8 33
+VTRUNC MEM
+BYPASS
+RENAME &TXMLIB..&TXMMEM &MEM
+READ &MEM
+
+BYPASS
+EDIT &TXMLIB..&TXMMEM &PSWD
+POS 1
+DCL TXT CHAR 60 V
+SETD TXT XTRSLINE
+VTRUNC TXT
+IFTHEN TXT{1,6} EQ 'TITLE='
+    BYPASS
+    ALTER &TXMLIB..&TXMMEM &TXT
+    DELETE 1
+ENDIF
+BYPASS
+QUIT
+
+EXIT OK,'(UNPURGE ) ## Member ''&TXMLIB..&TXMMEM'' purge undone. ##'

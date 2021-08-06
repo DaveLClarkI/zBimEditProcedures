@@ -1,0 +1,34 @@
+;"DOLLARS" PROC FORMATS A DOLLAR VALUE WITH COMMA AND PERIOD
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+DCL PLCHLDER CHAR   3 F
+DCL THOUSNDS NUM    3 Z
+DCL HUNDREDS NUM    3 F
+DCL HUNDREDZ NUM    3 Z
+DCL PENNIES  NUM    2 F
+;
+DCL OPER1 CHAR 8 V           ;NAME OF SRC/DEST GLOBAL VARIABLE
+DCL OPER2 NUM  8 F           ;DOLLAR VALUE FOR FORMATTING
+
+PARSE OPER1 OPER2
+IF OPER1,EQ,''
+   EXIT SV,'(DOLLARS ) ** GLOBAL VARIABLE NAME "OPER1" IS REQUIRED **'
+
+SETD THOUSNDS OPER2 1 3
+SETD HUNDREDS OPER2 4 3
+SETD HUNDREDZ OPER2 4 3
+SETD PENNIES  OPER2 7 2
+
+IF THOUSNDS,GT,0
+   GOTO COMMA
+SET &OPER1 '&PLCHLDER. &HUNDREDZ..&PENNIES'
+EXIT OK
+LABEL COMMA
+SET &OPER1 '&THOUSNDS.,&HUNDREDS..&PENNIES'
+EXIT OK

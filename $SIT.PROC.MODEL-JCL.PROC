@@ -1,0 +1,131 @@
+;"MODEL-JCL" PROC HANDLES THE "JCL" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+                                         ¬POWER   }- POWER JOB,LST,PUN,EOJ cards
+¬  MBCBATCH}- Sample MBCBATCH job step   ¬ALL     }- All JCL statements
+¬  MTPBATCH}- Sample MTPBATCH job step   ¬DELETE  }- Managed-SAM delete job step
+
+¬  ASSGN   }- Assign a logical unit      ¬LABEL   }- Define a JCL label
+¬  CHANGES }- Change control layout      ¬LIBDEF  }- Library definitions
+¬  CLOSE   }- Close a logical unit       ¬MTC     }- Magnetic tape control
+¬  DATE    }- Set the partition date     ¬ON      }- Set condition interrupts
+¬  DLBL    }- Disk label information     ¬OPTION  }- Job control options
+¬  EOD     }- End of Data (/*) marker    ¬PAUSE   }- Halt job processing
+¬  EOJ     }- End of Job (/&) marker     ¬PROC    }- Start a procedure
+¬  EOM     }- End of Member (/+) marker  ¬PWR     }- Pass command to VSE/POWER
+¬  EXEC    }- Execute a job step         ¬RESET   }- Release logical units
+¬  EXTENT  }- Disk extent information    ¬SETPARM }- Set a symbolic parameter
+¬  GOTO    }- Skip to a JCL label        ¬STEPnn  }- Start a job step
+¬  IF      }- Test for a condition       ¬TLBL    }- Tape label information
+¬  JOB     }- Start a job                ¬UPSI    }- Program Switch Indicators
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,ALL
+   EXIT OK
+IF NAME,EQ,ASSGN
+   EXIT OK
+IF NAME,EQ,CHANGES
+   EXIT OK
+IF NAME,EQ,CLOSE
+   EXIT OK
+IF NAME,EQ,DATE
+   EXIT OK
+IF NAME,EQ,DELETE
+   EXIT OK
+IF NAME,EQ,DLBL
+   EXIT OK
+IF NAME,EQ,EOD
+   EXIT OK
+IF NAME,EQ,EOJ
+   EXIT OK
+IF NAME,EQ,EOM
+   EXIT OK
+IF NAME,EQ,EXEC
+   EXIT OK
+IF NAME,EQ,EXTENT
+   EXIT OK
+IF NAME,EQ,GOTO
+   EXIT OK
+IF NAME,EQ,IF
+   EXIT OK
+IF NAME,EQ,JOB
+   EXIT OK
+IF NAME,EQ,LABEL
+   EXIT OK
+IF NAME,EQ,LIBDEF
+   EXIT OK
+IF NAME,EQ,MBCBATCH
+   EXIT OK
+IF NAME,EQ,MTC
+   EXIT OK
+IF NAME,EQ,MTPBATCH
+   EXIT OK
+IF NAME,EQ,ON
+   EXIT OK
+IF NAME,EQ,OPTION
+   EXIT OK
+IF NAME,EQ,PAUSE
+   EXIT OK
+IF NAME,EQ,POWER
+   EXIT OK
+IF NAME,EQ,PROC
+   EXIT OK
+IF NAME,EQ,PWR
+   EXIT OK
+IF NAME,EQ,RESET
+   EXIT OK
+IF NAME,EQ,SETPARM
+   EXIT OK
+IF NAME,EQ,STEPNN
+   EXIT OK
+IF NAME,EQ,TLBL
+   EXIT OK
+IF NAME,EQ,UPSI
+   EXIT OK
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME

@@ -1,0 +1,484 @@
+;"TELNET_MOVECOPY" PROC MOVES/COPIES TELNET GROUPS TO A NEW GROUP
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* No warranty is expressed or implied.      Written by Dave L Clark *
+;* Neither the author nor the company is     DAPSCO Information Sys. *
+;* responsible for any loss or damage        3110 Kettering Blvd.    *
+;* resulting from the use of this code.      Dayton, OH  45439       *
+;* Source is provided on an as-is basis.     Phone: (937)294-5331    *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* This procedure must be  loaded,  as a member,  into the $SIT.PROC *
+;* library.   There is no  command  associated  with this procedure. *
+;* This procedure also requires the EVALUATE command.                *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* This procedure requires that  several  data  members exist in the *
+;* $SIT.CTRL library.   The following  is  a  list of these required *
+;* members:                                                          *
+;*                                                                   *
+;*  LIBRARY=$SIT.CTRL                                                *
+;*  ---------------------------------------------------------------  *
+;*       MEMBER        TYPE                  TITLE                   *
+;*  ---------------- -------- -------------------------------------  *
+;*  TELNET_COMP      DATA     TELNET COMPANY NUMBERS                 *
+;*  TELNET_DATA      DATA     TELNET SESSION DATA                    *
+;*  TELNET_NETN      DATA     TELNET NETNAME PREFIXES                *
+;*  --------------------------------------------------------------   *
+;*                                                                   *
+;* These must be the same three  master files as created and managed *
+;* by the TELNET application procedure.                              *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL 1
+DCL  LSTMEM   CHAR 33 V      ;TEMPORARY HOLDER FOR LAST REFERENCED INFO
+SETD LSTMEM   TXMPATH        ;SAVE THE USER'S LAST REFERENCED INFO
+
+DCL  PORT     CHAR  4 F      ;MAPF FIELD
+
+DCL  CNT      NUM   6 V
+DCL  IDX      NUM   3 V      ;ARRAY INDEX
+DCL  MAX      NUM   3 V      ;ARRAY INDEX
+DCL  SRC(36) CHAR 253 V
+
+DCL  FTYP     CHAR  1 V
+DCL  TTYP     CHAR  1 V
+DCL  SAVE     CHAR  4 V
+DCL  STR      CHAR  5 V
+DCL  PFX      CHAR  5 V
+DCL  BREAK    CHAR  7 V
+DCL  MEMNAME  CHAR  8 V
+DCL  USR      CHAR  8 V
+DCL  RC       CHAR  2 V
+DCL  MSG      CHAR 82 V
+DCL  S$DATA   NUM   2 V      ;SESSION NUMBER (MASTER FILE)
+DCL  S$COMP   NUM   2 V      ;SESSION NUMBER (COMPANY NAMES)
+DCL  S$NETN   NUM   2 V      ;SESSION NUMBER (NETNAME PREFIXES)
+
+DCL  OPT      CHAR  4 V
+DCL  FROM     CHAR  7 V
+DCL  INTO     CHAR  7 V
+PARSE OPT FROM INTO          ;ACCEPT COMMAND ARGUMENTS
+
+IFTHEN OPT EQ ""
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** PARAMETER "OPT" IS REQUIRED **'
+  GOTO EXITPROC
+ENDIF
+
+SET  PPDCOND  1
+VEXAMINE OPT '\MOVE|COPY'
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** OPTION "&OPT" UNKNOWN **'
+  GOTO EXITPROC
+ENDIF
+SET  PPDCOND  0
+
+IFTHEN FROM EQ ""
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** PARAMETER "FROM" IS REQUIRED **'
+  GOTO EXITPROC
+ENDIF
+IFTHEN INTO EQ ""
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** PARAMETER "INTO" IS REQUIRED **'
+  GOTO EXITPROC
+ENDIF
+
+EVALUATE "DataType('&FROM','WholeNumber')"
+SETD FTYP SIBMSG{3,1}
+IFTHEN FTYP EQ '1'      ;'1'=True, '0'=False
+  SETL IDX FROM              ;GET THE LENGTH OF THE COMP.NO
+  IFTHEN IDX NE 3            ;  IT MUST BE THREE
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** FROM "&FROM" NOT LENGTH OF THREE **'
+    GOTO EXITPROC
+  ENDIF
+ELSE
+  SETL IDX FROM              ;GET THE LENGTH OF THE LU GROUP
+  IFTHEN IDX NE 7            ;  IT MUST BE SEVEN
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** FROM "&FROM" NOT LENGTH OF SEVEN **'
+    GOTO EXITPROC
+  ENDIF
+ENDIF
+
+EVALUATE "DataType('&INTO','WholeNumber')"
+SETD TTYP SIBMSG{3,1}
+IFTHEN TTYP EQ '1'      ;'1'=True, '0'=False
+  SETL IDX INTO              ;GET THE LENGTH OF THE COMP.NO
+  IFTHEN IDX NE 3            ;  IT MUST BE THREE
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** INTO "&INTO" NOT LENGTH OF THREE **'
+    GOTO EXITPROC
+  ENDIF
+ELSE
+  SETL IDX INTO              ;GET THE LENGTH OF THE LU GROUP
+  IFTHEN IDX NE 7            ;  IT MUST BE SEVEN
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** INTO "&INTO" NOT LENGTH OF SEVEN **'
+    GOTO EXITPROC
+  ENDIF
+ENDIF
+
+IFTHEN FTYP NE "&TTYP"
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** FROM "&FROM" MISMATCHED WITH INTO "&INTO" **'
+  GOTO EXITPROC
+ENDIF
+
+BYPASS
+EDIT $SIT.CTRL.TELNET_DATA
+SET  S$DATA &SIBSSNU&SIBSCRPM
+
+IFTHEN FTYP EQ '1'      ;COMPANY NUMBER
+  BYPASS
+  EDIT $SIT.CTRL.TELNET_COMP
+  SET  S$COMP &SIBSSNU&SIBSCRPM
+ENDIF
+
+BYPASS
+LIST $SIT.CTRL.TELNET_NETN
+SET  S$NETN &SIBSSNU&SIBSCRPM
+
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+IFTHEN FTYP EQ '1'      ;COMPANY NUMBER
+  BYPASS
+  ROTATE &S$COMP
+  TOP
+  SET  PPDCOND  1
+  BYPASS
+  FIND &FROM 1
+  IFTHEN SIBRETCD EQ 'OK'
+    SET  PPDCOND  0
+    SET  FROM 'WINL&FROM'
+    SETD SRC(1) XTRSLINE
+  ELSE
+    SET  PPDCOND  0
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** FROM "&FROM" NOT A VALID COMPANY **'
+    GOTO SKIPSAVE
+  ENDIF
+ELSE                    ;LU GROUP
+  BYPASS
+  ROTATE &S$DATA
+  TOP
+  SET  PPDCOND  1
+  BYPASS
+  FIND &FROM 1
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND  0
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** FROM "&FROM" NOT FOUND **'
+    GOTO SKIPSAVE
+  ENDIF
+ENDIF
+SET  PPDCOND  0
+
+IFTHEN TTYP EQ '1'      ;COMPANY NUMBER
+  SET  INTO 'WINL&INTO'
+ELSE                    ;LU GROUP
+  BYPASS
+  ROTATE &S$NETN
+  TOP
+  SET  PPDCOND  1
+  BYPASS
+  FIND &INTO{1,5} 1
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND  0
+    SET  RC 'PE'
+    SET  MSG '(TELNET_MOVECOPY) ** INTO "&INTO" NOT VALID LU PREFIX **'
+    GOTO SKIPSAVE
+  ENDIF
+ENDIF
+SET  PPDCOND  0
+
+IFTHEN FROM EQ "&INTO"
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** FROM "&FROM" DUPLICATES INTO "&INTO" **'
+  GOTO SKIPSAVE
+ENDIF
+
+BYPASS
+ROTATE &S$DATA
+TOP
+SET  PPDCOND  1
+BYPASS
+FIND &INTO 1
+IFTHEN SIBRETCD EQ 'OK'
+  SET  PPDCOND  0
+  SET  RC 'PE'
+  SET  MSG '(TELNET_MOVECOPY) ** INTO "&INTO" ALREADY EXISTS **'
+  GOTO SKIPSAVE
+ENDIF
+SET  PPDCOND  0
+;
+;                  Validations complete
+;                  Processing proceeding
+;
+; If applicable, Move/Copy Company Number record
+IFTHEN FTYP EQ '1'      ;COMPANY NUMBER
+  BYPASS
+  ROTATE &S$COMP
+  TOP
+  BYPASS
+  FIND &FROM{5,3} 1
+  SETD SRC(1) XTRSLINE
+  TOP
+  SET  PPDCOND  1
+  BYPASS
+  FIND &INTO{5,3} 1
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND  0
+    INSERTF
+&SRC(1)
+++/*
+    OVERLAY 1 "&INTO{5,3}"
+  ENDIF
+  SET  PPDCOND  0
+  IF XTRSLINE{61,4} EQ ' '
+     OVERLAY 61 "3023"
+  SETD PORT XTRSLINE{61,4}
+  IFTHEN OPT EQ 'MOVE'
+    TOP
+    BYPASS
+    FIND &FROM{5,3} 1
+    DELETE 1
+  ENDIF
+  TOP
+  SORT 1-8 *
+ENDIF
+;
+; Move/Copy Terminal Session record(s)
+BYPASS
+ROTATE &S$DATA
+
+TOP
+SET  PPDCOND  1
+BYPASS
+FIND &FROM 1
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  RC 'OK'
+  SET  MSG '(TELNET_MOVECOPY) ## NO SESSIONS FOUND TO &OPT ##'
+  GOTO SAVEDATA
+ENDIF
+SET  PPDCOND  0
+
+SET  MAX  0
+BLOCK                        ;GET OLD SESSION DATA
+  ADD  MAX  1
+  SETD SRC(&MAX) XTRSLINE
+  SET  PPDCOND  1
+  DOWN 1
+  IF  SIBRETCD NE 'OK'
+      LEAVE
+  SET  PPDCOND  0
+  IFD FROM EQ XTRSLINE{1,7}
+      LOOP
+ENDBLOCK
+SET  PPDCOND  0
+
+SET  IDX  0
+BLOCK                        ;PUT NEW SESSION DATA
+  ADD  IDX  1
+  IFD IDX GT MAX
+      LEAVE
+  INSERTF
+&SRC(&IDX)
+++/*
+  CHANGE "&FROM" "&INTO" 1
+  IF TTYP EQ '1'             ;COMPANY NUMBER
+     OVERLAY 37 "&PORT"
+  IF TTYP NE '1'             ;LU GROUP
+     OVERLAY 37 "1023"
+  SET  PPDCOND  1
+  VEXAM XTRSLINE{10,8} '\PRINTER|SCSPRT'
+  IF  SIBRETCD EQ 'OK'
+     OVERLAY 37 "9023"
+  SET  PPDCOND  0
+  BLANK   150-157
+  BLANK   159-168
+  BLANK   159-168
+  BLANK   181-190
+  OVERLAY 148 "A"
+  OVERLAY 150 "&OPT"
+  OVERLAY 159 "&SIBDATE"
+  CHANGE '/' '-' 1 159-168
+  LOOP
+ENDBLOCK
+
+IFTHEN OPT EQ 'MOVE'
+  TOP
+  BYPASS
+  FIND &FROM 1
+  BLOCK                      ;DELETE OLD SESSION DATA
+    DELETE 1
+    IFD FROM EQ XTRSLINE{1,7}
+        LOOP
+  ENDBLOCK
+ENDIF
+
+TOP
+SORT 1-8 *
+;
+; Update Company Number record with session count
+IFTHEN TTYP EQ '1'           ;COMPANY NUMBER
+  BYPASS
+  ROTATE &S$COMP
+  TOP
+  BYPASS
+  FIND &INTO{5,3} 1
+  EVALUATE 'Format(&MAX,3)'
+  OVERLAY 54 '&SIBMSG{3,3}'
+ENDIF
+;
+; Check PORT Limits
+BYPASS
+ROTATE &S$DATA
+
+IF SIBDIALG NE 'T'
+   SET SIBOUTPT 'D'
+
+SET  PPDCOND  1
+QUAL ' 1023 '
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  CNT      0
+ELSE
+  SET  PPDCOND  0
+  SET  CNT &SSDSZLN
+  BYPASS
+  END NOSAVE
+ENDIF
+IFTHEN SIBDIALG NE 'T'
+  PRINTF
+TOTAL FOR PORT 1023 = &CNT
+++/*
+ENDIF
+IFTHEN CNT GT 1000
+  SET  RC 'LE'
+  SET  MSG '(TELNET_MOVECOPY) ** &OPT COMPLETED, BUT TOO MANY SESSIONS ON PORT 1023 **'
+  GOTO SAVEDATA
+ENDIF
+
+SET  PPDCOND  1
+QUAL ' 2023 '
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  CNT      0
+ELSE
+  SET  PPDCOND  0
+  SET  CNT &SSDSZLN
+  BYPASS
+  END NOSAVE
+ENDIF
+IFTHEN SIBDIALG NE 'T'
+  PRINTF
+TOTAL FOR PORT 2023 = &CNT
+++/*
+ENDIF
+IFTHEN CNT GT 1000
+  SET  RC 'LE'
+  SET  MSG '(TELNET_MOVECOPY) ** &OPT COMPLETED, BUT TOO MANY SESSIONS ON PORT 2023 **'
+  GOTO SAVEDATA
+ENDIF
+
+SET  PPDCOND  1
+QUAL ' 3023 '
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  CNT      0
+ELSE
+  SET  PPDCOND  0
+  SET  CNT &SSDSZLN
+  BYPASS
+  END NOSAVE
+ENDIF
+IFTHEN SIBDIALG NE 'T'
+  PRINTF
+TOTAL FOR PORT 3023 = &CNT
+++/*
+ENDIF
+IFTHEN CNT GT 1000
+  SET  RC 'LE'
+  SET  MSG '(TELNET_MOVECOPY) ** &OPT COMPLETED, BUT TOO MANY SESSIONS ON PORT 3023 **'
+  GOTO SAVEDATA
+ENDIF
+
+SET  PPDCOND  1
+QUAL ' 9023 '
+IFTHEN SIBRETCD NE 'OK'
+  SET  PPDCOND  0
+  SET  CNT      0
+ELSE
+  SET  PPDCOND  0
+  SET  CNT &SSDSZLN
+  BYPASS
+  END NOSAVE
+ENDIF
+IFTHEN SIBDIALG NE 'T'
+  PRINTF
+TOTAL FOR PORT 9023 = &CNT
+++/*
+ENDIF
+IFTHEN CNT GT 1000
+  SET  RC 'LE'
+  SET  MSG '(TELNET_MOVECOPY) ** &OPT COMPLETED, BUT TOO MANY SESSIONS ON PORT 9023 **'
+  GOTO SAVEDATA
+ENDIF
+
+IF SIBDIALG NE 'T'
+   SET SIBOUTPT 'P'
+;
+;                  Processing complete
+;
+SET  RC 'OK'
+SET  MSG '(TELNET_MOVECOPY) ## &OPT OF &FROM TO &INTO COMPLETE ##'
+;
+;                  Save Variable Data
+;
+LABEL SAVEDATA
+SET  SAVE 'SAVE'
+;
+;                  Close Members
+;
+LABEL SKIPSAVE
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+BYPASS
+ROTATE &S$NETN
+BYPASS
+END NOSAVE
+
+IFTHEN TTYP EQ '1'           ;COMPANY NUMBER
+  BYPASS
+  ROTATE &S$COMP
+  IFTHEN SAVE EQ ''
+    BYPASS
+    END NOSAVE
+  ELSE
+    BYPASS
+    SAVE
+  ENDIF
+ENDIF
+
+BYPASS
+ROTATE &S$DATA
+IFTHEN SAVE EQ ''
+  BYPASS
+  END NOSAVE
+ELSE
+  BYPASS
+  SAVE
+ENDIF
+;
+;                  End of Procedure
+;
+LABEL EXITPROC
+SET  PPDCOND 2               ;BYPASS ALL ERRORS
+READ &LSTMEM                 ;RESTORE USER'S LAST REFERENCED INFO
+SET  PPDCOND 0               ;DEFAULT ERROR HANDLING
+
+EXIT &RC,'&MSG'

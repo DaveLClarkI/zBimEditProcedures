@@ -1,0 +1,1625 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: RPGII      Proc Created 10/09/2003   by Dave Clark        *
+;*                  Last Revised 02/17/2004                        *
+;*                                                                 *
+;*      This procedure uses a  full-screen display for the purpose *
+;* of breaking up  an  RPG-II  specification  source line into its *
+;* constituent parts  and  creating  individual  display fields of *
+;* them for ease of modification.  The user then has the option of *
+;* canceling any changes  or  saving  those  changes back into the *
+;* correct source  columns  of  the  original  RPG-II source line. *
+;* Note that the cursor position is used to determine which source *
+;* line is selected -- thus, this procedure (as a command) is best *
+;* used via a program function key setting.                        *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   DAPSCO Information Sys. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;*                                                                 *
+;*      This procedure  must  be  loaded,  as  a member,  into the *
+;* $SIT.PROC library.   (Note:  This  procedure  also requires the *
+;* EVALUATE command.) The following  line (without the ruler line) *
+;* must be added to the $SIT.CTRL.COMMANDS member and the "NEWCOPY *
+;* COMMANDS" command issued:                                       *
+;*                                                                 *
+;* |---+----1----+----2----|                                       *
+;* RPGII    RPGII                                                  *
+;*                                                                 *
+;* The purpose of the ruler line is to show column positioning.    *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   1
+SET  PPDSCRSZ D
+SET  PPDPFOPT 1
+
+DCL  SPEC     CHAR  1 V
+DCL  CURS     NUM   3 V
+DCL  CURL     NUM   6 V
+DCL  SAVL     NUM   6 V
+
+DCL  A        CHAR  1 V      ;MAPF FIELD
+DCL  B        CHAR  1 V      ;MAPF FIELD
+DCL  C        CHAR  1 V      ;MAPF FIELD
+DCL  D        CHAR  1 V      ;MAPF FIELD
+DCL  E        CHAR  1 V      ;MAPF FIELD
+DCL  F        CHAR  1 V      ;MAPF FIELD
+DCL  G        CHAR  1 V      ;MAPF FIELD
+DCL  L        CHAR  1 V      ;MAPF FIELD
+DCL  M        CHAR  1 V      ;MAPF FIELD
+DCL  O        CHAR  1 V      ;MAPF FIELD
+DCL  P        CHAR  1 V      ;MAPF FIELD
+DCL  Q        CHAR  1 V      ;MAPF FIELD
+DCL  R        CHAR  1 V      ;MAPF FIELD
+DCL  S        CHAR  1 V      ;MAPF FIELD
+DCL  T        CHAR  1 V      ;MAPF FIELD
+DCL  X        CHAR  1 V      ;MAPF FIELD
+DCL  Y        CHAR  1 V      ;MAPF FIELD
+DCL  Z        CHAR  1 V      ;MAPF FIELD
+DCL  CA       CHAR  2 V      ;MAPF FIELD
+DCL  CB       CHAR  2 V      ;MAPF FIELD
+DCL  CC       CHAR  2 V      ;MAPF FIELD
+DCL  C3       CHAR  2 V      ;MAPF FIELD
+DCL  C4       CHAR  2 V      ;MAPF FIELD
+DCL  C5       CHAR  2 V      ;MAPF FIELD
+DCL  C6       CHAR  2 V      ;MAPF FIELD
+DCL  C7       CHAR  2 V      ;MAPF FIELD
+DCL  C8       CHAR  2 V      ;MAPF FIELD
+DCL  C9       CHAR  2 V      ;MAPF FIELD
+DCL  FC       CHAR  2 V      ;MAPF FIELD
+DCL  H        CHAR  2 F      ;MAPF FIELD
+DCL  KL       CHAR  2 F      ;MAPF FIELD
+DCL  OF       CHAR  2 V      ;MAPF FIELD
+DCL  AL       CHAR  3 F      ;MAPF FIELD
+DCL  EL       CHAR  3 F      ;MAPF FIELD
+DCL  KR       CHAR  3 F      ;MAPF FIELD
+DCL  LA       CHAR  3 F      ;MAPF FIELD
+DCL  LB       CHAR  3 F      ;MAPF FIELD
+DCL  LC       CHAR  3 F      ;MAPF FIELD
+DCL  L3       CHAR  3 F      ;MAPF FIELD
+DCL  L4       CHAR  3 F      ;MAPF FIELD
+DCL  L5       CHAR  3 F      ;MAPF FIELD
+DCL  L6       CHAR  3 F      ;MAPF FIELD
+DCL  L7       CHAR  3 F      ;MAPF FIELD
+DCL  L8       CHAR  3 F      ;MAPF FIELD
+DCL  L9       CHAR  3 F      ;MAPF FIELD
+DCL  BL       CHAR  4 F      ;MAPF FIELD
+DCL  KS       CHAR  4 F      ;MAPF FIELD
+DCL  P1       CHAR  4 F      ;MAPF FIELD
+DCL  P2       CHAR  4 F      ;MAPF FIELD
+DCL  P3       CHAR  4 F      ;MAPF FIELD
+DCL  RL       CHAR  4 F      ;MAPF FIELD
+DCL  OP       CHAR  5 V      ;MAPF FIELD
+DCL  SEQ      CHAR  5 V      ;MAPF FIELD
+DCL  EE       CHAR  6 V      ;MAPF FIELD
+DCL  EX       CHAR  6 V      ;MAPF FIELD
+DCL  FD       CHAR  6 V      ;MAPF FIELD
+DCL  DT       CHAR  7 V      ;MAPF FIELD
+DCL  FN       CHAR  8 V      ;MAPF FIELD
+DCL  TF       CHAR  8 V      ;MAPF FIELD
+DCL  COND     CHAR  9 V      ;MAPF FIELD
+DCL  F1       CHAR 10 V      ;MAPF FIELD
+DCL  F2       CHAR 10 V      ;MAPF FIELD
+DCL  CREM     CHAR 15 V      ;MAPF FIELD
+DCL  EREM     CHAR 17 V      ;MAPF FIELD
+DCL  CONS     CHAR 26 V      ;MAPF FIELD
+DCL  MESG     CHAR 78 V      ;MAPF FIELD
+
+DCL  N        NUM   4 V
+DCL  CHRVAR   CHAR  8 V
+DCL  NUMVAR   CHAR  8 V
+DCL  NUMLEN   NUM   2 V
+DCL  NUMPAD   CHAR  1 V
+DCL  RC       CHAR  2 V
+DCL  MSG      CHAR 82 V
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(RPGII) ** COMMAND REQUIRES AN "UPDATABLE" SESSION **'
+IF SSDTYPE,EQ,DI
+   GOTO EXECUTE
+IF SSDTYPE,EQ,LI
+   GOTO EXECUTE
+IF SSDTYPE,EQ,EE
+   GOTO EXECUTE
+IF SSDTYPE,NE,ED
+   EXIT SV,'(RPGII) ** COMMAND REQUIRES AN "UPDATABLE" SESSION **'
+
+LABEL EXECUTE
+IF SIBCSROW,LE,&SIBSCRB&SIBSCRPM
+   GOTO ERROR
+IF SIBCSROW,GT,&SIBSCRL&SIBSCRPM
+   GOTO ERROR
+GOTO CONTINUE
+LABEL ERROR
+EXIT OK,'(RPGII) ** CURSOR NOT IN DATA AREA OF A VALID DATA LINE **'
+
+LABEL CONTINUE
+SET CURL &SIBSCRB&SIBSCRPM        ;STARTING LINE OF LOGICAL SCREEN
+ADD CURL 3                        ;PLUS HEADER LINES
+IF SSDBEFSP,GT,0
+   ADD CURL 1                     ;PLUS SCALE LINE FOR "SCR BEF"
+ADD CURL &SSDBEFSP                ;PLUS LINES BEFORE "SCR BEF"
+IF SIBCSROW,LT,&CURL
+   GOTO -ERROR
+SET SAVL &SSDBASE&SIBSCRPM        ;SAVE CURRENT LINE NUMBER
+SET CURS &SIBCSROW                ;CURSOR LINE NUMBER
+SUBTRACT CURS &CURL               ;NUMBER OF LINES TO ADVANCE
+IF CURS,NE,0
+   DOWN &CURS
+
+SETD PARMLIST XTRSLINE{1,80}
+SETD PARMLIST PARMLIST
+SETD SPEC PARMLIST{7,1}
+IFTHEN SPEC EQ '*'
+  POSITION &SAVL                  ;RESTORE CURRENT LINE NUMBER
+  EXIT OK,'(RPGII) ** COMMENT LINES NOT PROMPTABLE **'
+ENDIF
+
+SETD SPEC PARMLIST{6,1}
+SET  PPDCOND 2
+GOTO &SPEC.SPEC                   ;MULTI-BRANCH
+SET  PPDCOND 0
+POSITION &SAVL                    ;RESTORE CURRENT LINE NUMBER
+EXIT OK,'(RPGII) ** SPECIFICATION CODE NOT SUPPORTED **'
+;
+; CHECK NUMERIC SUBROUTINE (ALSO FORMATS)
+;
+LABEL CHKNUM                      ;SUBROUTINE
+  SET  &NUMVAR  0
+  IF &CHRVAR  EQ ''
+    RETURN
+  SET  NUMLEN   &NUMLEN
+  SET  PPDCOND 2
+  SET  &NUMVAR  &&CHRVAR
+  IFTHEN SIBRETCD NE 'OK'
+    SET  PPDCOND 0
+    SET  PPDALARM 1
+    SET  PPDCSFLD '&CHRVAR'
+    SET  MESG 'Unable to interpret expected numeric specification.'
+  ENDIF
+  SET  PPDCOND 0
+  IFTHEN PPDALARM EQ 0
+    IFTHEN NUMPAD EQ '0'
+      EVALUATE 'Right("&&NUMVAR",&NUMLEN,"0")'
+      SETD MSG  SIBMSG
+    ELSE
+      EVALUATE 'Format(&&NUMVAR,&NUMLEN)'
+      SETD MSG  SIBMSG
+    ENDIF
+    IFTHEN MSG{1,2} NE 'OK'
+      SET  PPDALARM 1
+      SET  PPDCSFLD '&CHRVAR'
+      SETD MESG  MSG{3}
+    ELSE
+      SETD &CHRVAR  MSG{3}
+    ENDIF
+  ENDIF
+RETURN
+;
+; 'H' SPECIFICATION
+;
+LABEL HSPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD D    PARMLIST{15,1}
+SETD P    PARMLIST{21,1}
+SETD A    PARMLIST{26,1}
+SETD S    PARMLIST{40,1}
+SETD F    PARMLIST{41,1}
+SETD R    PARMLIST{42,1}
+SETD T    PARMLIST{43,1}
+SETD X    PARMLIST{50,1}
+SETD C    PARMLIST{51,1}
+SETD E    PARMLIST{54,1}
+SETD B    PARMLIST{55,1}
+SETD O    PARMLIST{56,1}
+
+LABEL HSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+            Inverted     Alternate       Sign       Forms     Indicator
+   Debug     Print       Collating     Handling     Align      Setting
+    {D}       {P}           {A}          {S}         {F}         {R}
+
+      File       Formatted     Conversion     System/3
+   Translation     Dump         to RPGII     Conversion     Subprogram
+      {T}          {X}            {C}           {E}            {B}
+
+   CICS/
+   DL/I
+    {O}
+
+
+
+
+
+
+¬PF3}= Save                                                      ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY NE 'PF3'
+   GOTO -HSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -HSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H"   1
+OVLY 15 "&D"   1
+OVLY 21 "&P"   1
+OVLY 26 "&A"   1
+OVLY 40 "&S"   1
+OVLY 41 "&F"   1
+OVLY 42 "&R"   1
+OVLY 43 "&T"   1
+OVLY 50 "&X"   1
+OVLY 51 "&C"   1
+OVLY 54 "&E"   1
+OVLY 55 "&B"   1
+OVLY 56 "&O"   1
+
+GOTO EXIT
+;
+; 'F' SPECIFICATION
+;
+LABEL FSPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD FN   PARMLIST{7,8}
+SETD M    PARMLIST{15,1}
+SETD D    PARMLIST{16,1}
+SETD E    PARMLIST{17,1}
+SETD S    PARMLIST{18,1}
+SETD F    PARMLIST{19,1}
+SETD BL   PARMLIST{20,4}
+SETD RL   PARMLIST{24,4}
+SETD P    PARMLIST{28,1}
+SETD KL   PARMLIST{29,2}
+SETD R    PARMLIST{31,1}
+SETD O    PARMLIST{32,1}
+SETD OF   PARMLIST{33,2}
+SETD KS   PARMLIST{35,4}
+SETD X    PARMLIST{39,1}
+SETD DT   PARMLIST{40,7}
+SETD FD   PARMLIST{47,6}
+SETD L    PARMLIST{53,1}
+SETD EX   PARMLIST{54,6}
+SETD EE   PARMLIST{60,6}
+SETD A    PARMLIST{66,1}
+SETD C    PARMLIST{67,1}
+SETD T    PARMLIST{70,1}
+SETD FC   PARMLIST{71,2}
+
+SET  PPDCSFLD 'FN'
+LABEL FSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+                 File         File          End of                    File
+   Filename      Type      Designation       File       Sequence      Format
+  {FN      }     {M}          {D}            {E}          {S}          {F}
+
+       Block       Record       Mode of       Length of        Record
+       Length      Length      Procesing      Key Field      Address Type
+       {BL  }      {RL  }         {P}           {KL}             {R}
+
+       File          Overflow       Key Field      Extn      VSAM Dataset or
+   Organization      Indicator      Start Loc      Code        Device Type
+       {O}             {OF}          {KS  }        {X}          {DT     }
+
+  Field Name            Special or   Extent     File    Cyl    Tape    File
+  or Sym.Dev    Label   Label Exit    Exit      Add     Ofl    Rew   Condition
+   {FD    }      {L}     {EX    }   {EE    }    {A}     {C}    {T}     {FC}
+
+
+¬PF3}= Save                                                      ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD 'FN'
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+
+SET  CHRVAR 'BL'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -FSHOW
+SET  CHRVAR 'RL'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -FSHOW
+SET  CHRVAR 'KL'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -FSHOW
+SET  CHRVAR 'KS'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -FSHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -FSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -FSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H"   1
+OVLY  7 "&FN"  1
+OVLY 15 "&M"   1
+OVLY 16 "&D"   1
+OVLY 17 "&E"   1
+OVLY 18 "&S"   1
+OVLY 19 "&F"   1
+OVLY 20 "&BL"  1
+OVLY 24 "&RL"  1
+OVLY 28 "&P"   1
+OVLY 29 "&KL"  1
+OVLY 31 "&R"   1
+OVLY 32 "&O"   1
+OVLY 33 "&OF"  1
+OVLY 35 "&KS"  1
+OVLY 39 "&X"   1
+OVLY 40 "&DT"  1
+OVLY 47 "&FD"  1
+OVLY 53 "&L"   1
+OVLY 54 "&EX"  1
+OVLY 60 "&EE"  1
+OVLY 66 "&A"   1
+OVLY 67 "&C"   1
+OVLY 70 "&T"   1
+OVLY 71 "&FC"  1
+
+GOTO EXIT
+;
+; 'E' SPECIFICATION
+;
+LABEL ESPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD OF   PARMLIST{7,2}
+SETD FC   PARMLIST{9,2}
+SETD FN   PARMLIST{11,8}
+SETD TF   PARMLIST{19,8}
+SETD EE   PARMLIST{27,6}
+SETD KR   PARMLIST{33,3}
+SETD KS   PARMLIST{36,4}
+SETD EL   PARMLIST{40,3}
+SETD F    PARMLIST{43,1}
+SETD D    PARMLIST{44,1}
+SETD S    PARMLIST{45,1}
+SETD EX   PARMLIST{46,6}
+SETD AL   PARMLIST{52,3}
+SETD G    PARMLIST{55,1}
+SETD E    PARMLIST{56,1}
+SETD T    PARMLIST{57,1}
+SETD EREM PARMLIST{58,17}
+
+SET  PPDCSFLD 'EE'
+LABEL ESHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+    Record       Field         From           To
+   Sequence      Number      Filename      Filename
+     {OF}         {FC}      {FN      }    {TF      }
+
+   Table      __Entries_per__     Entry                   Decimal    Sequence
+    Name      Record    Table     Length     P/B/L/R     Positions    (A,D)
+  {EE    }     {KR }   {KS  }     {EL }        {F}          {D}        {S}
+
+  Alternate                       Entry                   Decimal    Sequence
+    Name                          Length     P/B/L/R     Positions    (A,D)
+  {EX    }                        {AL }        {G}          {E}        {T}
+
+
+   Comment
+  {EREM             }
+
+
+¬PF3}= Save                                                      ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD 'EE'
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+
+SET  CHRVAR 'KR'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+SET  CHRVAR 'KS'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+SET  CHRVAR 'EL'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+SET  CHRVAR 'D'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+SET  CHRVAR 'AL'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+SET  CHRVAR 'E'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -ESHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -ESHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ"  1
+OVLY  6 "&H"    1
+OVLY  7 "&OF"   1
+OVLY  9 "&FC"   1
+OVLY 11 "&FN"   1
+OVLY 19 "&TF"   1
+OVLY 27 "&EE"   1
+OVLY 33 "&KR"   1
+OVLY 36 "&KS"   1
+OVLY 40 "&EL"   1
+OVLY 43 "&F"    1
+OVLY 44 "&D"    1
+OVLY 45 "&S"    1
+OVLY 46 "&EX"   1
+OVLY 52 "&AL"   1
+OVLY 55 "&G"    1
+OVLY 56 "&E"    1
+OVLY 57 "&T"    1
+OVLY 58 "&EREM" 1
+
+GOTO EXIT
+;
+; 'L' SPECIFICATION
+;
+LABEL LSPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD FN   PARMLIST{7,8}
+SETD AL   PARMLIST{15,3}
+SETD FC   PARMLIST{18,2}
+SETD EL   PARMLIST{20,3}
+SETD OF   PARMLIST{23,2}
+SETD L3   PARMLIST{25,3}
+SETD C3   PARMLIST{28,2}
+SETD L4   PARMLIST{30,3}
+SETD C4   PARMLIST{33,2}
+SETD L5   PARMLIST{35,3}
+SETD C5   PARMLIST{38,2}
+SETD L6   PARMLIST{40,3}
+SETD C6   PARMLIST{43,2}
+SETD L7   PARMLIST{45,3}
+SETD C7   PARMLIST{48,2}
+SETD L8   PARMLIST{50,3}
+SETD C8   PARMLIST{53,2}
+SETD L9   PARMLIST{55,3}
+SETD C9   PARMLIST{58,2}
+SETD LA   PARMLIST{60,3}
+SETD CA   PARMLIST{63,2}
+SETD LB   PARMLIST{65,3}
+SETD CB   PARMLIST{68,2}
+SETD LC   PARMLIST{70,3}
+SETD CC   PARMLIST{73,2}
+
+SET  PPDCSFLD 'FN'
+LABEL LSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+                  Line    'FL' or       Line    'OL' or
+   Filename      Number   Channel      Number   Channel
+  {FN      }      {AL }    {FC}         {EL }    {OF}
+
+    ______03______     ______04______     ______05______     ______06______
+    Line   Channel     Line   Channel     Line   Channel     Line   Channel
+    {L3 }   {C3}       {L4 }   {C4}       {L5 }   {C5}       {L6 }   {C6}
+
+    ______07______     ______08______     ______09______     ______10______
+    Line   Channel     Line   Channel     Line   Channel     Line   Channel
+    {L7 }   {C7}       {L8 }   {C8}       {L9 }   {C9}       {LA }   {CA}
+
+    ______11______     ______12______
+    Line   Channel     Line   Channel
+    {LB }   {CB}       {LC }   {CC}
+
+
+¬PF3}= Save                                                      ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD 'FN'
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+
+SET  CHRVAR 'AL'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+IFTHEN FC EQ 'FL'
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'FC'
+  SET  MESG 'Note that DOS/VS RPG-II does not support the "FL" specification.'
+ENDIF
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'EL'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+IFTHEN OF EQ 'OL'
+  SET  PPDALARM 1
+  SET  PPDCSFLD 'OF'
+  SET  MESG 'Note that DOS/VS RPG-II does not support the "OL" specification.'
+ENDIF
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L3'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L4'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L5'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L6'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L7'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L8'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'L9'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'LA'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'LB'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'LC'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  NUMPAD '0'
+SET  CHRVAR 'FC'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'OF'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C3'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C4'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C5'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C6'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C7'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C8'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'C9'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'CA'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'CB'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  CHRVAR 'CC'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -LSHOW
+SET  NUMPAD ' '
+
+IF PPDKEY NE 'PF3'
+   GOTO -LSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -LSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H"   1
+OVLY  7 "&FN"  1
+OVLY 15 "&AL"  1
+OVLY 18 "&FC"  1
+OVLY 20 "&EL"  1
+OVLY 23 "&OF"  1
+OVLY 25 "&L3"  1
+OVLY 28 "&C3"  1
+OVLY 30 "&L4"  1
+OVLY 33 "&C4"  1
+OVLY 35 "&L5"  1
+OVLY 38 "&C5"  1
+OVLY 40 "&L6"  1
+OVLY 43 "&C6"  1
+OVLY 45 "&L7"  1
+OVLY 48 "&C7"  1
+OVLY 50 "&L8"  1
+OVLY 53 "&C8"  1
+OVLY 55 "&L9"  1
+OVLY 58 "&C9"  1
+OVLY 60 "&LA"  1
+OVLY 63 "&CA"  1
+OVLY 65 "&LB"  1
+OVLY 68 "&CB"  1
+OVLY 70 "&LC"  1
+OVLY 73 "&CC"  1
+GOTO EXIT
+;
+; 'I' SPECIFICATION
+;
+LABEL ISPEC
+SET  PPDCOND 0
+IF PARMLIST{53,6} NE ' '
+   GOTO IXSPEC
+IF PARMLIST{14,3} EQ 'OR '
+   GOTO ICSPEC
+IF PARMLIST{14,3} EQ 'AND'
+   GOTO ICSPEC
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD FN   PARMLIST{7,8}
+SETD KL   PARMLIST{15,2}
+SETD M    PARMLIST{17,1}
+SETD O    PARMLIST{18,1}
+SETD FC   PARMLIST{19,2}
+SETD P1   PARMLIST{21,4}
+SETD A    PARMLIST{25,1}
+SETD B    PARMLIST{26,1}
+SETD C    PARMLIST{27,1}
+SETD P2   PARMLIST{28,4}
+SETD P    PARMLIST{32,1}
+SETD Q    PARMLIST{33,1}
+SETD R    PARMLIST{34,1}
+SETD P3   PARMLIST{35,4}
+SETD X    PARMLIST{39,1}
+SETD Y    PARMLIST{40,1}
+SETD Z    PARMLIST{41,1}
+SETD S    PARMLIST{42,1}
+SETD BL   PARMLIST{48,4}
+
+LABEL ISHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+   DSname or                               Option       'DS' or
+   Filename      Sequence      Number      O/U/S       Record ID
+  {FN      }       {KL}         {M}         {O}          {FC}
+
+   Record Identification Codes
+   Position     Not    C/Z/D   Character
+   1. {P1  }    {A}     {B}       {C}         Stacker      Data Structure
+   2. {P2  }    {P}     {Q}       {R}         Select           Length
+   3. {P3  }    {X}     {Y}       {Z}           {S}            {BL  }
+
+
+
+
+
+
+
+
+¬PF3}= Save                ¬PF5}= Alternate Format               ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY EQ 'PF5'
+   GOTO ICSPEC
+
+SET  CHRVAR 'P1'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ISHOW
+SET  CHRVAR 'P2'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ISHOW
+SET  CHRVAR 'P3'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ISHOW
+SET  CHRVAR 'BL'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ISHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -ISHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -ISHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H"   1
+OVLY  7 "&FN"  1
+OVLY 15 "&KL"  1
+OVLY 17 "&M"   1
+OVLY 18 "&O"   1
+OVLY 19 "&FC"  1
+OVLY 21 "&P1"  1
+OVLY 25 "&A"   1
+OVLY 26 "&B"   1
+OVLY 27 "&C"   1
+OVLY 28 "&P2"  1
+OVLY 32 "&P"   1
+OVLY 33 "&Q"   1
+OVLY 34 "&R"   1
+OVLY 35 "&P3"  1
+OVLY 39 "&X"   1
+OVLY 40 "&Y"   1
+OVLY 41 "&Z"   1
+OVLY 42 "&S"   1
+OVLY 48 "&BL"  1
+
+GOTO EXIT
+;
+; 'IC' SPECIFICATION
+;
+LABEL ICSPEC
+SET  PPDCOND 0
+IF PARMLIST{53,6} NE ' '
+   GOTO IXSPEC
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SET  H    &H{1,1}C
+SETD LA   PARMLIST{14,3}
+SETD M    PARMLIST{17,1}
+SETD O    PARMLIST{18,1}
+SETD FC   PARMLIST{19,2}
+SETD P1   PARMLIST{21,4}
+SETD A    PARMLIST{25,1}
+SETD B    PARMLIST{26,1}
+SETD C    PARMLIST{27,1}
+SETD P2   PARMLIST{28,4}
+SETD P    PARMLIST{32,1}
+SETD Q    PARMLIST{33,1}
+SETD R    PARMLIST{34,1}
+SETD P3   PARMLIST{35,4}
+SETD X    PARMLIST{39,1}
+SETD Y    PARMLIST{40,1}
+SETD Z    PARMLIST{41,1}
+SETD S    PARMLIST{42,1}
+
+LABEL ICSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+
+                  OR/AND       Number      Option      Record ID
+                  {LA }         {M}         {O}          {FC}
+
+   Record Identification Codes
+   Position     Not    C/Z/D   Character
+   1. {P1  }    {A}     {B}       {C}         Stacker
+   2. {P2  }    {P}     {Q}       {R}         Select
+   3. {P3  }    {X}     {Y}       {Z}           {S}
+
+
+
+
+
+
+
+
+¬PF3}= Save                ¬PF5}= Alternate Format               ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY EQ 'PF5'
+   GOTO IXSPEC
+
+SET  CHRVAR 'P1'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ICSHOW
+SET  CHRVAR 'P2'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ICSHOW
+SET  CHRVAR 'P3'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ICSHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -ICSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -ICSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H{1,1}" 1
+OVLY 14 "&LA"  1
+OVLY 17 "&M"   1
+OVLY 18 "&O"   1
+OVLY 19 "&FC"  1
+OVLY 21 "&P1"  1
+OVLY 25 "&A"   1
+OVLY 26 "&B"   1
+OVLY 27 "&C"   1
+OVLY 28 "&P2"  1
+OVLY 32 "&P"   1
+OVLY 33 "&Q"   1
+OVLY 34 "&R"   1
+OVLY 35 "&P3"  1
+OVLY 39 "&X"   1
+OVLY 40 "&Y"   1
+OVLY 41 "&Z"   1
+OVLY 42 "&S"   1
+
+GOTO EXIT
+;
+; 'IX' SPECIFICATION
+;
+LABEL IXSPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SET  H    &H{1,1}X
+SETD F    PARMLIST{43,1}
+SETD P1   PARMLIST{44,4}
+SETD P2   PARMLIST{48,4}
+SETD D    PARMLIST{52,1}
+SETD FD   PARMLIST{53,6}
+SETD FC   PARMLIST{59,2}
+SETD KL   PARMLIST{61,2}
+SETD OF   PARMLIST{63,2}
+SETD CA   PARMLIST{65,2}
+SETD CB   PARMLIST{67,2}
+SETD CC   PARMLIST{69,2}
+
+LABEL IXSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+                                  Decimal      Field      Control    Matching
+   P/B/L/R     From     To       Positions      Name       Level      Fields
+     {F}      {P1  }   {P2  }       {D}       {FD    }     {FC}        {KL}
+
+   Field Record      Positive      Negative      Zero /
+     Relation         Field         Field        Blank
+       {OF}           {CA}          {CB}         {CC}
+
+
+
+
+
+
+
+
+
+
+¬PF3}= Save                ¬PF5}= Primary Format                 ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY EQ 'PF5'
+   GOTO -ISPEC
+
+SET  CHRVAR 'P1'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -IXSHOW
+SET  CHRVAR 'P2'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -IXSHOW
+SET  CHRVAR 'D'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -IXSHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -IXSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -IXSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H{1,1}" 1
+OVLY 43 "&F"   1
+OVLY 44 "&P1"  1
+OVLY 48 "&P2"  1
+OVLY 52 "&D"   1
+OVLY 53 "&FD"  1
+OVLY 59 "&FC"  1
+OVLY 61 "&KL"  1
+OVLY 63 "&OF"  1
+OVLY 65 "&CA"  1
+OVLY 67 "&CB"  1
+OVLY 69 "&CC"  1
+
+GOTO EXIT
+;
+; 'C' SPECIFICATION
+;
+LABEL CSPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD FC   PARMLIST{7,2}
+SETD COND PARMLIST{9,9}
+SETD F1   PARMLIST{18,10}
+SETD OP   PARMLIST{28,5}
+SETD F2   PARMLIST{33,10}
+SETD FD   PARMLIST{43,6}
+SETD EL   PARMLIST{49,3}
+SETD D    PARMLIST{52,1}
+SETD F    PARMLIST{53,1}
+SETD CA   PARMLIST{54,2}
+SETD CB   PARMLIST{56,2}
+SETD CC   PARMLIST{58,2}
+SETD CREM PARMLIST{60,15}
+
+LABEL CSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+   Control     Conditioning Indicators
+    Level             N01N02N03
+    {FC}             {COND     }
+
+                                            Result       Field       Decmial
+   Factor 1     Operation   Factor 2        Field        Length     Positions
+  {F1        }   {OP   }   {F2        }    {FD    }      {EL }         {D}
+
+    Half       ___________________Resulting_Indicators____________________
+   Adjust      Plus/High/Off/RNF   Minus/Low/Mixed/ERR   Zero/Equal/On/EOF
+    {F}               {CA}                {CB}                 {CC}
+
+
+   Comment
+  {CREM           }
+
+
+¬PF3}= Save                                                      ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+
+SET  CHRVAR 'EL'
+SET  NUMVAR 'N'
+SET  NUMLEN  3
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+SET  CHRVAR 'D'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -ESHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -CSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -CSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ"  1
+OVLY  6 "&H"    1
+OVLY  7 "&FC"   1
+OVLY  9 "&COND" 1
+OVLY 18 "&F1"   1
+OVLY 28 "&OP"   1
+OVLY 33 "&F2"   1
+OVLY 43 "&FD"   1
+OVLY 49 "&EL"   1
+OVLY 52 "&D"    1
+OVLY 53 "&F"    1
+OVLY 54 "&CA"   1
+OVLY 56 "&CB"   1
+OVLY 58 "&CC"   1
+OVLY 60 "&CREM" 1
+
+GOTO EXIT
+;
+; 'O' SPECIFICATION
+;
+LABEL OSPEC
+SET  PPDCOND 0
+IF PARMLIST{40,4} NE ' '
+   GOTO OXSPEC
+IF PARMLIST{14,3} EQ 'OR '
+   GOTO OCSPEC
+IF PARMLIST{14,3} EQ 'AND'
+   GOTO OCSPEC
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SETD FN   PARMLIST{7,8}
+SETD F    PARMLIST{15,1}
+SET  PPDCOND  1
+VEXAM PARMLIST{16,3} '\ADD|DEL'
+IFTHEN SIBRETCD EQ 'OK'
+  SETD KR PARMLIST{16,3}
+  SET  S  ' '
+  SET  B  ' '
+  SET  A  ' '
+ELSE
+  SET  KR '   '
+  SETD S  PARMLIST{16,1}
+  SETD B  PARMLIST{17,1}
+  SETD A  PARMLIST{18,1}
+ENDIF
+SET  PPDCOND  0
+SETD CB   PARMLIST{19,2}
+SETD CA   PARMLIST{21,2}
+SETD COND PARMLIST{23,9}
+
+LABEL OSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+                          Stacker Select       VSAM
+   Filename      Type        or Fetch         ADD/DEL
+  {FN      }     {F}           {S}             {KR }
+
+   ____Space____     _____Skip_____      Conditioning Indicators
+   Before  After     Before   After             N01N02N03
+    {B}     {A}       {CB}    {CA}             {COND     }
+
+
+
+
+
+
+
+
+
+
+¬PF3}= Save                ¬PF5}= Alternate Format               ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY EQ 'PF5'
+   GOTO OXSPEC
+
+SET  CHRVAR 'B'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OSHOW
+SET  CHRVAR 'A'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OSHOW
+SET  NUMPAD '0'
+SET  CHRVAR 'CB'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OSHOW
+SET  CHRVAR 'CA'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OSHOW
+SET  NUMPAD ' '
+
+IF PPDKEY NE 'PF3'
+   GOTO -OSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -OSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H"   1
+OVLY  7 "&FN"  1
+OVLY 15 "&F"   1
+SET  PPDCOND  1
+VEXAM KR '\ADD|DEL'
+IFTHEN SIBRETCD EQ 'OK'
+  OVLY 16 "&KR" 1
+ELSE
+  OVLY 16 "&S"  1
+  OVLY 17 "&B"  1
+  OVLY 18 "&A"  1
+ENDIF
+SET  PPDCOND  0
+OVLY 19 "&CB"   1
+OVLY 21 "&CA"   1
+OVLY 23 "&COND" 1
+
+GOTO EXIT
+;
+; 'OC' SPECIFICATION
+;
+LABEL OCSPEC
+SET  PPDCOND 0
+IF PARMLIST{40,4} NE ' '
+   GOTO OXSPEC
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SET  H    &H{1,1}C
+IFTHEN PARMLIST{14,2} EQ 'OR'
+  SETD LA PARMLIST{14,2}
+  SETD S  PARMLIST{16,1}
+ELSE
+  SETD LA PARMLIST{14,3}
+  SET  S  ' '
+ENDIF
+SETD B    PARMLIST{17,1}
+SETD A    PARMLIST{18,1}
+SETD CB   PARMLIST{19,2}
+SETD CA   PARMLIST{21,2}
+SETD COND PARMLIST{23,9}
+
+LABEL OCSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+                          Stacker Select
+              OR/AND         or Fetch
+              {LA }            {S}
+
+   ____Space____     _____Skip_____      Conditioning Indicators
+   Before  After     Before   After             N01N02N03
+    {B}     {A}       {CB}    {CA}             {COND     }
+
+
+
+
+
+
+
+
+
+
+¬PF3}= Save                ¬PF5}= Alternate Format               ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY EQ 'PF5'
+   GOTO OXSPEC
+
+SET  CHRVAR 'B'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OCSHOW
+SET  CHRVAR 'A'
+SET  NUMVAR 'N'
+SET  NUMLEN  1
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OCSHOW
+SET  NUMPAD '0'
+SET  CHRVAR 'CB'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OCSHOW
+SET  CHRVAR 'CA'
+SET  NUMVAR 'N'
+SET  NUMLEN  2
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OCSHOW
+SET  NUMPAD ' '
+
+IF PPDKEY NE 'PF3'
+   GOTO -OCSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -OCSHOW
+
+BLANK 1-74 1
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H{1,1}" 1
+IFTHEN LA EQ 'OR'
+  OVLY 14 "&LA" 1
+  OVLY 16 "&S"  1
+ELSE
+  OVLY 14 "&LA" 1
+ENDIF
+OVLY 17 "&B"    1
+OVLY 18 "&A"    1
+OVLY 19 "&CB"   1
+OVLY 21 "&CA"   1
+OVLY 23 "&COND" 1
+
+GOTO EXIT
+;
+; 'OX' SPECIFICATION
+;
+LABEL OXSPEC
+SET  PPDCOND 0
+
+SETD SEQ  PARMLIST{1,5}
+SETD H    PARMLIST{6,1}
+SET  H    &H{1,1}X
+SETD COND PARMLIST{23,9}
+SETD FD   PARMLIST{32,6}
+SETD E    PARMLIST{38,1}
+SETD B    PARMLIST{39,1}
+SETD P2   PARMLIST{40,4}
+SETD F    PARMLIST{44,1}
+SETD CONS PARMLIST{45,26}
+
+LABEL OXSHOW
+MAPF
+}RPGII                   ¬RPG-II Specification Prompt               }&OPSDATE
+                                                                    }&OPSTIME
+
+  }Prompt type . . . . . :¬&H          }Sequence number . . . :{SEQ  }
+
+   Conditioning Indicators       Field       Edit      Blank        End
+          N01N02N03               Name       Code      After      Position
+         {COND     }            {FD    }     {E}        {B}        {P2  }
+
+                Constant
+   P/B/L/R       or Edit Word
+     {F}       {CONS                      }
+
+
+
+
+
+
+
+
+
+
+¬PF3}= Save                ¬PF5}= Primary Format                 ¬PF12}= Cancel
+¬&MESG                                                                         }
+++/*
+
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG     ''
+
+IF PPDKEY EQ 'PF12'
+   GOTO EXIT
+IF PPDKEY EQ 'PF5'
+   GOTO -OSPEC
+
+SET  CHRVAR 'P2'
+SET  NUMVAR 'N'
+SET  NUMLEN  4
+GOSUB -CHKNUM
+IF PPDALARM NE 0
+   GOTO -OXSHOW
+
+IF PPDKEY NE 'PF3'
+   GOTO -OXSHOW
+
+SET  PPDCOND 1
+VEXAM SSDTYPE '\ED|EE'
+IFTHEN SIBRETCD EQ 'NF'
+  SET  PPDALARM 1
+  SET  MESG 'Can only save to an edit session.'
+ENDIF
+SET  PPDCOND 0
+IF  PPDALARM EQ 1
+   GOTO -OXSHOW
+
+OVLY  1 "&SEQ" 1
+OVLY  6 "&H{1,1}" 1
+OVLY 23 "&COND" 1
+OVLY 32 "&FD"   1
+OVLY 38 "&E"    1
+OVLY 39 "&B"    1
+OVLY 40 "&P2"   1
+OVLY 44 "&F"    1
+OVLY 45 "&CONS" 1
+
+GOTO EXIT
+
+LABEL EXIT
+POSITION &SAVL                    ;RESTORE CURRENT LINE NUMBER
+EXIT

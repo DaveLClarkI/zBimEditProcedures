@@ -1,0 +1,54 @@
+;"CONDENSE" IS A QUICK WAY TO CONDENSE "SCAN" OUTPUT TO JUST MEMBERS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDLITEX 1
+SET  PPDLPLMT 10000
+
+DCL  TYP CHAR 3 V
+SET  TYP 'BIM'
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(CONDENSE) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+IF SSDTYPE,NE,DI
+   EXIT SV,'(CONDENSE) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+TOP
+SET  PPDCOND  1
+
+FIND '/CTL/D' 136
+IF SIBRETCD,EQ,OK
+   GOTO NEXT
+FIND '/CTL/L' 136
+IF SIBRETCD,EQ,OK
+   GOTO NEXT
+FIND '/CTL/M' 136
+IF SIBRETCD,EQ,OK
+   GOTO NEXT
+
+EXIT SV,'(CONDENSE) ** COMMAND REQUIRES A MEMBER NAME DISPLAY **'
+
+LABEL CHECK
+EXAM '_' 1-16
+IF SIBRETCD,EQ,OK
+   GOTO DELETE
+EXAM '/CTL/' 136-140
+IF SIBRETCD,EQ,OK
+   GOTO NEXT
+
+LABEL DELETE
+DEL  1
+GOTO -CHECK
+
+LABEL NEXT
+NEXT 1
+IF SIBRETCD,EQ,OK
+   GOTO -CHECK
+
+TOP
+EXIT

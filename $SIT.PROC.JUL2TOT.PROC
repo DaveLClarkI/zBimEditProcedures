@@ -1,0 +1,86 @@
+;"JUL2TOT" PROC CONVERTS JULIAN DATE TO TOTAL DAYS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+;
+DCL L        NUM    2 V
+DCL N        NUM    6 V
+DCL X        NUM    6 V
+DCL DAYS     NUM    3 F
+DCL YEAR     NUM    4 F
+;
+DCL TOTL     CHAR   8 V
+DCL JULN     CHAR   7 V
+
+PARSE TOTL JULN
+
+IF TOTL,EQ,''
+   EXIT SV,'(JUL2TOT ) ** GLOBAL VARIABLE NAME IS REQUIRED **'
+IF JULN,EQ,''
+   EXIT SV,'(JUL2TOT ) ** JULIAN DATE IS REQUIRED **'
+
+SETL L JULN
+IF L,EQ,7
+   GOTO BEGIN
+IF L,NE,5
+   EXIT SV,'(JUL2TOT ) ** JULIAN DATE MUST BE FIXED FORMAT **'
+SETD YEAR JULN 1 2
+SETD DAYS JULN 3 3
+IFTHEN YEAR GT 40
+  ADD YEAR 1900
+ELSE
+  ADD YEAR 2000
+ENDIF
+SET JULN &YEAR.&DAYS
+
+LABEL BEGIN
+SETD YEAR JULN 1 4
+SETD DAYS JULN 5 3
+
+IF YEAR,LT,0001
+   EXIT SV,'(JUL2TOT ) ** JULIAN YEAR IS < 0001 **'
+IF YEAR,GT,2400
+   EXIT SV,'(JUL2TOT ) ** JULIAN YEAR IS > 2400 **'
+
+IF DAYS,LT,001
+   EXIT SV,'(JUL2TOT ) ** JULIAN DAY IS < 1 **'
+IF DAYS,GT,366
+   EXIT SV,'(JUL2TOT ) ** JULIAN DAY IS > 366 **'
+
+IF DAYS,LT,366
+   GOTO START
+SETD X YEAR
+DIVI X 400 N
+IF N,EQ,0
+   GOTO START
+SETD X YEAR
+DIVI X 100 N
+IF N,EQ,0
+   EXIT SV,'(JUL2TOT ) ** JULIAN DAY 366 IS NOT VALID FOR &YEAR **'
+SETD X YEAR
+DIVI X 4 N
+IF N,NE,0
+   EXIT SV,'(JUL2TOT ) ** JULIAN DAY 366 IS NOT VALID FOR &YEAR **'
+
+LABEL START
+SETD &TOTL DAYS
+SUBT YEAR 1
+SETD N YEAR
+MULT N 365
+ADD  &TOTL &N
+SETD N YEAR
+DIV  N 4
+ADD  &TOTL &N
+SETD N YEAR
+DIV  N 100
+SUBT &TOTL &N
+SETD N YEAR
+DIV  N 400
+ADD  &TOTL &N
+
+EXIT OK

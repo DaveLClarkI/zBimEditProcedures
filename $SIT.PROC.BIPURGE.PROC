@@ -1,0 +1,74 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: PURGE A MEMBER                                         *
+* Procedure..: BIPURGE                                                *
+* Command....: PURGE                                                  *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* When Purge Control is on, this procedure will save the member title *
+* as the first line of the member to be purged.   This will allow the *
+* member's title to be automatically  recovered along with the member *
+* (see the UNPURGE command).                                          *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+
+IF PARMLIST,EQ,''
+  SET  PARMLIST '*'
+
+DCL  MEM  CHAR 33 V
+DCL  OPT  CHAR  7 V
+DCL  PSWD CHAR  8 V
+PARSE MEM OPT PSWD
+IF MEM,EQ,'*'
+  SETD MEM TXMPATH
+
+READ &MEM
+SETD MEM TXMPATH
+
+IFTHEN TXMLIB,EQ,'DOWNLOAD'
+  SET  OPT  'NOPGCTL'
+  SET  PARMLIST  '&MEM OPT=&OPT'
+  IF PSWD,NE,''
+    SET  PARMLIST  '&PARMLIST PSWD=&PSWD'
+ENDIF
+
+IFTHEN OPT,NE,'NOPGCTL'
+  IFTHEN MMPPGCTL,EQ,1
+    BYPASS
+    EDIT &MEM &PSWD
+    SET  PPDLITEX  1
+    INSERTF
+TITLE='&TXMTITLE'
+++/*
+    SET  PPDLITEX  0
+    BYPASS
+    SAVE
+    ALTER AUDIT=OFF
+  ENDIF
+ENDIF
+
+IFTHEN TXMLIB,NE,'$SIT.PURGE'
+  BYPASS
+  EDIT COMMON.TESTPROD
+  POS &SSDSZLN
+  INSERTF
+PURGE MEMBER &MEM PURGED BY &SIBUSER
+++/*
+  BYPASS
+  SAVE
+ENDIF
+
+READ &MEM
+
+BYPASS
+PURGE &PARMLIST

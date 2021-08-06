@@ -1,0 +1,628 @@
+;"MODEL-CICS" PROC HANDLES THE "CICS" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }                                      }TERMINAL CONTROL
+                                        }CONDITIONS            ¬CONVERSE
+                                          ¬HANDLE              ¬HANDLE}AID
+                                          ¬IGNORE              ¬ISSUE
+}INTERVAL CONTROL    }FILE CONTROL                             ¬PURGE}MSG
+  ¬ASKTIME             ¬DELETE          }STORAGE CONTROL       ¬RECEIVE
+  ¬CANCEL              ¬ENDBR             ¬FREEMAIN            ¬ROUTE
+  ¬DELAY               ¬READ              ¬GETMAIN             ¬SEND
+  ¬FORMATTIME          ¬RESETBR
+  ¬RETRIEVE            ¬REWRITE         }SYSTEM INFO         }RECOVERY/DEBUGGING
+  ¬START               ¬STARTBR           ¬ADDRESS             ¬ABEND
+                       ¬UNLOCK            ¬ASSIGN              ¬DUMP
+}PROGRAM CONTROL       ¬WRITE             ¬SKELETON}PGM        ¬ENTER
+  ¬LINK                                                        ¬HANDLE}ABEND
+  ¬LOAD              }QUEUE CONTROL     }TASK CONTROL          ¬JOURNAL
+  ¬RELEASE             ¬DELETEQ           ¬DEQ                 ¬SYNCPOINT
+  ¬RETURN              ¬READQ             ¬ENQ                 ¬TRACE
+  ¬XCTL                ¬WRITEQ            ¬SUSPEND             ¬WAIT}JOURNAL
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,ASKTIME
+   EXIT OK
+IF NAME,EQ,ABEND
+   EXIT OK
+IF NAME,EQ,ADDRESS
+   EXIT OK
+IF NAME,EQ,ASKTIME
+   EXIT OK
+IF NAME,EQ,ASSIGN
+   EXIT OK
+IF NAME,EQ,CANCEL
+   EXIT OK
+IF NAME,EQ,CONVERSE
+   EXIT OK
+IF NAME,EQ,DELAY
+   EXIT OK
+IF NAME,EQ,DELETE
+   EXIT OK
+IF NAME,EQ,DEQ
+   EXIT OK
+IF NAME,EQ,DUMP
+   EXIT OK
+IF NAME,EQ,ENDBR
+   EXIT OK
+IF NAME,EQ,ENQ
+   EXIT OK
+IF NAME,EQ,ENTER
+   EXIT OK
+IF NAME,EQ,FORMATTIME
+   EXIT OK
+IF NAME,EQ,FREEMAIN
+   EXIT OK
+IF NAME,EQ,GETMAIN
+   EXIT OK
+IF NAME,EQ,IGNORE
+   EXIT OK
+IF NAME,EQ,JOURNAL
+   EXIT OK
+IF NAME,EQ,LINK
+   EXIT OK
+IF NAME,EQ,LOAD
+   EXIT OK
+IF NAME,EQ,RELEASE
+   EXIT OK
+IF NAME,EQ,RESETBR
+   EXIT OK
+IF NAME,EQ,RETRIEVE
+   EXIT OK
+IF NAME,EQ,RETURN
+   EXIT OK
+IF NAME,EQ,REWRITE
+   EXIT OK
+IF NAME,EQ,ROUTE
+   EXIT OK
+IF NAME,EQ,SKELETON
+   EXIT OK
+IF NAME,EQ,START
+   EXIT OK
+IF NAME,EQ,STARTBR
+   EXIT OK
+IF NAME,EQ,SUSPEND
+   EXIT OK
+IF NAME,EQ,SYNCPOINT
+   EXIT OK
+IF NAME,EQ,TRACE
+   EXIT OK
+IF NAME,EQ,UNLOCK
+   EXIT OK
+IF NAME,EQ,WRITE
+   EXIT OK
+IF NAME,EQ,XCTL
+   EXIT OK
+
+IF NAME,EQ,DELETEQ
+   GOTO QUEUE
+IF NAME,EQ,HANDLE
+   GOTO HANDLE
+IF NAME,EQ,ISSUE
+   GOTO ISSUE
+IF NAME,EQ,PURGE
+   GOTO PURGE
+IF NAME,EQ,READ
+   GOTO READ
+IF NAME,EQ,READQ
+   GOTO QUEUE
+IF NAME,EQ,RECEIVE
+   GOTO RECEIVE
+IF NAME,EQ,SEND
+   GOTO SEND
+IF NAME,EQ,WAIT
+   GOTO WAIT
+IF NAME,EQ,WRITEQ
+   GOTO QUEUE
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME
+;
+;                  Process QUAL1 options
+;
+LABEL HANDLE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  ABEND     }-  Activate, cancel, reactivate an abend exit
+
+¬  AID       }-  Pass control on receipt of an AID
+
+¬  CONDITION }-  Pass control if condition raised
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,ABEND
+   EXIT OK
+IF QUAL1,EQ,AID
+   EXIT OK
+IF QUAL1,EQ,CONDITION
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -HANDLE
+;
+;                  Process QUAL1 options
+;
+LABEL ISSUE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  COPY     }-  Copy displayed information
+
+¬  ERASEAUP }-  Erase all unprotected fields
+
+¬  PRINT    }-  Print displayed information
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,COPY
+   EXIT OK
+IF QUAL1,EQ,ERASEAUP
+   EXIT OK
+IF QUAL1,EQ,PRINT
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -ISSUE
+;
+;                  Process QUAL1 options
+;
+LABEL PURGE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  MESSAGE }-  Delete a logical message
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,MESSAGE
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -PURGE
+;
+;                  Process QUAL1 options
+;
+LABEL QUEUE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  TD      }-  Transient Data queue
+
+¬  TS      }-  Temporary Storage queue
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,TD
+   EXIT OK
+IF QUAL1,EQ,TS
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -QUEUE
+;
+;                  Process QUAL1 options
+;
+LABEL READ
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  READ     }-  Read a record
+
+¬  READNEXT }-  Read next record during browse
+
+¬  READPREV }-  Read previous record during browse
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,READ
+   GOTO READSET
+IF QUAL1,EQ,READNEXT
+   GOTO READSET
+IF QUAL1,EQ,READPREV
+   GOTO READSET
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -READ
+LABEL READSET
+SETD NAME QUAL1
+SET QUAL1 ''
+EXIT OK
+;
+;                  Process QUAL1 options
+;
+LABEL RECEIVE
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  MAP    }-  Map input data
+
+¬  NATIVE }-  Read data from terminal or LU
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,MAP
+   EXIT OK
+IF QUAL1,EQ,NATIVE
+   GOTO RCVSET
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -RECEIVE
+LABEL RCVSET
+SET QUAL1 ''
+EXIT OK
+;
+;                  Process QUAL1 options
+;
+LABEL SEND
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  CONTROL }-  Send control orders without data
+
+¬  MAP     }-  Map output data
+
+¬  NATIVE  }-  Write data to terminal or LU
+
+¬  PAGE    }-  Transmit a logical message
+
+¬  TEXT    }-  Format output data without mapping
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,CONTROL
+   EXIT OK
+IF QUAL1,EQ,MAP
+   EXIT OK
+IF QUAL1,EQ,NATIVE
+   GOTO SENDSET
+IF QUAL1,EQ,PAGE
+   EXIT OK
+IF QUAL1,EQ,TEXT
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -SEND
+LABEL SENDSET
+SET QUAL1 ''
+EXIT OK
+;
+;                  Process QUAL1 options
+;
+LABEL WAIT
+MAPF
+}MODEL                    ¬Model QUALIFIER1 Options                    }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+}NAME  ===>¬&NAME
+¬QUAL1 ===>!QUAL1      }
+
+
+¬  JOURNAL }-  Synchronize with journal output
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET NAME ''
+IF PPDKEY,EQ,PF3
+   GOTO -NAME
+IF PPDKEY,EQ,PF15
+   SET NAME ''
+IF PPDKEY,EQ,PF15
+   GOTO -NAME
+
+IF QUAL1,EQ,JOURNAL
+   EXIT OK
+
+SET MESG 'Qualifier1 is invalid, select one of the qualifiers shown...'
+SET PPDALARM 1
+GOTO -WAIT

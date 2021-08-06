@@ -1,0 +1,253 @@
+;THIS PROCEDURE CONVERTS A NOLAND SOURCE DISPLAY TO BIM-EDIT MEMBERS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    DAPSCO Information Sys. *
+;*  responsible for any loss or damage       3110 Kettering Blvd.    *
+;*  resulting from the use of this code.     Dayton, Ohio  45439     *
+;*  Source is provided on an as-is basis.    Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDPFOPT 1
+SET  PPDLPLMT 3000                ;HANDLES THIS MANY MEMBERS AT ONCE
+
+IF SIBSESSD EQ 0
+   EXIT SV '(CONVERT_NOLAND) ** PROCEDURE REQUIRES A DISPLAY SESSION **'
+IF SSDTYPE  NE DI
+   EXIT SV '(CONVERT_NOLAND) ** PROCEDURE REQUIRES A DISPLAY SESSION **'
+
+POS  1
+IF XTRSLINE{1,4} NE '-SEL'
+   EXIT SV '(CONVERT_NOLAND) ** PROCEDURE REQUIRES A NOLAND SOURCE DISPLAY **'
+TOP
+CONSOLEF
+NOLAND LIBARY: &SSDOBJ{7,33}
+++/*
+
+DCL  CURLIN   NUM    7 V
+DCL  LSTLIN   NUM    7 V
+DCL  P        NUM    3 V
+DCL  TOTLIN   NUM    7 V
+DCL  TOTMEM   NUM    7 V
+
+DCL  CTL      CHAR   8 V
+DCL  EXTRA    CHAR   9 V
+DCL  MSG      CHAR  80 V
+DCL  PEXEC    CHAR   9 V
+DCL  PGRM     CHAR   8 V
+DCL  PHASE    CHAR   9 V
+DCL  PSWD     CHAR   8 V
+DCL  WARN     CHAR   1 V INIT=N
+
+DCL  LIB      CHAR   8 V INIT=NOLAND
+DCL  LIBTYP   CHAR   8 V INIT=SRC
+DCL  MEM      CHAR  16 V
+DCL  MEMTYP   CHAR  10 V
+DCL  DEFTYP   CHAR  10 V INIT=COBOL
+DCL  DESC     CHAR  40 V
+DCL  ATTR     CHAR   8 V
+DCL  LIBDEF   CHAR   8 V INIT=NOLAND
+
+SET  PPDCOND  1
+VEXAM SSDOBJ "NOLJCLS"            ;FIND TAG
+IFTHEN SIBRETCD EQ 'OK'           ;IF FOUND
+  SET  DEFTYP  "JCL"              ;  CHANGE DEFAULT MEMTYP
+ELSE
+  VEXAM SSDOBJ "NOLLIBS"          ;FIND TAG
+ENDIF
+SET  P  &PPDCOL
+ADD  P  3
+SET  LIBTYP  '&SSDOBJ{&P,3}'
+ADD  P  4
+SET  LIBTYP  '&LIBTYP.&SSDOBJ{&P,4}'
+
+READL &LIB..&LIBTYP
+IF SIBRETCD EQ 'NF'
+   DEFINEL &LIB..&LIBTYP 'Noland &LIBTYP Source Library'
+
+SET  PPDCOND  0
+;
+; LOOP ON EACH MEMBER IN THE SESSION
+;
+LABEL BEGIN
+SET  MEMTYP   '&DEFTYP'           ;SET DEFAULT MEMBER TYPE
+SET  ATTR     'BATCH'             ;SET DEFAULT ENVIRONMENT
+
+SET  PPDCOND  1
+NEXT                              ;IF A NEXT LINE EXISTS IN SESSION
+IF SIBRETCD NE 'OK'               ;THAT LINE MUST BEGIN A NEW MEMBER
+   GOTO DONE                      ;IF NOT, EXIT
+SET  PPDCOND  0
+
+SETD PARMLIST XTRSLINE{1,20}      ;IF SO, CHECK THAT LINE
+PARSE CTL PGRM PSWD EXTRA         ;TO SEE IF IT STARTS A NEW MEMBER
+IFTHEN CTL  NE '-SEL'             ;IF NOT, ERROR
+  SET MSG "(CONVERT_NOLAND) ** EXPECTED '-SEL' CONTROL CARD **"
+  GOTO ERRORS
+ENDIF
+
+SET  MEM      &PGRM               ;IF SO, SAVE TEMPORARY MEMBER NAME
+SET  CURLIN   &SSDBASE&SIBSCRPM   ;AND SAVE THE LINE NO. IT STARTS ON
+
+SET  PPDCOND  1
+FIND '-SEL '  1                   ;THE END OF THIS MEMBER IS WHERE
+IFTHEN SIBRETCD EQ 'OK'           ;THE NEXT MEMBER STARTS
+   SET  LSTLIN   &SSDBASE&SIBSCRPM  ;START OF NEXT MEMBER MINUS
+   SUBT LSTLIN   1                  ;ONE LINE IS LAST LINE OF MEMBER
+ELSE                              ;OR IS MARKED BY THE END OF SESSION
+   POS  &SSDSZLN                    ;POSITION TO LAST LINE OF SESSION
+   SET  LSTLIN   &SSDBASE&SIBSCRPM  ;SAVE AS LAST LINE OF MEMBER
+ENDIF
+SET  PPDCOND  0
+
+POS  &CURLIN                      ;GO BACK AND SEARCH CONTROL CARDS
+BLOCK
+  SETD PARMLIST XTRSLINE               ;EXTRACT SOURCE LINE
+  SET  PPDCOND  1
+  VEXAM PARMLIST " "                   ;FIND FIRST BLANK
+  IFTHEN SIBRETCD EQ 'NF'              ;IF NONE
+    SETL P      PARMLIST               ;  USE LENGTH OF DATA
+  ELSE                                 ;ELSE
+    SET  P      &PPDCOL                ;  SAVE POSITION OF BLANK
+  ENDIF                                ;ENDIF
+  SET  PPDCOND  0
+  SUBT P        1                      ;POINT TO NON-BLANK CHARACTER
+  SET  CTL      "&PARMLIST{1,&P}"      ;EXTRACT FIRST WORD
+  ADD  P        2                      ;POINT TO NEXT WORD
+  IFTHEN CTL EQ '-DESC'                ;IF 1ST WORD IS -DESC CONTROL
+    SET  DESC   "&PARMLIST{&P,}"       ;  EXTRACT MEMBER DESCRIPTION
+  ENDIF
+  IFTHEN CTL EQ '-JCL'                 ;IF 1ST WORD IS -JCL CONTROL
+    SET  PPDCOND  1
+    VEXAM PARMLIST{&P,6} "PHASE="      ;AND 2ND WORD IS PHASE OPTION
+    IFTHEN SIBRETCD EQ 'OK'
+      ADD  P        6                  ;  POINT TO PHASE OPTION DATA
+      SETD PARMLIST PARMLIST{&P,}      ;  EXTRACT PHASE OPTION DATA
+      SET  PPDCOND  0
+      PARSE PHASE EXTRA                ;  AND PARSE IT
+      IF PHASE{1,1} EQ '/'             ;  IF DELIMITER CHAR PRESENT
+         SET  PHASE  &PHASE{2,}        ;    REMOVE IT
+      IFTHEN PHASE NE "&PGRM"          ;  IF PHASE/PGRM NAME MISMATCH
+         SET  WARN   'Y'               ;    SET WARNING MESSAGE
+         CONSOLEF                      ;    DISPLAY CONSOLE MESSAGE
+PROGRAM: &PGRM <> &PHASE :PHASE
+++/*
+      ENDIF                            ;  ENDIF
+    ENDIF                              ;ENDIF
+    SET  PPDCOND  1
+    VEXAM PARMLIST{&P,5} "EXEC="       ;OR 2ND WORD IS EXEC OPTION
+    IFTHEN SIBRETCD EQ 'OK'
+      ADD  P        5                  ;  POINT TO EXEC OPTION DATA
+      SETD PARMLIST PARMLIST{&P,}      ;  EXTRACT EXEC OPTION DATA
+      SET  PPDCOND  0
+      PARSE PEXEC EXTRA                ;  AND PARSE IT
+      BLOCK                            ;  SELECT ON IT
+        IFTHEN PEXEC EQ 'FCOBOL'       ;    CASE FCOBOL
+          SET  MEMTYP   'COBOL'        ;      SET MEMBER TYPE
+          SET  ATTR     'BATCH'        ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'FCOBOL'
+           LEAVE
+        IFTHEN PEXEC EQ 'INCLUDE'      ;    CASE INCLUDES
+          SET  MEMTYP   'INCL'         ;      SET MEMBER TYPE
+          SET  ATTR     'COPYBOOK'     ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'INCLUDE'          ;    EXIT INCLUDES
+           LEAVE
+        IFTHEN PEXEC EQ 'IGYCRCTL'     ;    CASE COBOLII
+          SET  MEMTYP   'CBL'          ;      SET MEMBER TYPE
+          SET  ATTR     'BATCH'        ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'IGYCRCTL'         ;    EXIT COBOLII
+           LEAVE
+        IFTHEN PEXEC EQ 'DFHECP1$'     ;    CASE CICS PROGRAM
+          SET  MEMTYP   'CBL'          ;      SET MEMBER TYPE
+          SET  ATTR     'ONLINE'       ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'DFHECP1$'         ;    EXIT CICS PROGRAM
+           LEAVE
+        IFTHEN PEXEC EQ 'ASSEMBLY'     ;    CASE ASSEMBLY
+          SET  MEMTYP   'ASM'          ;      SET MEMBER TYPE
+          SET  ATTR     'BMS'          ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'ASSEMBLY'         ;    EXIT ASSEMBLY
+           LEAVE
+        IFTHEN PEXEC EQ 'LIBR'         ;    CASE LIBR
+          SET  MEMTYP   'PROC'         ;      SET MEMBER TYPE
+          SET  ATTR     'BATCH'        ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'LIBR'             ;    EXIT LIBR
+           LEAVE
+        IFTHEN PEXEC EQ 'TBLOADD'      ;    CASE TBLOADD
+          SET  MEMTYP   'TABLE'        ;      SET MEMBER TYPE
+          SET  ATTR     'DATA'         ;      SET ENVIRONMENT
+        ENDIF
+        IF PEXEC EQ 'TBLOADD'          ;    EXIT TBLOADD
+           LEAVE
+        SET  WARN   'Y'                ;    ELSE SET WARNING MESSAGE
+        CONSOLEF                       ;    DISPLAY CONSOLE MESSAGE
+MEMBER: &MEM EXEC=&PEXEC UNKNOWN
+++/*
+      ENDBLOCK                         ;  END SELECT
+    ENDIF                              ;ENDIF
+    SET  PPDCOND  0
+  ENDIF
+  NEXT                                 ;NEXT SOURCE LINE
+  IF XTRSLINE{1,1} EQ '-'              ;IF STILL CONTROL LINES
+    LOOP                               ;  CONTINUE PROCESSING THEM
+ENDBLOCK
+SET  CURLIN   &SSDBASE&SIBSCRPM   ;SAVE LINE NO. DATA STARTS ON
+
+SET  PPDCOND  1
+BYPASS                            ;PURGE ANY EXISTING MEMBER
+PURGE &LIB..&LIBTYP..&MEM OPT=NOPGCTL
+SET  PPDCOND  0
+
+BYPASS                            ;DEFINE A NEW MEMBER
+DEFINE &LIB..&LIBTYP..&MEM "&MEMTYP" "&DESC" ATTR=&ATTR LIBDEF=&LIBDEF
+ADD  TOTMEM   1
+
+POS  &CURLIN                      ;STARTING WITH FIRST LINE OF MEMBER
+SET  TOTLIN   &LSTLIN             ;CALCULATE TOTAL
+ADD  TOTLIN   1                   ;  NUMBER OF LINES
+SUBT TOTLIN   &CURLIN             ;    IN THIS MEMBER
+
+BYPASS                            ;STACK THOSE LINES
+STACK &TOTLIN OPT=CLEAR
+
+BYPASS                            ;EDIT THE NEW MEMBER
+EDIT &LIB..&LIBTYP..&MEM
+
+BYPASS                            ;RETRIEVE STACKED LINES
+GET  $STACK
+
+TOP
+BYPASS                            ;FIX UP INCLUDE STATEMENTS
+CHANGE '\!-INC ' '/INCL &LIB..&LIBTYP..' * 1-72 OCCUR=1
+
+BYPASS                            ;SAVE THE NEW MEMBER
+SAVE
+
+POS  &LSTLIN                      ;POSITION TO LAST LINE OF MEMBER
+GOTO -BEGIN                       ;AND LOOP AGAIN
+;
+; ERROR REPORTING ROUTINE
+;
+LABEL ERRORS
+LOGF
+ERRORRED ON LINE &CURLIN
+SOURCE LINE:
+&XTRSLINE
+++/*
+PRINT $LOG
+EXIT SV "&MSG"
+;
+; TERMINATION ROUTINE
+;
+LABEL DONE
+CONSOLEF
+LINES PROCESSED = &SSDSZLN
+MEMBERS CREATED = &TOTMEM
+++/*
+IF WARN EQ 'Y'
+   EXIT WN '(CONVERT_NOLAND) ## PROCEDURE COMPLETED WITH WARNING(S) ##'
+EXIT OK '(CONVERT_NOLAND) ## PROCEDURE COMPLETED ##'

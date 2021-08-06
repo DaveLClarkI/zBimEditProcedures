@@ -1,0 +1,46 @@
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;* PROC: BSTTLIBL   Proc Created 11/09/2005   By Dave Clark        *
+;*                  Last Revised 11/16/2005                        *
+;*                                                                 *
+;*      This procedure is designed to  create a library listing in *
+;* a specific format -- and without headers or control information *
+;* (as required for use with LCA commands).   In other words, this *
+;* is specifically for use with the BIM-EDIT Application Interface *
+;* and the BSTTBEAM BSI FTP exit routine.   This procedure must be *
+;* loaded,  as a member,  into the  BIM-EDIT $SIT.PROC library (no *
+;* command definition is required).                                *
+;*                                                                 *
+;* WARNING!!! The BSI FTP server and exit routine are hardcoded to *
+;* expect this exact library, procedure name, and output format.   *
+;*                                                                 *
+;* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+;* No warranty is expressed or implied.    Written by Dave L Clark *
+;* Neither the author nor the company is   WinWholesale Group Svc. *
+;* responsible for any loss or damage      3110 Kettering Blvd.    *
+;* resulting from the use of this code.    Dayton, OH  45439       *
+;* Source is provided on an as-is basis.   Phone (937)294-5331     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+SET  PPDVBL   1
+SET  PPDCOND  1
+SET  PPDLITEX 1
+
+DISPLAYF 'BSTTLIBL'
+++/*
+
+SET  TXLLIB   ''
+BLOCK
+  BROWSEL
+  IF SIBRETCD NE 'OK'
+     LEAVE
+  LADD
+  POS  &SSDSZLN
+  OVLY  1  'L'
+  OVLY  3  '&TXLLIB'
+  OVLY 29  '&TXLDTCRE &TXLTMCRE'
+  OVLY 49  '00000000'
+  LOOP
+ENDBLOCK
+
+TOP
+EXIT OK,'## LIBRARY LISTING CREATED ##'

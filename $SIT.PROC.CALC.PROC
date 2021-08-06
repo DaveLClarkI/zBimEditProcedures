@@ -1,0 +1,193 @@
+;"CALC" PROC PROVIDES SIMPLE CALCULATOR FUNCTIONS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET  PPDVBL   1
+SET  PPDCOND  2
+SET  PPDSCRSZ 'D'
+;
+DCL  ANSWER   NUM    8 Z U GLOBAL
+DCL  DISP     CHAR  10 V U GLOBAL
+DCL  DISP1    CHAR  10 V U GLOBAL
+DCL  DISP2    CHAR  10 V U GLOBAL
+DCL  F        CHAR   1 V M
+DCL  MESG     CHAR  79 V M
+DCL  MSG      CHAR  82 V M
+DCL  OPER1    NUM    8 Z U
+DCL  OPER2    NUM    8 Z U
+DCL  RC       CHAR   2 V M
+;
+PARSE OPER1 F OPER2
+SETD DISP1 OPER1
+SETD DISP2 OPER2
+SET  DISP  '         0'
+IF F,NE,''
+   GOTO CALC
+SET  DISP1 '         0'
+SET  F     '+'
+SET  DISP2 '         0'
+
+LABEL DISPLAY
+MAPF
+}CALC                 ¬BIM-EDIT Procedure-Level Calculator             }09/08/92
+                                                                       }10:33:00
+
+
+}BIM-EDIT does not support decimals,  negative numbers or precision greater than
+}eight (8) digits,  i.e.   calculation results  are either truncated (both high-
+}and low-order) or produce an error if less than zero.  Due to these, and other,
+}BIM-EDIT restrictions, this calculator only supports the listed functions.
+
+ ¬ + }Add                                                        Note that you
+ ¬ - }Subtract                                                     can include
+ ¬ x }Multiply                    {DISP1     }                    the "ANSWER"
+ ¬ / }Divide                                                       in formulas
+ ¬ * }Powerof                  !F}{DISP2     }                     by entering
+ ¬ | }Modulo                      ------------                    the keyword.
+                        ¬Answer}= ¬&DISP
+
+
+
+
+
+
+}Press¬PF3}to terminate the CALC procedure.
+¬&MESG
+++/*
+ 
+SET  PPDALARM 0
+SET  PPDCSFLD ''
+SET  MESG ''
+
+IF PPDKEY,EQ,'PF3'
+   GOTO EXIT
+IF PPDKEY,EQ,'PF15'
+   GOTO EXIT
+IF PPDKEY,EQ,'ENTER'
+   GOTO CALC
+
+SET  PPDALARM 1
+SET  MESG 'That key is not shown, and serves no purpose, on this screen'
+GOTO -DISPLAY
+
+LABEL ERROR                       ;PROCESS STATEMENT ERRORS
+SETD MSG SIBRESP
+SETD RC  MSG 1 2
+SETD MSG MSG 3
+LABEL FUNCERR                     ;PROCESS FUNCTION ERROR
+SET  PPDALARM 1
+SETD MESG MSG
+GOTO -DISPLAY
+
+LABEL CALC                        ;BEGIN CALCULATOR PROCESSING
+IF DISP1,EQ,'ANS'
+   SETD DISP1 ANSWER
+IF DISP1,EQ,'ANSW'
+   SETD DISP1 ANSWER
+IF DISP1,EQ,'ANSWER'
+   SETD DISP1 ANSWER
+IF DISP2,EQ,'ANS'
+   SETD DISP2 ANSWER
+IF DISP2,EQ,'ANSW'
+   SETD DISP2 ANSWER
+IF DISP2,EQ,'ANSWER'
+   SETD DISP2 ANSWER
+SET  DISP ''
+
+SET  PPDCSFLD 'DISP1'             ;PREPROCESS FIRST VALUE FIELD
+NUMBERS DISP1 OPER3='&DISP1'
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+SET  OPER1 &DISP1
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+NUMBERS DISP1 &OPER1
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+
+SET  PPDCSFLD 'DISP2'             ;PREPROCESS SECOND VALUE FIELD
+NUMBERS DISP2 OPER3='&DISP2'
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+SET  OPER2 &DISP2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+NUMBERS DISP2 &OPER2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+
+SET  PPDCSFLD ''
+IF F,EQ,''                        ;CHECK FOR VALID FUNCTION
+   GOTO ADD
+IF F,EQ,'+'
+   GOTO ADD
+IF F,EQ,'-'
+   GOTO SUBTRACT
+IF F,EQ,'x'
+   GOTO MULTIPLY
+IF F,EQ,'X'
+   GOTO MULTIPLY
+IF F,EQ,'/'
+   GOTO DIVIDE
+IF F,EQ,'*'
+   GOTO POWEROF
+IF F,EQ,'|'
+   GOTO MODULO
+SET  PPDCSFLD 'F'
+SET  MSG 'That function is not shown, and is not supported.  Respecify.'
+GOTO -FUNCERR
+
+LABEL ADD                         ;PROCESS ADDITION FUNCTION
+SET  F '+'
+SETD ANSWER OPER1
+ADD  ANSWER &OPER2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GOTO SETUP
+
+LABEL SUBTRACT                    ;PROCESS SUBTRACTION FUNCTION
+SETD ANSWER OPER1
+SUBT ANSWER &OPER2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GOTO SETUP
+
+LABEL MULTIPLY                    ;PROCESS MULTIPLICATION FUNCTION
+SET  F 'x'
+SETD ANSWER OPER1
+MULT ANSWER &OPER2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GOTO SETUP
+
+LABEL DIVIDE                      ;PROCESS DIVISION FUNCTION
+SETD ANSWER OPER1
+DIVI ANSWER &OPER2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GOTO SETUP
+
+LABEL POWEROF                     ;PROCESS EXPONENTIATION FUNCTION
+SETD ANSWER OPER1
+POWEROF ANSWER &OPER2
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GOTO SETUP
+
+LABEL MODULO                      ;PROCESS MODULUS FUNCTION
+DIVI OPER1 &OPER2 ANSWER
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+
+LABEL SETUP                       ;PREPARE ANSWER FOR DISPLAY
+NUMBERS DISP &ANSWER
+IF SIBRETCD,NE,OK
+   GOTO -ERROR
+GOTO -DISPLAY
+
+LABEL EXIT
+EXIT OK,"## CALC procedure terminated due to user's request ##"

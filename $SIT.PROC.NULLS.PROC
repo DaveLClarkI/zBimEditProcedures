@@ -1,0 +1,35 @@
+;"NULLS" SELECTIVELY COMBINES "ALTER NULLS=" AND "SESS NULLS=" COMMANDS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(NULLS   ) ** COMMAND REQUIRES A SESSION **'
+
+DCL NULLS CHAR 3 V
+PARSE NULLS
+
+IF NULLS,EQ,''
+   SET NULLS '&SSDNULL.'
+IF NULLS,NE,'TOG'
+   GOTO NOTOGGLE
+SET NULLS '1'
+IF SSDNULL,EQ,0
+   GOTO NOTOGGLE
+SET NULLS '0'
+LABEL NOTOGGLE
+IF NULLS,EQ,'0'
+   SET NULLS 'OFF'
+IF NULLS,EQ,'1'
+   SET NULLS 'ON'
+
+IF SSDTYPE,EQ,ED
+   ALTER MEM=&SSDLIB..&SSDMEM,NULLS=&NULLS
+SESS NULLS=&NULLS
+
+EXIT OK,'## Nulls set to "&NULLS" ##'

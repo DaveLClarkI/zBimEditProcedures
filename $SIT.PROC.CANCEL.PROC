@@ -1,0 +1,27 @@
+;"CANCEL" IS A NEW COMMAND FOR THE EDITOR
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+DCL MEMD CHAR 33 V
+
+IF SIBSESSD,EQ,0
+   EXIT SV,'(CANCEL  ) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+
+IF SSDTYPE,EQ,EE
+   GOTO EDITD
+IF SSDTYPE,NE,ED
+   EXIT SV,'(CANCEL  ) ** COMMAND REQUIRES AN "EDIT" SESSION **'
+
+READ &SSDLIB..&SSDMEM
+END NOSAVE
+EXIT OK,'## EDIT OF "&TXMLIB..&TXMMEM" CANCELLED BY USER ##'
+
+LABEL EDITD
+SET MEMD '&SSDLIBD..&SSDMEMD'
+END NOSAVE
+EXIT OK,'## EDITD OF "&MEMD" CANCELLED BY USER ##'
