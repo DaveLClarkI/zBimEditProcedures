@@ -1,0 +1,16 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * To transfer data from an input device (e.g., SYSIN or CONSOLE):
+           ACCEPT identifier-1     < FROM { mnemonic-name-1
+                                          | environment-name } >
+      *
+      * For system date/time information (see FUNCTION CURRENT-DATE):
+           ACCEPT identifier-2       FROM { DATE | DAY
+                                          | DAY-OF-WEEK | TIME }
+      *
+

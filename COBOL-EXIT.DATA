@@ -1,0 +1,15 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * used to mark the end of a PERFORM range or a procedure SECTION:
+       paragraph-name.
+           EXIT.
+      *
+      * used to mark the end of a subprogram (but use GOBACK, instead):
+           EXIT PROGRAM.
+      *
+

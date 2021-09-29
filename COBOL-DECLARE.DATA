@@ -1,0 +1,32 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+       DECLARATIVES.
+
+       section-name-1 SECTION.
+           USE AFTER STANDARD { EXCEPTION | ERROR } PROCEDURE
+               ON { file-name-1 ...
+                    | INPUT
+                    | OUTPUT
+                    | I-O
+                    | EXTEND    } .
+       paragraph-name-1.
+           ... imperative statements ...
+       paragraph-name-2.
+           EXIT.
+
+       section-name-2 SECTION.
+           USE FOR DEBUGGING ON { ALL PROCEDURES
+                                  | procedure-name-1 ... } .
+       paragraph-name-3.
+           ... imperative statements ...
+       paragraph-name-4.
+           EXIT.
+
+       END-DECLARATIVES.
+      *
+

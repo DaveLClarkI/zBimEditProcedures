@@ -1,0 +1,23 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * reference a subprogram:
+           CALL { identifier-1 | literal-1 }
+             < USING { <BY REFERENCE> { <ADDRESS OF> identifier-2
+                                      | file-name-1 } ...
+                     | BY CONTENT { <ADDRESS OF> identifier-3
+                                  | <LENGTH OF> identifier-3
+                                  | literal-2 } ... } >
+             < <ON> EXCEPTION
+                   imperative-statement-1 ... >
+             < NOT <ON> EXCEPTION
+                   imperative-statement-2 ... >
+             < <ON> OVERFLOW
+                   imperative-statement-3 ... >
+         { END-CALL | . }
+      *
+

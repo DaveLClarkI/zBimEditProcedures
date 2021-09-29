@@ -1,0 +1,14 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * To transfer data to an output device (e.g., SYSOUT or CONSOLE):
+           DISPLAY { identifier-1 | literal-1 } ...
+                                   < UPON { mnemonic-name-1
+                                          | environment-name-1 } >
+            < <WITH> NO ADVANCING >
+      *
+

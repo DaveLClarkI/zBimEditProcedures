@@ -1,0 +1,19 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+           SORT file-name-1
+               <ON> { ASCENDING | DESCENDING } <KEY> data-name-1 ...
+             < <WITH> DUPLICATES <IN> <ORDER> >
+             < <COLLATING> SEQUENCE <IS> alphabet-name-1 >
+             { USING file-name-2 ...
+             | INPUT PROCEDURE <IS> procedure-name-1
+                             < THRU procedure-name-2 > }
+             { GIVING file-name-3 ...
+             | OUTPUT PROCEDURE <IS> procedure-name-3
+                              < THRU procedure-name-4 > }
+      *
+

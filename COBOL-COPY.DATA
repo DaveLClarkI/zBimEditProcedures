@@ -1,0 +1,12 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+       COPY { text-name | literal-1 } < SUPPRESS >
+            < REPLACING operand-1 BY operand-2
+                      < ...                    > > .
+      *
+

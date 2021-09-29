@@ -1,0 +1,44 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+PROCESS options-list ... (for more options, use another statement)
+PROCESS options-list ...
+      *
+
+    Compiler defaults are provided by the site.  See the IBM COBOL VSE
+    Programming Guide for a complete list of options and descriptions.
+
+        XOPTS(SP)   is commonly used in CICS COBOL programs when
+                    "systems programming" CICS commands are included
+                    (vs. "application programming" CICS commands);
+        APOST       specifies the apostrophe character as the
+                    string literal delimiter (the site default);
+        QUOTE       specifies the double-quote character as the
+                    string literal delimiter;
+        DATA(24)
+        DATA(31)    overrides the storage location for dynamic data
+                    areas such as WORKING-STORAGE and file I/O;
+        RMODE(24)
+        RMODE(ANY)  overrides the relocation mode for the generated
+                    object code;
+        TRUNC(STD)
+        TRUNC(OPT)
+        TRUNC(BIN)  overrides the type of truncation used for binary,
+                    numeric data fields (STD is the ANSI COBOL 85
+                    standard, which truncates on the actual PICTURE;
+                    OPT uses the full binary boundary but optimizes
+                    for performance leaving accuracy to your coding
+                    safeguards; BIN, the site default, uses the full
+                    binary boundary for the half-word, full-word, or
+                    double-word regardless if fewer digits are speci-
+                    fied in the COBOL PICTURE clause -- for example,
+                    you can't specify PIC S9(5) for a half-word,
+                    binary field but if you move the value of an
+                    S9(4) binary field to an S9(5) display (zoned)
+                    field the 5th digit will be there for values
+                    from -32768 to -10000 and +10000 to +32767);
+

@@ -1,0 +1,31 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+       SPECIAL-NAMES.
+      *  < environment-name-1          IS mnemonic-name-1 >
+e.g.       SYSLST                      IS PRINTER,
+      *
+      *  < UPSI-{0|1|2|3|4|5|6|7}  < <IS> mnemonic-name-2 >
+      *           < ON  STATUS       <IS> condition-1 >
+      *           < OFF STATUS       <IS> condition-2 >   >
+e.g.       UPSI-7                      IS UPDATE-SWITCH
+                  ON  STATUS           IS WITH-UPDATES
+                  OFF STATUS           IS NO-UPDATES,
+      *
+      * some optional but useful condition classes
+           CLASS  ALPHABETIC           IS ' ',          'A' THRU 'I',
+                                          'J' THRU 'R', 'S' THRU 'Z',
+           CLASS  ALPHAMERIC           IS ' ',
+                                          'A' THRU 'I', 'J' THRU 'R',
+                                          'S' THRU 'Z', '0' THRU '9',
+           CLASS  ALPHAMERIC-NATIONAL  IS ' ', '@', '#', '$',
+                                          'A' THRU 'I', 'J' THRU 'R',
+                                          'S' THRU 'Z', '0' THRU '9',
+           CLASS  DISPLAYABLE          IS X'40' THRU X'FE',
+           CLASS  HEXADECIMAL          IS '0' THRU '9', 'A' THRU 'F'.
+      *
+

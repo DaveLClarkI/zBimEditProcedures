@@ -1,0 +1,37 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * To divide the same divisor into multiple quotients:
+           DIVIDE { identifier-1 | literal-1 }
+                                     INTO identifier-2 <ROUNDED> ...
+             < <ON> SIZE ERROR
+                   imperative-statement-1 ... >
+             < NOT <ON> SIZE ERROR
+                   imperative-statement-2 ... >
+         { END-DIVIDE | . }
+      *
+      * To divide a divisor into a dividend with separate quotient(s):
+           DIVIDE { identifier-1 | literal-1 }
+                                     INTO { identifier-2 | literal-2 }
+                                   GIVING identifier-3 <ROUNDED> ...
+             < <ON> SIZE ERROR
+                   imperative-statement-1 ... >
+             < NOT <ON> SIZE ERROR
+                   imperative-statement-2 ... >
+         { END-DIVIDE | . }
+      *
+      * To divide a dividend by a divisor with separate quotient(s):
+           DIVIDE { identifier-1 | literal-1 }
+                                       BY { identifier-2 | literal-2 }
+                                   GIVING identifier-3 <ROUNDED> ...
+             < <ON> SIZE ERROR
+                   imperative-statement-1 ... >
+             < NOT <ON> SIZE ERROR
+                   imperative-statement-2 ... >
+         { END-DIVIDE | . }
+      *
+

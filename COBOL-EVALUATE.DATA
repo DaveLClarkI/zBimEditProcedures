@@ -1,0 +1,25 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * a multiple-condition construct in lieu of nested IF statements:
+           EVALUATE {identifier-1|literal-1|expression-1|TRUE|FALSE}
+             < ALSO {identifier-2|literal-2|expression-2|TRUE|FALSE}
+                  ...>
+             WHEN {condition-1|TRUE|FALSE|ANY
+                 |<NOT>{identifier-3|literal-3|arithmetic-expression-1}
+                  <THRU{identifier-4|literal-4|arithmetic-expression-2}>
+                 }
+             < ALSO {condition-2|TRUE|FALSE|ANY
+                 |<NOT>{identifier-5|literal-5|arithmetic-expression-3}
+                  <THRU{identifier-6|literal-6|arithmetic-expression-4}>
+                 }...>
+               imperative-statement-1 ...
+           < WHEN OTHER
+               imperative-statement-2 ... >
+           END-EVALUATE
+      *
+

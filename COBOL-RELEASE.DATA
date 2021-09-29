@@ -1,0 +1,15 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * To write to a sort work file:
+           RELEASE record-name-1 < FROM identifier-1 >
+      *
+      * To terminate the sort due to a detected error condition:
+           MOVE { identifier-1 | literal-1 }
+                                       TO SORT-RETURN
+      *
+

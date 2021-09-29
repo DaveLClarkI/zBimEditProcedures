@@ -1,0 +1,20 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * To read from a sort work file:
+           RETURN file-name-1 <RECORD> < INTO identifier-1 >
+             < <AT> END
+                   imperative-statement-1 ... >
+             < NOT <AT> END
+                   imperative-statement-2 ... >
+         { END-RETURN | . }
+      *
+      * To terminate the sort due to a detected error condition:
+           MOVE { identifier-1 | literal-1 }
+                                       TO SORT-RETURN
+      *
+

@@ -1,0 +1,37 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * For basic table handling:
+           SET  { index-name-1 | identifier-1 } ...
+             TO { index-name-2 | identifier-2 | integer-1 }
+      *
+      * For adjusting indexes:
+           SET  index-name-3 ...  { UP BY |
+                                  DOWN BY } { identifier-3 | integer-2 }
+      *
+      * For setting (88-level) condition names:
+           SET  condition-name-1 ...   TO { TRUE | FALSE }
+      *
+      * For setting external switches (see SPECIAL NAMES):
+           SET  mnemonic-name-2 ...    TO { ON | OFF } ...
+      *
+      * For pointer data items:
+           SET  { ADDRESS OF identifier-4 | identifier-5 } ...
+                                       TO { identifier-6
+                                          | ADDRESS OF identifier-7
+                                          | NULL
+                                          | NULLS }
+      *
+      * For procedure-pointer data items:
+           SET  procedure-pointer-1 ...
+                                       TO { procedure-pointer-2
+                                          | ENTRY { identifier-8
+                                                  | literal-1  }
+                                          | NULL
+                                          | NULLS }
+      *
+
