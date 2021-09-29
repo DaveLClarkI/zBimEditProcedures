@@ -1,0 +1,112 @@
+
+Use VIEW to position the current session display left or right.
+
+-------------------------------------------------------------------------------
+|                             Optional Operands                               |
+|-----------------------------------------------------------------------------|
+| COL      | The value for COL may be entered one of three ways:              |
+|          |                                                                  |
+|          | xxx     An unsigned  number from  1  to 253.   The  number  will |
+|          |         become the left-most column displayed for the session.   |
+|          |                                                                  |
+|          | +xxx    A number from 1 to 253  preceded by a plus sign(+).  The |
+|          |         current  left margin  will  be  increased by  the number |
+|          |         given, up to a maximum left margin of 253. The result is |
+|          |         a shift of the viewing range "xxx" columns to the right. |
+|          |                                                                  |
+|          | -xxx    A number from 1 to 253 preceded by a minus sign(-).  The |
+|          |         current  left margin  will  be  decreased by  the number |
+|          |         given, to  a minimum left margin  of 1.  The result is a |
+|          |         shift of the viewing range "xxx" columns to the left.    |
+|          |                                                                  |
+|          | This operand may also be specified as follows:                   |
+|          |                                                                  |
+|          |     LEFT  - attempts to reposition  the  view of the displayed   |
+|          |             text to the left such that the column indicated by   |
+|          |             the cursor position  becomes the right-most column   |
+|          |             of the current logical screen or, if the cursor is   |
+|          |             not within  the  text  display  area,  attempts to   |
+|          |             reposition the  view  to  the  left  by 60 columns   |
+|          |             (i.e., until column 1 is reached);                   |
+|          |                                                                  |
+|          |     RIGHT - attempts to reposition  the  view of the displayed   |
+|          |             text to the right  such  that the column indicated   |
+|          |             by  the  cursor  position  becomes  the  left-most   |
+|          |             column of the  current  logical screen or,  if the   |
+|          |             cursor  is  not  within  the  text  display  area,   |
+|          |             attempts to reposition the view to the right by 60   |
+|          |             columns (i.e., until column 253 is reached);         |
+|          |                                                                  |
+|          |             Note: The most expedient use of these operands is    |
+|          |                   with function keys set like the following:     |
+|          |                     SET PF19 'VIEW LEFT',OPT=AFTER               |
+|          |                     SET PF20 'VIEW RIGHT',OPT=AFTER              |
+|          |                                                                  |
+|          | If COL is not specified, a value of "1" is assumed.              |
+-------------------------------------------------------------------------------
+
+The scale line on the screen displays the current viewing range.
+
+VIEW is especially useful with  LISTP  displays.   You may find it desirable to
+set PF keys to "VIEW 1" and "VIEW 61" to allow quickly changing your view;  or,
+use the new LEFT/RIGHT parameters for both relative and cursor-based viewing.
+
+Use in a Procedure
+------------------
+
+VIEW always returns OK.
+
+Examples
+--------
+
+                    Screen before VIEW command ("xxx" format)
+---------------------------------------------------------------------------------
+|=> view 11                                                                     |
+|EDIT  1178.CFACT                               SESS= 1( 1) LINE=    17(   234) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+---------------------------------------------------------------------------------
+
+                    Screen after VIEW command ("xxx" format)
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|EDIT  1178.CFACT                               SESS= 1( 1) LINE=    17(   234) |
+|      ----|----2----|----3----|----4----|----5----|----6----|----7----|----8-- |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+---------------------------------------------------------------------------------
+
+                   Screen before VIEW command ("-xxx" format)
+---------------------------------------------------------------------------------
+|=> view -10                                                                    |
+|EDIT  1178.CFACT                               SESS= 1( 1) LINE=    17(   234) |
+|      ----|----2----|----3----|----4----|----5----|----6----|----7----|----8-- |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+|*===* ICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                               |
+---------------------------------------------------------------------------------
+
+                    Screen after VIEW command ("-xxx" format)
+---------------------------------------------------------------------------------
+|=>                                                                             |
+|EDIT  1178.CFACT                               SESS= 1( 1) LINE=    17(   234) |
+|      ----|----1----|----2----|----3----|----4----|----5----|----6----|----7-- |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+|*===* SEE THE QUICK BROWN FOX JUMP OVER THE LAZY BROWN DOG                     |
+---------------------------------------------------------------------------------
