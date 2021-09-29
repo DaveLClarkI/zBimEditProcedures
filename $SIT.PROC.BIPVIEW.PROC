@@ -1,0 +1,81 @@
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+*                                                                     *
+* Description: SCROLL SESSION LEFT/RIGHT                              *
+* Procedure..: BIPVIEW                                                *
+* Command....: VIEW                                                   *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* Dapsco Information Systems                       Enhancements by:   *
+* 3110 Kettering Blvd.                             Dave Leonard Clark *
+* Dayton, OH  45439                                (937)294-5331 x234 *
+*                                                                     *
+* =================================================================== *
+*                                                                     *
+* OVERVIEW:                                                           *
+*                                                                     *
+* Support new parameters to allow  session scrolling not only by COL  *
+* but also by either 'LEFT' or 'RIGHT' or by cursor column position.  *
+* If the cursor is not within the column text, then it is as if       *
+* VIEW -60 or VIEW +60 had been entered, respectively.                *
+*                                                                     *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL,1
+SET PPDLITEX,1
+DCL SCOL,NUM,3,V
+DCL TCOL,NUM,3,V
+ 
+DCL COL,CHAR,5,V
+PARSE COL
+SET PPDCOND,1
+VEXAM COL '\LEFT|RIGHT'
+IF SIBRETCD,EQ,OK
+   GOTO BYCURSOR
+SET PPDCOND,0
+GOTO EXECUTE
+
+LABEL DEFAULT
+IF COL EQ LEFT
+   SET  COL  '-60'
+IF COL EQ RIGHT
+   SET  COL  '+60'
+RETURN
+
+LABEL BYCURSOR
+SET PPDCOND,0
+IF SIBCURLS EQ 0
+   GOSUB -DEFAULT
+IF SIBCURLS EQ 0
+   GOTO EXECUTE
+
+IF SIBCURLS NE &SIBSCRPM
+   <
+IF SIBCURRC LE 0
+   GOSUB -DEFAULT
+IF SIBCURRC LE 0
+   GOTO EXECUTE
+
+SET  SCOL &SSDVBSE&SIBSCRPM
+IFTHEN COL EQ LEFT
+   SET  TCOL &SIBSCRWD
+   IF SSDLCA EQ '0'
+      SUBT TCOL 2
+   IF SSDLCA NE '0'
+      SUBT TCOL 8
+   SUBT TCOL &SIBCURRC
+   SUBT SCOL &TCOL
+ENDIF
+IFTHEN COL EQ RIGHT
+   ADD  SCOL &SIBCURRC
+   SUBT SCOL 1
+ENDIF
+
+SET  COL &SCOL
+IF SCOL LE 0
+   SET  COL  1
+IF SCOL GT 253
+   SET  COL  253
+
+LABEL EXECUTE
+BYPASS
+VIEW &COL
