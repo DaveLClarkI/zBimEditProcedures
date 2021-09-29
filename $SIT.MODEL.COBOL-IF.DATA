@@ -1,0 +1,21 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * a construct for evaluating conditions -- may be nested:
+           IF  condition-1
+         < THEN >
+             { statement-1 | NEXT SENTENCE }
+         < ELSE
+             { statement-2 | NEXT SENTENCE } >
+         < END-IF >
+      *
+      * Note that instead of NEXT SENTENCE, which jumps to the state-
+      * ment after the next period character found, you may mean to
+      * use CONTINUE -- if you intend for control to end up at the
+      * statement following the associated END-IF.
+      *
+

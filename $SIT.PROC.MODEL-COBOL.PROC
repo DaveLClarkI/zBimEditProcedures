@@ -1,0 +1,159 @@
+;"MODEL-COBOL" PROC HANDLES THE "COBOL" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+
+¬PROCESS}(CBL) Stmt     }Conditional Stmts   }Files and Fields     }Math-related
+¬DIVISIONS}& Sections     ¬EVALUATE            ¬SELECT               ¬ADD
+¬SPECIAL}Names            ¬IF                  ¬FD                   ¬COMPUTE
+¬COPY}Statement                                ¬SD                   ¬DIVIDE
+¬DECLARE}(atives)       }Flow-related Stmts    ¬DATANAME             ¬MULTIPLY
+¬FUNCTIONS}(Intrinsic)    ¬CALL                                      ¬SUBTRACT
+                          ¬CANCEL            }Input-Output Stmts
+}General Statements       ¬CONTINUE            ¬ACCEPT             }Sort-related
+  ¬INITIALIZE             ¬ENTRY               ¬DISPLAY              ¬SORT
+  ¬INSPECT                ¬EXIT                ¬OPEN                 ¬MERGE
+  ¬MOVE                   ¬GOTO}(GO TO)        ¬CLOSE                ¬RELEASE
+  ¬SEARCH                 ¬GOBACK              ¬START                ¬RETURN
+  ¬SET                    ¬PERFORM             ¬READ
+  ¬STRING                 ¬STOP                ¬WRITE
+  ¬UNSTRING                                    ¬REWRITE
+                                               ¬DELETE
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,ACCEPT
+   EXIT OK
+IF NAME,EQ,ADD
+   EXIT OK
+IF NAME,EQ,CALL
+   EXIT OK
+IF NAME,EQ,CANCEL
+   EXIT OK
+IF NAME,EQ,CLOSE
+   EXIT OK
+IF NAME,EQ,COMPUTE
+   EXIT OK
+IF NAME,EQ,CONTINUE
+   EXIT OK
+IF NAME,EQ,COPY
+   EXIT OK
+IF NAME,EQ,DECLARE
+   EXIT OK
+IF NAME,EQ,DELETE
+   EXIT OK
+IF NAME,EQ,DISPLAY
+   EXIT OK
+IF NAME,EQ,DIVIDE
+   EXIT OK
+IF NAME,EQ,DIVISIONS
+   EXIT OK
+IF NAME,EQ,ENTRY
+   EXIT OK
+IF NAME,EQ,EVALUATE
+   EXIT OK
+IF NAME,EQ,EXIT
+   EXIT OK
+IF NAME,EQ,FD
+   EXIT OK
+IF NAME,EQ,FUNCTIONS
+   EXIT OK
+IF NAME,EQ,GOBACK
+   EXIT OK
+IF NAME,EQ,GOTO
+   EXIT OK
+IF NAME,EQ,IF
+   EXIT OK
+IF NAME,EQ,INITIALIZE
+   EXIT OK
+IF NAME,EQ,INSPECT
+   EXIT OK
+IF NAME,EQ,MERGE
+   EXIT OK
+IF NAME,EQ,MOVE
+   EXIT OK
+IF NAME,EQ,MULTIPLY
+   EXIT OK
+IF NAME,EQ,OPEN
+   EXIT OK
+IF NAME,EQ,PERFORM
+   EXIT OK
+IF NAME,EQ,PROCESS
+   EXIT OK
+IF NAME,EQ,READ
+   EXIT OK
+IF NAME,EQ,RELEASE
+   EXIT OK
+IF NAME,EQ,RETURN
+   EXIT OK
+IF NAME,EQ,REWRITE
+   EXIT OK
+IF NAME,EQ,SD
+   EXIT OK
+IF NAME,EQ,SEARCH
+   EXIT OK
+IF NAME,EQ,SELECT
+   EXIT OK
+IF NAME,EQ,SET
+   EXIT OK
+IF NAME,EQ,SORT
+   EXIT OK
+IF NAME,EQ,SPECIAL
+   EXIT OK
+IF NAME,EQ,START
+   EXIT OK
+IF NAME,EQ,STOP
+   EXIT OK
+IF NAME,EQ,STRING
+   EXIT OK
+IF NAME,EQ,SUBTRACT
+   EXIT OK
+IF NAME,EQ,UNSTRING
+   EXIT OK
+IF NAME,EQ,WRITE
+   EXIT OK
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME

@@ -1,0 +1,27 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * A serial search from last referenced position:
+         < SET  { identifier-2 | index-name-1 }
+                                       TO 1 >
+           SEARCH identifier-1
+             < VARYING { identifier-2 | index-name-1 } >
+             < <AT> END
+                   imperative-statement-1 ... >
+               WHEN condition-1
+                 { imperative-statement-2 ... | NEXT SENTENCE } ...
+         { END-SEARCH | . }
+      *
+      * A binary search regardless of position:
+           SEARCH ALL identifier-1
+             < <AT> END
+                   imperative-statement-1 ... >
+               WHEN condition-1 ...
+                 { imperative-statement-2 ... | NEXT SENTENCE }
+         { END-SEARCH | . }
+      *
+

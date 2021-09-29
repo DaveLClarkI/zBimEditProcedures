@@ -1,0 +1,28 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+           SELECT < OPTIONAL > file-name-1
+               ASSIGN TO assignment-name-1
+             < ACCESS IS { SEQUENTIAL | RANDOM | DYNAMIC } >
+             < ORGANIZATION IS { SEQUENTIAL | INDEXED | RELATIVE } >
+             < RESERVE integer { AREAS | AREA } >
+             < {RECORD|RELATIVE} KEY IS data-name-2 >
+                       < PASSWORD IS data-name-6 >
+             < ALTERNATE RECORD KEY IS data-name-3 < WITH DUPLICATES >
+                       < PASSWORD IS data-name-7 > ... >
+             < FILE STATUS IS data-name-1 < data-name-8 > > .
+      *
+      * for sort files, work files (or MSAM), and unit-record files:
+               ASSIGN TO SYSnnn-S-label
+      *
+      * for VSAM sequential (ESDS) files:
+               ASSIGN TO AS-label
+      *
+      * for VSAM indexed (KSDS) and relative (RRDS) files:
+               ASSIGN TO label
+      *
+

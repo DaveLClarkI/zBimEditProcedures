@@ -1,0 +1,16 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+      * To move to one or more destinations at the same time:
+           MOVE { identifier-1 | literal-1 }
+                                       TO identifier-2 ...
+      *
+      * To move multiple sources to respective destinations:
+           MOVE CORR<ESPONDING> identifier-1
+                                       TO identifier-2
+      *
+

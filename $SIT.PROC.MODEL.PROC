@@ -53,18 +53,18 @@ MAPF
 
 
 ¬  ASI     }-  ASI's ATTACHE utility command formats
-
-¬  CICS    }-  CICS/DOS/VS "EXEC CICS" statement formats
-
-¬  DLI     }-  CICS/DOS/VS "EXEC DLI" statement formats
-
 ¬  GOAL    }-  GOAL Systems' utility programs and parameter card formats
 
+
+¬  COBOL   }-  COBOL/VSE statement formats
+¬  CICS    }-  CICS/DOS/VS "EXEC CICS" statement formats
+¬  DLI     }-  CICS/DOS/VS "EXEC DLI" statement formats
+
+
 ¬  IDCAMS  }-  VSE/VSAM IDCAMS command formats
-
 ¬  JCL     }-  VSE/SP Job Control Statement formats
-
 ¬  LIBR    }-  VSE/SP Librarian command formats
+
 
 
 
@@ -82,20 +82,20 @@ MAPF
 
 
 ¬  ASI     }-  ASI's ATTACHE utility command formats
-
-¬  CICS    }-  CICS/DOS/VS "EXEC CICS" statement formats
-
-¬  DLI     }-  CICS/DOS/VS "EXEC DLI" statement formats
-
 ¬  GOAL    }-  GOAL Systems' utility programs and parameter card formats
 
+
+¬  COBOL   }-  COBOL/VSE statement formats
+¬  CICS    }-  CICS/DOS/VS "EXEC CICS" statement formats
+¬  DLI     }-  CICS/DOS/VS "EXEC DLI" statement formats
+¬  SYS     }-  CICS/DOS/VS "EXEC CICS" statement formats for Systems' use
+
+
 ¬  IDCAMS  }-  VSE/VSAM IDCAMS command formats
-
 ¬  JCL     }-  VSE/SP Job Control Statement formats
-
 ¬  LIBR    }-  VSE/SP Librarian command formats
 
-¬  SYS     }-  CICS/DOS/VS "EXEC CICS" statement formats for Systems' use
+
 
 
 }Press¬PF3}to terminate the MODEL procedure.
@@ -116,21 +116,25 @@ IF PPDKEY,EQ,PF3
 IF PPDKEY,EQ,PF15
    GOTO EXIT
 
-IF CLASS,EQ,ASI
+IF CLASS,EQ,COBOL
    GOTO MODEL
 IF CLASS,EQ,CICS
    GOTO MODEL
+IF CLASS,EQ,SYS
+   GOTO MODEL
 IF CLASS,EQ,DLI
    GOTO MODEL
-IF CLASS,EQ,GOAL
-   GOTO MODEL
+
 IF CLASS,EQ,IDCAMS
    GOTO MODEL
 IF CLASS,EQ,JCL
    GOTO MODEL
 IF CLASS,EQ,LIBR
    GOTO MODEL
-IF CLASS,EQ,SYS
+
+IF CLASS,EQ,ASI
+   GOTO MODEL
+IF CLASS,EQ,GOAL
    GOTO MODEL
 
 SET MESG 'Class is invalid, select one of the classes shown...'

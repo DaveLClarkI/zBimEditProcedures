@@ -1,0 +1,21 @@
+      * uppercase identifiers and punctuation must be coded as shown.
+      * lowercase identifiers indicate that user text must be coded.
+ < >  * brackets indicate that the enclosed identifiers are optional.
+  |   * a vertical bar separates mutually exclusive alternatives.
+ { }  * braces enclose a set of alternatives, one of which is required.
+ ...  * an elipsis denotes identifier(s) that may be coded repetitively.
+      *
+           REWRITE record-name-1 < FROM identifier-1 >
+             < INVALID <KEY>
+                   imperative-statement-1 ... >
+             < NOT INVALID <KEY>
+                   imperative-statement-2 ... >
+         { END-REWRITE | . }
+      *
+           IF  NOT STAT-NORMAL(fidx)
+               MOVE fidx               TO VSUB
+               MOVE fidx-key           TO VSAM-KEYD(VSUB)
+               PERFORM B90-CHECK-STATUS THRU B95-EXIT-CHECK
+           END-IF
+      *
+
