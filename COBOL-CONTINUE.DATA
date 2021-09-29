@@ -1,8 +1,0 @@
-      *
-      * this is useful as a no-operation placeholder in constructs:
-           CONTINUE
-      *
-      * Note that this differs from NEXT SENTENCE, which jumps to the
-      * statement after the next period character found.
-      *
-
