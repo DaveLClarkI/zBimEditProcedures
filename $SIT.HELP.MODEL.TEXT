@@ -1,27 +1,33 @@
 
-Use MODEL to  insert  a  predefined  function  format immediately following the
-current line in the current session.
+Use MODEL  to  insert  a  predefined  command,  function,  or  statement format
+immediately following the current line in the current session.
 
 -------------------------------------------------------------------------------
 |                             Optional Operands                               |
 |-----------------------------------------------------------------------------|
-| CLASS    | is the model class,  which categorizes the group of formats to   |
-|          | select from.  Currently supported CLASSes are:                   |
+| CLASS    | is the model class.   This  categorizes  a group of formats from |
+|          | which to select.  Currently supported CLASSes are:               |
 |          |                                                                  |
 |          | ASI      - ASI's ATTACHE utility command formats                 |
+|          | GOAL     - GOAL Systems' utility programs and parameter formats  |
+|          |                                                                  |
+|          | COBOL    - COBOL/VSE statement formats                           |
 |          | CICS     - CICS/DOS/VS "EXEC CICS" statement formats             |
 |          | DLI      - CICS/DOS/VS "EXEC DLI" statement formats              |
-|          | GOAL     - GOAL Systems' utility programs and parameter formats  |
+|          | SYS      - CICS/DOS/VS "EXEC CICS" system programmer formats     |
+|          |                                                                  |
 |          | IDCAMS   - VSE/VSAM IDCAMS command formats                       |
 |          | JCL      - VSE/SP Job Control Statement formats                  |
-|          | SYS      - CICS/DOS/VS "EXEC CICS" system programmer formats     |
+|          | LIBR     - VSE/SP Librarian command formats                      |
 |          |                                                                  |
 |-----------------------------------------------------------------------------|
 | NAME     | is the name of the particular format to insert.                  |
 |-----------------------------------------------------------------------------|
-| QUAL1    | qualifies which of multiple formats of the same NAME to insert.  |
+| QUAL1    | qualifies which of multiple possible formats of the same NAME to |
+|          | insert.                                                          |
 |-----------------------------------------------------------------------------|
-| QUAL2    | further qualifies which of multiple formats of the same NAME.    |
+| QUAL2    | further qualifies which of multiple possible formats of the same |
+|          | NAME to insert.                                                  |
 -------------------------------------------------------------------------------
 
 If one or more omitted parameters are required to CLASSify or fully qualify the
