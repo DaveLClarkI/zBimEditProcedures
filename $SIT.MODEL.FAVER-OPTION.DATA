@@ -1,0 +1,68 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+ /* The defaults for the parameters are shown in uppercase:          */
+ /*                                                                  */
+   OPTION {                                                     -
+ /*                                                                  */
+          AIX | no_aix                                          -
+          BASE | no_base                                        -
+          bldix | NO_BLDIX                                      -
+          BLKSIZE=32K | 64K                                     -
+          BUFND=n                                               -
+          BUFNI=n                                               -
+          CATDEF=fromcat,tocat [/password]                      -
+          compress | decompress |NOCOMPRESS                     -
+          convert| NO_CONVERT                                   -
+          DATA | no_data                                        -
+          DEFINE | no_define                                    -
+          DELETE | no_delete                                    -
+          DISK_BUFFERNUMBER=n                                   -
+          DISK_BUFFERSPACE=n                                    -
+          dump | NODUMP                                         -
+          ESTOP=n                                               -
+          EXCP | macro                                          -
+          export_open | EXPORT_CLOSED                           -
+          fax | NOFAX                                           -
+          F2mmm=n | ON | OFF                                    -
+          IDCAMS | no_idcams                                    -
+          LINES_PER_PAGE=n                                      -
+          log | NOLOG                                           -
+          memp | NO_MEMP                                        -
+          NEWPAGE                                               -
+          OPTIONS                                               -
+          PATH | no_path                                        -
+          purge | NO_PURGE                                      -
+          RECLEVEL | cilevel                                    -
+          remp | NO_REM                                         -
+          REPORT = CA-FAVER2                                    -
+          reuse | NO_REUSE                                      -
+          rewind | norewind | REWIND_UNLOAD                     -
+          rver | NO_RVER                                        -
+          SUPPRESS_OUTPUT                                       -
+          TAPE_BUFFERNUMBER=n                                   -
+          TAPE_BUFFERSPACE=n                                    -
+          test | ACTION                                         -
+          uppercase | MIXEDCASE                                 -
+          vsamaid | NO_VSAMAID                                  -
+          xtc | NO_XTC                                          -
+ /*                                                                  */
+ /* The following options refer to how generic filenames are         */
+ /* resolved.  The default is to search all label areas to resolve   */
+ /* generics.  To provide maximum flexibility, use the following     */
+ /* parameters to determine which label areas should be searched.    */
+ /*                                                                  */
+ /* Note: These areas are searched in the order listed below.        */
+ /*                                                                  */
+          PARTITION_TEMPORARY_LABELS                            -
+          | no_partition_temporary_labels                       -
+          PARTITION_STANDARD_LABELS                             -
+          | no_partition_standard_labels                        -
+          SYSTEM_STANDARD_LABELS                                -
+          | no_system_standard_labels                           -
+          }
+ /*                                                                  */

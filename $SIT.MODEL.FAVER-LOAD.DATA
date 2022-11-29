@@ -1,0 +1,29 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+ { LOAD | RESTORE }                                                -
+ /*                                                                  */
+        { DDN(ddname [options]... [EXCEPT ddname...])              -
+        | DDN(ddname [options]... [EXCEPT copy...]) [filters]      -
+        | DSN(original... [EXCEPT ddname...])                      -
+        | DSN(copy [options]... [EXCEPT copy...]) [filters]        -
+        | MCTLIST (ddname [options]... [EXCEPT copy...]) [filters] -
+          [DSN(original... EXCEPT original...)]                    -
+          [VOLUME(volser... EXCEPT volser...)]                     -
+        | POOL(poolid...)                                          -
+          [DSN(original... EXCEPT original...)]                    -
+        | VOLUME(volser... EXCEPT volser...)                       -
+          [DSN(original [options]... EXCEPT original...)]          -
+        } [BUFSP=n BUFNO=n BUFND=n BUFNI=n] [STARTNAME=copy]
+
+ Where options = [RECFM=r LRECL=n BLKSZ=n TO_DDN(ddname)
+                  CLUSTER(idcams) DATA(idcams) INDEX(idcams)
+                  OBJECT(idcams) AIX(idcams) CATALOG(catname)
+                  DEFINED REUSE DDNAME= UEXIT= ]
+       filters = [CATALOG(catname... [EXCEPT catname...])
+                  VOLUME(volser... [EXCEPT volser...]) ]
+ /*                                                                  */

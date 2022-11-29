@@ -53,6 +53,7 @@ MAPF
 
 
 ¬  ASI     }-  ASI's ATTACHE utility command formats
+¬  FAVER   }-  CA-FAVER2 utility command formats
 ¬  GOAL    }-  GOAL Systems' utility programs and parameter card formats
 
 
@@ -64,7 +65,6 @@ MAPF
 ¬  IDCAMS  }-  VSE/VSAM IDCAMS command formats
 ¬  JCL     }-  VSE/SP Job Control Statement formats
 ¬  LIBR    }-  VSE/SP Librarian command formats
-
 
 
 
@@ -82,6 +82,7 @@ MAPF
 
 
 ¬  ASI     }-  ASI's ATTACHE utility command formats
+¬  FAVER   }-  CA-FAVER2 utility command formats
 ¬  GOAL    }-  GOAL Systems' utility programs and parameter card formats
 
 
@@ -94,7 +95,6 @@ MAPF
 ¬  IDCAMS  }-  VSE/VSAM IDCAMS command formats
 ¬  JCL     }-  VSE/SP Job Control Statement formats
 ¬  LIBR    }-  VSE/SP Librarian command formats
-
 
 
 
@@ -133,6 +133,8 @@ IF CLASS,EQ,LIBR
    GOTO MODEL
 
 IF CLASS,EQ,ASI
+   GOTO MODEL
+IF CLASS,EQ,FAVER
    GOTO MODEL
 IF CLASS,EQ,GOAL
    GOTO MODEL

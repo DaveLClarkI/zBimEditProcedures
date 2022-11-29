@@ -1,0 +1,26 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+ { STORE | BACKUP | EXPORT }                                    -
+ /*                                                                  */
+        { CATALOG(catname [/password])                          -
+          [DSN(original... EXCEPT original...)]                 -
+          [VOLUME(volser... EXCEPT volser...)]                  -
+        | CATDD(catdd [/password])                              -
+          [DSN(original... EXCEPT original...)]                 -
+          [VOLUME(volser... EXCEPT volser...)]                  -
+        | DDN(ddname [options]... [EXCEPT ddname...])           -
+        | DSN(original... [EXCEPT ddname...])                   -
+        | POOL(poolid...)                                       -
+          [DSN(original... EXCEPT original...)]                 -
+        | VOLUME(volser... EXCEPT volser...)                    -
+          [DSN(original [options]... EXCEPT original...)]       -
+        } [BUFSP=n BUFNO=n BUFND=n BUFNI=n]
+
+ Where options = [RECFM=r LRECL=n BLKSZ=n]
+                        r = record format (F, FB, V, VB, VBS, or U)
+ /*                                                                  */

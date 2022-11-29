@@ -1,0 +1,13 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+   DELETE                                                       -
+ /*                                                                  */
+        { DSN(original) VOLUME(volser) [FORCE]                  -
+        | IDCAMS_DELETE                                         -
+        }
+ /*                                                                  */

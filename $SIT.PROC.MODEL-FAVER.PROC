@@ -1,0 +1,97 @@
+;"MODEL-FAVER" PROC HANDLES THE "FAVER" CLASS OF MODELS
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+;*  No warranty is expressed or implied.     Written by Dave L Clark *
+;*  Neither the author nor the company is    Clarke Industries, Inc. *
+;*  responsible for any loss or damage       2100 Highway 265        *
+;*  resulting from the use of this code.     Springdale, AR  72764   *
+;*  Source is provided on an as-is basis.    Phone (501)750-8248     *
+;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+SET PPDVBL 1
+SET PPDSCRSZ D
+
+IF NAME,NE,''
+   GOTO CHECK
+;
+;                  Process NAME options
+;
+LABEL NAME
+SET QUAL1 ''
+SET QUAL2 ''
+MAPF
+}MODEL                       ¬Model NAME Options                       }&OPSDATE
+                                                                       }&OPSTIME
+}CLASS ===>¬&CLASS
+¬NAME  ===>!NAME      }
+                                      ¬FAVER2  }- Sample FAVER2 job step
+
+¬  OPTION   }-  Set processing options
+¬  OPEN     }-  Open a COPY file
+¬  CLOSE    }-  Close a COPY file
+
+¬  COPY     }-  Copy a file
+¬  COMPARE  }-  Compare copies in the COPY file to originals on disk
+¬  FCOMPARE }-  Compare files on a record-to-record basis
+¬  MOVE     }-  Move a file
+¬  LOAD     }-  Restore original disk data set(s) from the COPY file
+¬  STORE    }-  Back up original disk data set(s) to the COPY file
+
+¬  DELETE   }-  Delete a disk file
+¬  MAP      }-  Reports the contents of a CA-FAVER2 backup file
+¬  PRINT    }-  Print a file in a variety of report formats
+¬  REORG    }-  Reorganize VSAM clusters
+
+}Press¬PF3}to return to the previous panel.
+¬&MESG
+++/*
+
+SET PPDALARM 0
+SET MESG ''
+
+IF PPDKEY,EQ,PF4
+   EXIT OK,'P4'
+IF PPDKEY,EQ,PF16
+   EXIT OK,'P4'
+
+IF PPDKEY,EQ,PF3
+   SET CLASS ''
+IF PPDKEY,EQ,PF3
+   EXIT OK,'P3'
+IF PPDKEY,EQ,PF15
+   SET CLASS ''
+IF PPDKEY,EQ,PF15
+   EXIT OK,'P3'
+
+LABEL CHECK
+
+IF NAME,EQ,FAVER2
+   EXIT OK
+IF NAME,EQ,OPTION
+   EXIT OK
+IF NAME,EQ,OPEN
+   EXIT OK
+IF NAME,EQ,CLOSE
+   EXIT OK
+IF NAME,EQ,COPY
+   EXIT OK
+IF NAME,EQ,COMPARE
+   EXIT OK
+IF NAME,EQ,FCOMPARE
+   EXIT OK
+IF NAME,EQ,MOVE
+   EXIT OK
+IF NAME,EQ,LOAD
+   EXIT OK
+IF NAME,EQ,STORE
+   EXIT OK
+IF NAME,EQ,DELETE
+   EXIT OK
+IF NAME,EQ,MAP
+   EXIT OK
+IF NAME,EQ,PRINT
+   EXIT OK
+IF NAME,EQ,REORG
+   EXIT OK
+
+SET MESG 'Name is invalid, select one of the names shown...'
+SET PPDALARM 1
+GOTO -NAME

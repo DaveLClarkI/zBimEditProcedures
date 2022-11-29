@@ -1,0 +1,17 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+   PRINT                                                        -
+ /*                                                                  */
+        { DSN(original) CATALOG(catname)                        -
+        | DSN(original options) VOLUME(volser)                  -
+        | DDN(ddname options)                                   -
+        } [COUNT(n) SKIP(n) {DUMP|MIXED|BOTH}]                  -
+
+ Where options = [RECFM=r LRECL=n BLKSZ=n]
+                        r = record format (F, FB, V, VB, or U)
+ /*                                                                  */

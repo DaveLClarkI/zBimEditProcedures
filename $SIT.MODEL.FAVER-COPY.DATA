@@ -1,0 +1,50 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+   COPY                                                          -
+ /*                                                                  */
+ /* VSAM to VSAM                                                     */
+        { CATALOG(catname [/password]) DSN(original overrides... -
+          [EXCEPT original...]) [VOLUME(volser... [EXCEPT volser...])]
+        | CATDD(catdd [/password]) DSN(original overrides...     -
+          [EXCEPT original...]) [VOLUME(volser... [EXCEPT volser...])]
+        | DDN(ddname overrides...) [TO_DDN(ddname*)]             -
+        } [buffers]
+ /*                                                                  */
+ /* VSAM to non-VSAM                                                 */
+        { CATALOG(catname [/password]) DSN(original [options])   -
+        | CATDD(catdd [/password]) DSN(original [options])       -
+        | DDN(ddname [options])                                  -
+        } TO_DDN(ddname) [buffers]
+ /*                                                                  */
+ /* non-VSAM to non-VSAM                                             */
+        { DSN(original [options]) VOLUME(volser)                 -
+        | DDN(ddname [options])                                  -
+        } TO_DDN(ddname) [buffers]
+ /*                                                                  */
+ /* non-VSAM to VSAM                                                 */
+        { DSN(original [options]) VOLUME(volser)                 -
+        | DDN(ddname [options])                                  -
+        } TO_DDN(ddname*) [buffers]
+
+
+ where overrides = [CLUSTER(idcams) DATA(idcams)
+                    INDEX(idcams) CATALOG(catname)]
+         buffers = [BUFNI=n BUFND=n BUFSP=n]
+
+         options = [RECFM=r LRECL=n BLKSZ=n]
+                          r = record format (F, FB, V, VB, VBS, or U)
+ /* non-VSAM to VSAM                                                 */
+         options = [RECFM=vxx LRECL=n BLKSZ=n]
+                          v = target file's type (K for KSDS,
+                                                  R for RRDS,
+                                              and E for ESDS)
+                           xx = source file's record format
+                                  (F, FB, V, VB, or U)
+
+ * points to a DLBL of type ,,VSAM.
+ /*                                                                  */

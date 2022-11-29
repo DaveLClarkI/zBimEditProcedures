@@ -1,0 +1,34 @@
+ /* uppercase identifiers and punctuation must be coded as shown.    */
+ /* lowercase identifiers indicate that user replacement is needed.  */
+ /* [ ] are used to indicate the enclosed identifiers are optional.  */
+ /*  |  is used to separate mutually exclusive alternatives.         */
+ /* { } encloses a set of alternatives, one of which must be coded.  */
+ /* ... denotes the preceding identifier(s) may be repeated.         */
+ /*                                                                  */
+   FCOMPARE                                                     -
+ /*                                                                  */
+ /* Any to any                                                       */
+        { DDN(ddname options) TO DDN(ddname options)
+ /*                                                                  */
+ /* VSAM to VSAM                                                     */
+        | DSN(original) CAT(catname) TO DSN(original) CAT(catname)
+ /*                                                                  */
+ /* VSAM to non-VSAM                                                 */
+        | DSN(original) CAT(catname) TO DSN(original options)   -
+            VOLUME(volser)
+ /*                                                                  */
+ /* non-VSAM to non-VSAM                                             */
+        | DSN(original options) VOLUME(volser) TO               -
+          DSN(original options) VOLUME(volser)
+ /*                                                                  */
+ /* Copy to VSAM                                                     */
+        | COPY(copy) TO DSN(original) CAT(catname)
+ /*                                                                  */
+ /* Copy to non-VSAM                                                 */
+        | COPY(copy) TO DSN(original options) VOLUME(volser)
+
+        }
+
+ Where options = [RECFM=r LRECL=n BLKSZ=n]
+                        r = record format (F, FB, V, VB, VBS, or U)
+ /*                                                                  */
